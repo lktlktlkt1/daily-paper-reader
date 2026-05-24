@@ -4260,6 +4260,7 @@ article.markdown-section {
 }
 
 .dpr-chat-send-btn.dpr-btn-loading {
+  position: absolute;
   color: #2f5f9f !important;
   background: #eef6ff !important;
   border-color: #bdd7f6 !important;
@@ -4370,6 +4371,7 @@ article.markdown-section {
   max-height: 186px;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 3px 2px 5px;
 }
 
 .dpr-chat-slot-area.draft-only {
