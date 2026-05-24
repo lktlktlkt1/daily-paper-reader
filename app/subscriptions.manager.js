@@ -1190,7 +1190,6 @@ window.SubscriptionsManager = (function () {
                 <div class="dpr-input-card">
                   <div class="dpr-inline-row">
                     <button id="dpr-sq-open-chat-btn" class="arxiv-tool-btn" style="background:#2e7d32; color:#fff;">新增</button>
-                    <button id="dpr-sq-open-temp-btn" class="arxiv-tool-btn dpr-temp-add-btn" type="button">新增仅会议</button>
                   </div>
                 </div>
               </div>
@@ -1319,7 +1318,6 @@ window.SubscriptionsManager = (function () {
       window.SubscriptionsSmartQuery.attach({
         displayListEl: document.getElementById('dpr-sq-display'),
         openChatBtn: document.getElementById('dpr-sq-open-chat-btn'),
-        openTemporaryBtn: document.getElementById('dpr-sq-open-temp-btn'),
         msgEl,
         reloadAll,
       });
