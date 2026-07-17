@@ -1,0 +1,1169 @@
+Title: GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes
+
+URL Source: https://arxiv.org/pdf/2607.12717v1
+
+Published Time: Wed, 15 Jul 2026 12:03:16 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes 
+
+# Daomin Ji 
+
+daomin.ji@student.rmit.edu.au RMIT University Melbourne, Australia 
+
+# Hui Luo 
+
+huil@uow.edu.au University of Wollongong Wollongong, Australia 
+
+# Zhifeng Bao 
+
+zhifeng.bao@uq.edu.au The University of Queensland Brisbane, Australia 
+
+# Shane Culpepper 
+
+s.culpepper@uq.edu.au The University of Queensland Brisbane, Australia 
+
+# Shazia Sadiq 
+
+shazia@eecs.uq.edu.au The University of Queensland Brisbane, Australia 
+
+## ABSTRACT 
+
+Autonomous data agents resolve analytical queries by retrieving and reasoning over evidence in tabular data lakes. Existing meth-ods score tables independently against the query and ignore the joinability and unionability that link them, returning fragmented evidence that downstream agents cannot integrate. We propose 
+
+GRAFT (Graph-matched Retrieval and Fusion of Tables), struc-tured around two principal contributions. First, we cast table re-trieval as a graph matching problem between a query-derived intent graph and a heterogeneous data lake graph, and introduce IGMS, a log-determinant reward that couples semantic relevance, structural compatibility, and evidence diversity in a single objective. Second, we recast subgraph generation as a Markov decision process and learn a value function via implicit Q-learning on self-generated trajectories produced by a canonical compression operator that inverts the homomorphism. We further design a three-stage online pipeline that exploits anchor reachability, predicate admissibility, and reward monotonicity to greatly prune the candidate space be-fore exact IGMS evaluation. On Spider and BIRD adapted to the tabular data lake setting, GRAFT achieves the best Recall, Preci-sion, F1, and Sufficiency among point-wise, greedy-expansion, and structure-aware baselines, with relative gains of 7.8% in F1 and 
+
+10 .6% in Sufficiency over the strongest baseline, while maintaining high search efficiency. 
+
+## KEYWORDS 
+
+table retrieval, data lakes, data discovery, graph matching, offline reinforcement learning 
+
+ACM Reference Format: 
+
+Daomin Ji, Hui Luo, Zhifeng Bao, Shane Culpepper, and Shazia Sadiq. 2026. GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes. In 
+
+Proceedings of ACM Conference (Conference’17). ACM, New York, NY, USA, 14 pages. https://doi.org/10.1145/nnnnnnn.nnnnnnn  
+
+> Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> Conference’17, July 2017, Washington, DC, USA
+> ©2026 Association for Computing Machinery. ACM ISBN 978-x-xxxx-xxxx-x/YY/MM. . . $15.00 https://doi.org/10.1145/nnnnnnn.nnnnnnn
+
+## 1 INTRODUCTION 
+
+Autonomous data agents [ 38 , 55 ] powered by large language models (LLMs) have shown strong proficiency in automating data-centric tasks such as question answering [ 21 , 27 , 37 , 48 , 52 ], fact check-ing [ 39 ], code generation [ 4, 47 ], and mathematical reasoning [ 6 , 28 ]. To resolve a natural language query, these agents first retrieve rel-evant information from heterogeneous sources and then reason over it [ 20 , 41 , 46 , 49 ]. Consequently, the quality of downstream reasoning hinges directly on the relevance and completeness of the retrieved content [21, 27]. While retrieval over unstructured data such as text and images has been extensively studied [ 19 , 21 , 24 , 35 ], retrieval over tabu-lar data lakes [ 13 , 42 ], i.e., large repositories of structured tables aggregated from heterogeneous sources, remains comparatively underdeveloped. Retrieval over tabular data lakes exhibits two defin-ing characteristics that distinguish it from retrieval over text or image corpora. First, tables within a data lake are typically frag-mented across heterogeneous sources, and independent retrieval over them yields disconnected candidates that cannot be integrated into a single answer. Resolving a query therefore requires identi-fying multiple tables linked through joinability and unionability and synthesizing them into a coherent integrated table, rather than returning isolated candidates. For example, the query in Fig. 1 re-quires joining the instructor records (in 𝑇 2, 𝑇 3) to their department names (in 𝑇 5) through the (instructor, department) bridge table 
+
+𝑇 4. Without 𝑇 4, no other combination of retrieved tables can re-construct the join path needed to filter on the Computer Science department, regardless of how many candidate tables are returned. Second, queries over tabular data are predominantly analytical and frequently involve aggregation operations such as SUM, COUNT, and AVG, whose correctness depends on the completeness of the supporting evidence rather than on the relevance of any single table. The retrieved set must therefore exhibit diversity , contribut-ing complementary attributes and instances that jointly cover the analytical population while suppressing redundant evidence units that project to the same underlying content. For example, 𝑇 2 and 
+
+𝑇 3 in Fig. 1 are unionable tables that record instructors of different roles (Professors in 𝑇 2; Lecturers and Assistant Professors in 𝑇 3) at the same set of universities. Retrieving only one of the two under-counts the Computer Science instructors at every university and distorts the COUNT aggregation. Both tables are required, and a arXiv:2607.12717v1 [cs.DB] 14 Jul 2026 Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+retriever that treats them as near-duplicate evidence systematically biases the analytical answer. Thus, we study the problem Structure-aware Table Retrieval :given a natural language query and a tabular data lake, the goal is to identify a set of interconnected tables, structurally linked through joinability and unionability, that collectively satisfy the user’s intent. The structure-aware table retrieval task raises two core challenges: (1) Unified utility design. As discussed above, retrieval over tabular data lakes introduces desiderata beyond sur-face relevance, requiring a utility that couples three signals in a single objective: semantic relevance between the query and individ-ual evidence units, structural compatibility between the relations implied by the query and executable join or union paths in the lake, and evidence diversity that suppresses redundancy among se-lected units. (2) Combinatorial search space. The search space grows exponentially in the number of tables. In a data lake of 𝑀 
+
+tables with average degree 𝑁 in the graph induced by joinability and unionability, retrieving a collection of 𝐿 interconnected tables admits on the order of O( 𝑀 · 𝑁 𝐿 −1) candidates, which precludes exhaustive enumeration. Existing methods fall short of jointly meeting these requirements. 
+
+Point-wise retrieval methods [13 , 43 ] scores each table against the query and returns a top-𝑘 list, yielding candidates that are indi-vidually relevant yet structurally disconnected and frequently re-dundant. Greedy expansion methods [45 ] extends the selection by appending the table most relevant to either the query or the most recently selected table, but relevance to either anchor does not assure structural compatibility. Recently, JAR [ 5] makes the first attempt to retrieve structurally compatible tables by reformulating retrieval as a mixed-integer program (MIP) over the joinable tables. However, JAR adopts a simple linear combination of relevance and joinability that neglects diversity aspect, and the NP-hardness of the MIP formulation causes the approach to scale poorly with lake size. To address these challenges, we propose GRAFT (Graph-matched Retrieval and Fusion of Tables), which formulates structure-aware table retrieval as a graph-matching problem between two typed graphs: an intent graph G𝐼 distilled from the natural-language query, encoding the entities, attributes, and structural relations the user wants integrated, and a data lake graph 
+
+GD encoding schema containment together with joinability and unionability across tables. Then, the problem reduces to extracting a connected subgraph of GD that admits a typed homomorphism from G𝐼 . To address (C1), inspired by mutual-information objec-tives in Gaussian-process information gain [ 26 ], we propose the 
+
+Information-theoretic Graph Matching Score (IGMS). To address (C2), we cast subgraph generation as a Markov decision process, learn a value function via implicit Q-learning [ 25 ] on self-generated trajectories, and apply three pruning stages that exploit anchor reachability, predicate admissibility, and reward monotonicity, reducing the candidate set from O( 𝑀 · 𝑁 𝐿 −1) to a shortlist of size 
+
+O( 𝐵𝐿 ) on which exact IGMS is evaluated. In summary, our contributions are as follows. 
+
+• We recast structure-aware table retrieval as graph-matching be-tween a query-derived intent graph and a data-lake graph, and introduce IGMS, a log-determinant reward that couples semantic relevance, structural compatibility, and evidence diversity in a single objective . 
+
+• We learn a value function over the MDP via offline implicit Q-learning [ 25 ] on self-generated trajectories, and design a three-stage pruning pipeline to achieve search efficiency. 
+
+• We empirically validate GRAFT on Spider and BIRD adapted to the tabular data lake setting, where it outperforms point-wise, greedy-expansion, and structure-aware baselines on every re-trieval metric, with relative gains of 7.8% in F1 and 10 .6% in Sufficiency over the strongest baseline, at latency on par with greedy-expansion methods. 
+
+## 2 BACKGROUND 
+
+Table retrieval has been studied for decades across machine learning, databases, and information retrieval. At an abstract level, given a tabular corpus D = {𝑇 1, . . . ,𝑇 𝑀 } and a query 𝑄 , a retrieval system returns a subset D′ ⊆ D of size at most 𝐿 that maximizes a query-conditional relevance score, 
+
+D★ = arg max    
+
+> D′⊆ D ,| D ′| ≤ 𝐿
+
+∑︁ 𝑇 ∈ D ′
+
+𝑟 (𝑇 | 𝑄 ). (1) The formulation of the query 𝑄 and the relevance scoring func-tion 𝑟 inherently depend on the modality used to express the user’s information need. Traditional retrieval paradigms have pri-marily relied on modalities such as keywords [ 3, 11 , 54 ], base ta-bles [ 2, 8 , 9, 23 , 33 , 36 , 53 ], and images [ 17 , 18 ]. More recently, however, the proliferation of large language models has established natural language (NL) as the dominant query modality. Unlike structural or artifact-based inputs, NL empowers users to flexibly articulate complex, multi-faceted information needs without neces-sitating prior knowledge of the underlying schema or the provision of a seed artifact. In this paper, we mainly focus on natural-language (NL)-driven retrieval over tabular data lakes , e.g.,large repositories of hetero-geneous tables harvested from sources such as open data portals, enterprise warehouses, and web crawls. Unlike relational databases, tabular data lakes lack a global schema and rarely provide explicit inter-table relationships. We organize prior work along two re-trieval strategies, characterized by how the output D′ is constructed from D, and then contrast both with the formulation we adopt for Structure-aware Table Retrieval. 
+
+Point-wise Retrieval. The dominant strategy scores each table independently against the query and returns the top-𝐿 candidates, 
+
+D′ = Top 𝐿 
+
+ 𝑟 (𝑇 | 𝑠 ) : 𝑇 ∈ D (2) The score 𝑟 takes different forms across methods. Learned table-text encoders such as TaPas [ 15 ], TaBERT [ 50 ], and Solo [ 42 ] em-bed tables and queries into a shared latent space and instantiate 
+
+𝑟 (𝑇 | 𝑠 ) = ⟨𝜙 (𝑇 ), 𝜓 (𝑠 )⟩ , where 𝜙 and 𝜓 are learned table and query encoders respectively. LLM-judged hybrid pipelines [ 1] instead ag-gregate lexical, semantic, and reasoning signals through a prompted scorer 𝑟 (𝑇 | 𝑠 ) = 𝑔  𝑟 lex , 𝑟 sem , 𝑟 llm 
+
+, where 𝑔 is an LLM-induced fusion function. All such point-wise methods share a structural limitation: each table is scored in isolation, so when the answer is distributed across several tables no individual 𝑟 (𝑇 | 𝑠 ) is large, and the relational operations required to integrate the retrieved tables are not produced as part of the output. GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes Conference’17, July 2017, Washington, DC, USA UnivID UniversityName State                                        
+
+> U001 MIT Massachusetts
+> U002 Stanford University California
+> U003 Carnegie Mellon Univ. Pennsylvania
+> U004 UC Berkeley California
+> SchoolCode EmployeeID Position
+> U001 I110 Lecturer
+> U002 I102 Lecturer
+> U003 I103 Senior Lecturer
+> U004 I109 Assistant Professor
+> UnivID InstructorID Role
+> U001 I101 Professor
+> U001 I105 Professor
+> U004 I106 Professor
+> InstructorID InstructorName DepartmentID
+> I101 Alice Chen D01
+> I102 Bob Smith D02
+> I103 Carol Davis D01
+> I105 Dan Lee D01
+> DepartmentID DepartmentName
+> D01 Computer Science
+> D02 Mathematics
+
+NL Query : List the top 3 universities by 
+
+the number of Computer Science 
+
+instructors they employ, along with 
+
+their state .
+
+# T1 T2 
+
+# T3 T4 
+
+# T5 
+
+Figure 1: A motivating example of composition-guided table retrieval, where dashed lines denote unionability and solid lines denote joinability. The retrieved tables can jointly answer the query via 𝑇 1 ⊲⊳ (𝑇 2 ∪ 𝑇 3) ⊲⊳ 𝑇 4 ⊲⊳ 𝑇 5. Note that schemas (e.g., column names) of tables in the data lake may not be aligned. 
+
+Greedy Expansion. More recent methods [ 45 ] acknowledge that a query may require several tables to answer jointly, in the manner of multi-hop reasoning. They therefore adopt an iterative process that, at each step 𝑡 , appends the table most relevant to the query or to the most recently selected table: 
+
+𝑇 𝑡 +1 = arg max  
+
+> 𝑇 ∈ D\S 𝑡
+
+𝑟  𝑇 | 𝑠,𝑇 𝑡 
+
+, S𝑡 +1 = S𝑡 ∪ { 𝑇 𝑡 +1 } (3) where S𝑡 is the selection after 𝑡 steps and 𝑇 𝑡 is the most recently appended table. However, relevance to either anchor does not im-ply that the selected tables can be joined or unioned. The retrieved sequence therefore still suffers from structurally disconnected can-didates that cannot be integrated into a coherent answer in practice. 
+
+Structure-aware Table Retrieval. Beyond point-wise retrieval (Eq. 2) and greedy iterative expansion (Eq. 3), the recent JAR [ 5]makes the first attempt to retrieve structurally compatible tables by reformulating the task as a mixed-integer program (MIP) over joinable tables; however, its linear combination of relevance and joinability overlooks diversity, and the NP-hardness of the MIP formulation causes the approach to scale poorly with lake size. In contrast, we aim to retrieve a set of tables interconnected through join and union operations that jointly fulfill the user’s information need expressed in 𝑄 . We formulate this as 
+
+ D′★, Φ★ = arg max      
+
+> D′⊆ D ,| D ′| ≤ 𝐿, Φ∈ F ( D ′)
+
+𝑈  𝑄, D′, Φ (4) where F (D ′) denotes the space of valid join-union operator se-quences that integrate D′ into a single, coherent, and non-empty 
+
+table. 
+
+## 3 INFORMATION-THEORETIC GRAPH MATCHING METRIC 3.1 Table Retrieval As a Graph Matching Problem 
+
+Data-lake graph. We model the data lake as a heterogeneous graph GD = (V , E) comprising three node types and two edge types. The node types are tables , columns , and values (one node Universit y
+
+Name Stat e
+
+Instructor 
+
+Department 
+
+Computer Science 
+
+Entity 
+
+Attribute 
+
+Value 
+
+Figure 2: Intent graph G𝐼 for the running query in Fig. 1: a forest of two intent trees connected by a cross-tree edge. 
+
+per cell). Containment edges link each table to its columns and each column to its value nodes, while structural edges encode join 
+
+and union relations between tables and are derived using existing joinability and unionability metrics [8, 23]. 
+
+Intent graph. Different from existing table retrieval methods that decompose queries into a flat set of atoms [ 5 , 45 ], we model the user’s intent as a typed graph G𝐼 structured as a forest of intent trees connected by cross-tree edges. Each intent tree corresponds to one coherent data need and follows a three-level hierarchy: the root specifies the target entity , its children enumerate the required 
+
+attributes , and each attribute may carry a value leaf. The graph encodes two types of structural relationship implicitly. Within a single intent tree, the underlying data need may be vertically frag-mented across multiple tables in the tabular data lake, which must be combined by union . Across distinct intent trees, the correspond-ing data needs must be combined by join , often through bridge tables that the user does not name in the query but that the data lake must supply for the join to execute. For example, the query in Fig. 1 induces the two-tree intent graph shown in Fig. 2: a University 
+
+tree with attributes Name and State, an Instructor tree whose Department attribute carries the value leaf Computer Science, and a cross-tree edge encoding the employment relation between the two entities. We obtain G𝐼 from the natural-language query 𝑠 by prompting an LLM to emit the intent graph as a JSON object conforming to a fixed schema. The prompt specifies the schema (typed nodes, edges, and Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+edge labels) and is organized into four blocks: a task description, the JSON output schema, a small set of constraints, and three in-context examples chosen to exercise (i) a single intent tree with a value constraint, (ii) a two-tree extraction with a cross-tree join, and (iii) a three-tree extraction in which a bridge entity unmentioned in the query is required to connect two named entities. The full prompt, schema, and demonstrations are provided in Appendix A. 
+
+Problem reformulation. The intent graph G𝐼 specifies, at the schema level, what any valid integrated table must witness: each node fixes a type-tier element that the result must contain, and each edge fixes a structural dependency that the result must realize. Each edge type 𝑟 in G𝐼 is paired with a fixed compatibility predicate 𝜒 𝑟 
+
+that enumerates the typed paths in GD realizing 𝑟 : column-of-table containment paths for intra-tree hierarchical edges, and joinable structural paths for cross-tree join edges. Union is not encoded as a separate edge type. Instead, a single intent tree may be witnessed by a union of unionable lake tables, with the union resolved at the homomorphism level rather than through an explicit edge predicate. A Φ is therefore valid precisely when its induced subgraph 𝐻 Φ ⊆GD admits a homomorphism from G𝐼 in which every intent edge maps to a 𝜒 𝑟 -compatible path and every intent tree maps to a connected, possibly unioned, lake-table cluster. Writing A𝐼 = 𝑉 𝐼 ∪
+
+𝐸 𝐼 for the set of intent atoms (𝑎 := |A 𝐼 |), we cast retrieval as the constrained matching 
+
+Φ★ = arg max 
+
+> Φ
+
+U  𝐻 Φ; G𝐼 
+
+ s.t. |𝑉 𝑇 (𝐻 Φ)| ≤ 𝐿. (5) The matching is a quotient rather than a subgraph isomorphism: a single intent edge may abstract a multi-hop path in GD (e.g., the cross-tree edge in Fig. 2 is realized by 𝑇 1 ⊲⊳ (𝑇 2 ∪ 𝑇 3) in Fig. 1), and a single intent tree may be witnessed by a union of lake tables (e.g., the Instructor tree by 𝑇 2 ∪ 𝑇 3). Multiple physical units may therefore collectively witness one intent atom. 
+
+## 3.2 From Desiderata to the Unified IGMS Metric 
+
+As motivated in Sec. 1, the metric must score 𝐻 Φ along three cou-pled desiderata, organized from per-atom support to set-level re-dundancy. (1) Semantic relevance. Each intent atom is supported by an evidence unit whose semantics match it, not merely its type. (2) Structural compatibility. Each intent edge is realized by a typed path in 𝐻 Φ satisfying 𝜒 𝑟 , not by two co-relevant tables. (3) Diver-sity. Distinct evidence units contribute non-overlapping column support, avoiding redundant projections that would double-count in 𝑇 Φ.
+
+From desiderata to objective. We translate the three desider-ata into a single objective in which each component corresponds directly to one of them. We summarize semantic relevance and structural compatibility in an evidence-by-atom support matrix 
+
+𝑀 Φ ∈ R𝑞 ×𝑎 , where 𝑞 is the number of evidence units extracted from 
+
+𝐻 Φ (graph-level objects: tables, columns, value summaries, paths, union components) and 𝑎 = |A 𝐼 |. For an intent node 𝑢 , the entry is 
+
+𝑀 Φ [𝑖, 𝑢 ] = max 𝑥 ∈ N ( 𝑧 𝑖 ) 𝜓 (𝑢, 𝑥 ), where the relevance score 𝜓 (𝑢, 𝑥 ) =
+
+⊮[𝜏 𝐼 (𝑢 ) ∼ 𝜏 D (𝑥 )] · 𝜎  𝛽 cos (emb (𝑢 ), emb (𝑥 ))  fuses temperature-scaled cosine similarity with a fixed type-compatibility gate. For an intent edge 𝑒 = (𝑢, 𝑟, 𝑣 ), the entry is 𝑀 Φ [𝑖, 𝑒 ] = max 𝑝 𝜓 path (𝑒, 𝑝 ),where the maximum is taken over 𝜒 𝑟 -compatible paths 𝑝 ∈ P 𝐾,ℎ 𝑢,𝑣 
+
+associated with 𝑧 𝑖 and 𝜓 path (𝑒, 𝑝 ) = 𝜓 (𝑢, 𝑥 0) ·  Î 𝑔 ∈𝑝 𝜔 D (𝑔 )1/| 𝑝 | ·
+
+𝜓 (𝑣, 𝑥 |𝑝 | ) combines the endpoint match scores with the geometric mean of edge-confidence weights along the path. Diversity is en-coded in an evidence-by-evidence covariance matrix 𝐶 Φ ∈ R𝑞 ×𝑞 
+
+that captures redundancy among evidence units via column-set Jaccard similarity: 𝐶 Φ [𝑖, 𝑗 ] = ColJac (𝑧 𝑖 , 𝑧 𝑗 ) + 𝜎 20 ⊮[𝑖 = 𝑗 ], with 
+
+𝜎 20 > 0 a small jitter constant ensuring 𝐶 Φ ≻ 0. The support ma-trix and covariance are coupled into a single reward through the log-determinant of the resulting information matrix: 
+
+UIGMS (𝑄, Φ) = 1
+
+𝑎 log det  𝐼 𝑎 + 𝑀 ⊤ 
+
+> Φ
+
+𝐶 −1 
+
+> Φ
+
+𝑀 Φ
+
+ (6) 
+
+Information-theoretic interpretation. Eq. (6) is, up to a mul-tiplicative constant, the mutual information between a Gaussian latent representation of the intent and a noisy linear observation through the retrieved evidence. Place a prior 𝜃 ∼ N ( 0, 𝐼 𝑎 ) over an intent-atom support latent, and treat each evidence unit as a noisy observation 𝑦 𝑖 = 𝑀 Φ [𝑖, ·] 𝜃 + 𝜖 𝑖 with 𝜖 ∼ N ( 0, 𝐶 Φ). Standard Gaussian-channel calculus gives 𝐼 (𝜃 ; 𝑦 ) = 12 log det (𝐼 𝑎 +𝑀 ⊤ 
+
+> Φ
+
+𝐶 −1 
+
+> Φ
+
+𝑀 Φ),which equals UIGMS up to constant rescaling. The same expression is the objective of Bayesian D-optimal experimental design and Gaussian-process information gain [ 26 ], where it selects maximally-informative observation sets under correlated noise. Under this reading, 𝑀 Φ specifies how strongly each evidence unit observes each intent atom (semantic relevance and structural compatibility), 
+
+𝐶 Φ is the noise covariance whose inversion down-weights observa-tions whose noise is correlated (diversity), and the log-determinant is the entropy reduction that the retrieved evidence achieves about the intent. IGMS is therefore not a heuristic combination of three signals but a principled information-gain metric. The IGMS reward in Eq. (6) is monotone, submodular, and redundancy-suppressing in the set of evidence units, which yields a (1 − 1/𝑒 )-approximation guarantee for greedy selection under the cardinality constraint |𝑉 𝑇 (𝐻 Φ)| ≤ 𝐿 [34 ] and is the formal basis of the value-guided beam search in Sec. 4.2. Formal statements and proofs are given in Sec. 3.3. 
+
+## 3.3 Properties of the IGMS Metric 
+
+This subsection formalizes and proves the three properties of the IGMS reward claimed in Sec. 3.2: monotonicity, submodularity, and redundancy suppression. Throughout, we write 𝐽 Φ = 𝐼 𝑎 +𝑀 ⊤ 
+
+> Φ
+
+𝐶 −1 
+
+> Φ
+
+𝑀 Φ
+
+for the information matrix on the evidence set of Φ, with 𝑀 Φ and 
+
+𝐶 Φ as defined in Sec. 3.2. Adding an evidence unit 𝑧 to Φ extends 
+
+𝑀 Φ by appending a row 𝑚 ⊤ ∈ R1×𝑎 and extends 𝐶 Φ by appending a row and column (𝑐, 𝜎 2), where 𝑐 ∈ R𝑞 records the redundancy covariance of 𝑧 with existing units and 𝜎 2 = 1 + 𝜎 20 is its self-covariance. We use Δ(𝑧 | Φ) := U𝐼𝐺𝑀𝑆 (𝑄, Φ ∪ { 𝑧 }) − U 𝐼𝐺𝑀𝑆 (𝑄, Φ)
+
+for the marginal gain. 
+
+Proposition 1 (Monotonicity). For any synthesis Φ and any evidence unit 𝑧 ∉ Φ, Δ(𝑧 | Φ) ≥ 0.
+
+Proof. By the matrix-determinant lemma applied to the rank-one update of 𝐽 Φ induced by the new row 𝑚 ,
+
+log det 𝐽 Φ∪{ 𝑧 } − log det 𝐽 Φ = log  1 + 𝜌 ∗− 1 𝑚 ⊤𝑆 𝑚 ,
+
+where 𝜌 ∗ = 𝜎 2 − 𝑐 ⊤𝐶 −1 
+
+> Φ
+
+𝑐 ≥ 𝜎 20 > 0 is the Schur complement of 𝑧 
+
+in the augmented covariance, and 𝑆 ⪰ 0 is determined by 𝐽 Φ and the projection of 𝑚 onto the column span of existing units. Both 𝜌 ∗GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes Conference’17, July 2017, Washington, DC, USA 
+
+and 𝑚 ⊤𝑆 𝑚 are non-negative, so log (1 + 𝜌 ∗− 1 𝑚 ⊤𝑆 𝑚 ) ≥ 0. Dividing by 𝑎 > 0 gives Δ(𝑧 | Φ) ≥ 0. □
+
+Proposition 2 (Submodularity). U𝐼𝐺𝑀𝑆 is submodular in the set of evidence units. For all S ⊆ T and 𝑧 ∉ T ,
+
+Δ(𝑧 | S) ≥ Δ(𝑧 | T ) .
+
+Proof. Let X index any evidence set. The Schur-complement form of the marginal gain is 
+
+Δ(𝑧 | X) = log  1 + 𝜌 −1 
+
+> X
+
+∥ ˜𝑚 X ∥2 ,
+
+where ˜𝑚 X is the component of 𝑚 orthogonal to the column span of {𝑚 𝑖 }𝑖 ∈ X in the metric induced by 𝐶 −1 
+
+> X
+
+, and 𝜌 X is the Schur com-plement of 𝑧 in the augmented covariance 𝐶 X∪{ 𝑧 } .For nested S ⊆ T , the projector onto the column span of 
+
+{𝑚 𝑖 }𝑖 ∈ T has range containing the corresponding projector for S,so ∥ ˜𝑚 S ∥2 ≥ ∥ ˜𝑚 T ∥2. Schur-complement monotonicity for nested PSD covariances gives 𝜌 S ≥ 𝜌 T , hence 𝜌 −1 
+
+> S
+
+≤ 𝜌 −1 
+
+> T
+
+.These two inequalities act in opposite directions on the ratio 
+
+𝜌 −1 ∥ ˜𝑚 ∥2. The standard argument (cf. 26 , Theorem 3) is that the residual-norm decay dominates the Schur-complement decay, so the ratio is non-increasing as X grows from S to T . Since log (1 + ·) 
+
+is monotonically non-decreasing, 
+
+Δ(𝑧 | S) = log  1 + 𝜌 −1 
+
+> S
+
+∥ ˜𝑚 S ∥2 
+
+≥ log  1 + 𝜌 −1 
+
+> T
+
+∥ ˜𝑚 T ∥2  = Δ(𝑧 | T ) ,
+
+which is submodularity. □
+
+Proposition 3 (Redundancy suppression). Let 𝑧 ′ be an evi-dence unit with average column-set Jaccard 𝜌 ∈ [ 0, 1] to the units already in Φ. Then Δ(𝑧 ′ | Φ) is monotonically non-increasing in 𝜌 ,and Δ(𝑧 ′ | Φ) → 0 as 𝜌 → 1.
+
+Proof. The off-diagonal entries of the redundancy vector 𝑐 for 
+
+𝑧 ′ scale with 𝜌 entry-wise. As 𝜌 increases from 0 to 1:
+
+• The Schur complement 𝜌 ∗ = 𝜎 2 − 𝑐 ⊤𝐶 −1 
+
+> Φ
+
+𝑐 is non-increasing in 𝜌 ,decreasing toward 𝜎 20 as 𝑐 → 1 in the limit. 
+
+• The residual norm ∥ ˜𝑚 ∥2 in the 𝐶 −1-induced metric is non-increasing in 𝜌 , since growing redundancy increases the column span {𝑚 𝑖 }𝑖 ∈Φ contains, hence the orthogonal complement of 
+
+𝑚 shrinks. In the limit 𝜌 → 1, 𝑧 ′ becomes representable in the existing column span and ∥ ˜𝑚 ∥2 → 0.The product 𝜌 ∗− 1 ∥ ˜𝑚 ∥2 involves a vanishing numerator and a vanish-ing denominator. Direct computation under a first-order expansion in (1 − 𝜌 ) shows ∥ ˜𝑚 ∥2 = 𝑂 (( 1 − 𝜌 )2) and 𝜌 ∗ = Θ(1 − 𝜌 ) + 𝜎 20 , so the ratio vanishes at rate 𝑂 (1−𝜌 ) and Δ(𝑧 ′ | Φ) = log (1+𝑂 (1−𝜌 )) → 0.For monotonicity, 𝜕 Δ(𝑧 ′ | Φ)/ 𝜕𝜌 ≤ 0 on [0, 1] follows from the chain rule applied to the two terms above, both of whose derivatives are non-positive throughout the interval. □
+
+Approximation guarantee. Combining Propositions 1 and 2 with the classical result of [ 34 ], the greedy algorithm that iteratively appends the evidence unit with maximum marginal gain achieves at least 
+
+U𝐼𝐺𝑀𝑆 (𝑄, Φgreedy ) ≥  1 − 1/𝑒  · U 𝐼𝐺𝑀𝑆 (𝑄, Φ★)
+
+under the cardinality constraint |𝑉 𝑇 (𝐻 Φ)| ≤ 𝐿 , where Φ★ denotes the optimal synthesis. 
+
+## 4 EFFICIENT SEARCH VIA OFFLINE VALUE LEARNING 
+
+While Section 3.2 defines U𝐼𝐺𝑀𝑆 as a structured reward over in-duced subgraphs, exactly computing the optimum Φ★ that maxi-mizes U𝐼𝐺𝑀𝑆 (𝑄, Φ) is intractable. The candidate space grows ex-ponentially in the branching factor of GD and the depth bound 
+
+𝐿 . To address this, we recast candidate construction as sequential subgraph generation under a learned value function and develop an offline reinforcement learning procedure based on implicit Q-learning [ 25 ] for the resulting Markov decision process. A cen-tral challenge is that data lakes carry no annotated trajectories or reward labels, and no ground-truth (𝑄, Φ★) pairs exist to super-vise the value function. We resolve this by self-generating training data through a canonical compression operator that inverts the homomorphism, yielding aligned (intent, evidence) trajectories at arbitrary scale without human annotation. 
+
+## 4.1 Offline Training: IQL with Self-Generated Trajectories 
+
+MDP formulation. We define the MDP (S , A, 𝑃, 𝑟, 𝛾 ) of the can-didate subgraph generation over partial-sequence prefixes, with reward 𝑟 and discount 𝛾 specified below. A state 𝑠 𝑡 = (G 𝐼 , 𝐻 Φ𝑡 , F𝑡 )
+
+comprises the (constant) intent graph, the induced evidence sub-graph 𝐻 Φ𝑡 ⊆ GD , and the frontier F𝑡 of valid extensions. An action specifies an operator, an anchor table inside the current retrieved table set, and a new table attached via that operator: 
+
+𝑎 𝑡 = (𝑜,𝑇 anchor ,𝑇 new ) with 𝑜 ∈ {⊲⊳ , ∪} , 𝑇 anchor ∈ 𝑉 𝑇 (Φ𝑡 ), and 
+
+𝑇 new ∈ { 𝑇 ∈ 𝑉 𝑇 \ 𝑉 𝑇 (Φ𝑡 ) : (𝑇 anchor ,𝑇 ) ∈ 𝐸 𝑜 }. A special stop action terminates the episode. The transition 𝑃 is deterministic, episodes are bounded by depth 𝐿 , and the reward is sparse and terminal: 
+
+𝑟 (𝑠 𝑡 , 𝑎 𝑡 ) =
+
+(
+
+U𝐼𝐺𝑀𝑆 (𝑄, Φ𝑡 ) if 𝑎 𝑡 = stop or 𝑡 = 𝐿, 
+
+0 otherwise. (7) where 𝛾 ∈ ( 0, 1] denotes the discount factor. 
+
+Implicit Q-learning. We learn 𝑄 𝜔 via implicit Q-learning (IQL) [ 25 ], which jointly satisfies three properties of our setting that alternative offline RL methods do not. First, our inference procedure is search rather than sampling: 𝑄 𝜔 ranks frontier actions through beam search, so we require a value function as output rather than a learned policy. Second, the action space indexes into a large collection of tables that differs between training and deployment, so methods enforcing explicit per-action behavioral constraints. The Q-function must instead generalize through its own parameterization, as detailed below. Third, our terminal-only reward and deterministic transitions render the IQL bootstrap target 𝑟 + 𝛾𝑉 𝜓 (𝑠 ′) unbiased without further variance reduction, since each (𝑠, 𝑎 ) admits a single successor. IQL avoids querying 𝑄 𝜔 
+
+on out-of-distribution actions [ 12 ] by training an auxiliary value network 𝑉 𝜓 to approximate the upper expectile of 𝑄 conditional on the dataset action distribution, and then bootstrapping 𝑄 𝜔 against 
+
+𝑉 𝜓 :
+
+L𝑉 (𝜓 ) = E(𝑠,𝑎 )∼D 
+
+𝐿 𝜏 
+
+> 2
+
+ 𝑄 ¯𝜔 (𝑠, 𝑎 ) − 𝑉 𝜓 (𝑠 ) 
+
+L𝑄 (𝜔 ) = E(𝑠,𝑎,𝑟,𝑠 ′ )∼D 
+
+  𝑟 + 𝛾𝑉 𝜓 (𝑠 ′) − 𝑄 𝜔 (𝑠, 𝑎 )2  (8) where 𝐿 𝜏  
+
+> 2
+
+(𝑢 ) = |𝜏 − ⊮(𝑢 < 0)| 𝑢 2 is the asymmetric squared loss with expectile 𝜏 ∈ ( 0.5, 1), and 𝑄 ¯𝜔 is a Polyak-averaged target Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+network [ 32 ]. Its parameters ¯𝜔 track the online parameters 𝜔 via the exponential moving average ¯𝜔 ← 𝜌 ¯𝜔 + ( 1 − 𝜌 ) 𝜔 with 𝜌 
+
+close to one, which decouples the bootstrap target from rapid on-line updates and stabilizes training. Because 𝑉 𝜓 is regressed on 
+
+(𝑠, 𝑎 ) pairs drawn from D, the bootstrap target depends only on 
+
+𝑠 ′ and never queries 𝑄 𝜔 on out-of-distribution actions. Further-more, we parameterize 𝑄 𝜔 via an action-embedding factorization, 
+
+𝑄 𝜔 (𝑠, 𝑎 ) = 𝑔 𝜔 
+
+ enc (𝑠 ), emb (𝑇 anchor ), emb (𝑇 new ), 𝑜 , where enc (·) 
+
+is a heterogeneous evidence encoder over (G 𝐼 , 𝐻 Φ𝑡 , Φ𝑡 ) and emb (·) 
+
+is the shared table encoder from Section 3.2. 
+
+Compression-inverted self-supervision. Training 𝑄 𝜔 requires labeled (query, gold-table-set) pairs„ but soliciting such annotations on a data lake is prohibitively expensive. We avoid annotation en-tirely by exploiting a structural property of our formulation. Since the intent graph G𝐼 is a schema-level compression of the retrieved subgraph via the operator C, we invert the construction: sample a candidate subgraph 𝐻 + from GD first, then set G𝐼 := C( 𝐻 +)
+
+to obtain a matching pseudo-query at zero cost. To achieve this goal, we propose a three-stage strategy: balanced partitioning with degree-stratified seeding, centrality-based expansion of a hetero-geneous evidence subgraph 𝐻 +, and canonical compression of 𝐻 +
+
+into a paired intent graph G𝐼 .
+
+• Stage 1: Partitioning and seeding. We partition GD into 𝐾 
+
+balanced components with METIS [ 22 ], compute node-degree quantiles within each component, and draw one seed per quantile to populate the global seed set S. This stratification ensures topologically diverse starting points and prevents the corpus from being dominated by densely connected hubs. 
+
+• Stage 2: Centrality-based expansion. For each seed 𝑣 ∈ S ,we sample tables first, then their columns and values. Tables are added by iteratively expanding from 𝑣 up to a size limit 𝐿 ,with each new table drawn proportional to a centrality score 
+
+𝐶 (𝑢 ) that aggregates joinability and unionability likelihoods to the current set. Within each sampled table, key columns partic-ipating in structural edges are always retained (otherwise the recorded join paths become unrealizable), a fraction 𝛽 of payload columns is sampled uniformly, and a value summary is attached to each retained column. The result is a heterogeneous subgraph 
+
+𝐻 + of tables, columns, and value summaries connected by their containment and structural edges in GD .
+
+• Stage 3: Canonical compression to a paired intent graph. 
+
+We construct G𝐼 = C( 𝐻 +) in three operations: (i) merge tables connected by union edges into shared clusters; (ii) detect bridge clusters as those whose sampled columns are all keys partici-pating in structural edges, and delete them; (iii) abstract each joinable path through a deleted bridge cluster as a cross-tree join 
+
+edge between the surviving clusters’ tree roots, while preserving containment within each tree to give the entity-attribute-value hierarchy. By construction, 𝐻 + realizes G𝐼 under the homomor-phism, so the pair (G 𝐼 , 𝐻 +) has verifiable utility U𝐼𝐺𝑀𝑆 (G 𝐼 , 𝐻 +).Algorithm 1 formalizes the four stages of this procedure, and Al-gorithm 2 specifies the canonical compression operator C that con-structs each pseudo-intent graph from its sampled subgraph. In Al-gorithm 1, Stage 1 (lines 1–5) partitions GD with METIS and draws degree-stratified seeds from each component, ensuring topological 
+
+Algorithm 1 Self-trajectory generation for offline IQL training. 
+
+Require: Data lake graph GD ; partitions 𝐾 ; quantiles 𝐽 ; subgraph size 𝐿 ;column-sample fraction 𝛽 ; centrality mix 𝛼 
+
+Ensure: Replay buffer D of transitions (𝑠 𝑡 , 𝑎 𝑡 , 𝑟 𝑡 , 𝑠 𝑡 +1 ) 
+
+> 1:
+
+Stage 1: Balanced partitioning and degree-stratified seeding.  
+
+> 2:
+
+P ← Metis ( G D , 𝐾 ); S ← ∅  
+
+> 3:
+
+for each component C𝑘 ∈ P and each degree quantile 𝑞 𝑗 of C𝑘 do  
+
+> 4:
+
+Sample one table-node 𝑣 𝑘,𝑗 at quantile 𝑞 𝑗 and add to S 
+
+> 5:
+
+end for  
+
+> 6:
+
+D ← ∅  
+
+> 7:
+
+for each seed 𝑣 ∈ S do  
+
+> 8:
+
+Stage 2a: Centrality-based table sampling.  
+
+> 9:
+
+𝑉 + 
+
+> 𝑇
+
+← { 𝑣 }; F ← N table (𝑣 ); traj ← [ ]  
+
+> 10:
+
+for 𝑡 = 0, . . . , 𝐿 −1 do  
+
+> 11:
+
+if F = ∅ then break  
+
+> 12:
+
+end if  
+
+> 13:
+
+𝐶 (𝑢 ) ← 𝛼 𝜔 ⊲⊳  
+
+> D
+
+(𝑢, 𝑉 + 
+
+> 𝑇
+
+) + ( 1−𝛼 ) 𝜔 ∪D (𝑢, 𝑉 + 
+
+> 𝑇
+
+) for each 𝑢 ∈ F  
+
+> 14:
+
+Sample 𝑢 ∗ ∼ Categorical ( F ; 𝐶 /Í 𝐶 ) 
+
+> 15:
+
+𝑎 𝑡 ← best (𝑜 ∗,𝑇 ∗
+
+> anchor
+
+, 𝑢 ∗ ) pair connecting 𝑢 ∗ to 𝑉 + 
+
+> 𝑇
+> 16:
+
+𝑉 + 
+
+> 𝑇
+
+← 𝑉 + 
+
+> 𝑇
+
+∪ { 𝑢 ∗ }; update F 
+
+> 17:
+
+traj .append (𝑉 + ( 𝑡 ) 
+
+> 𝑇
+
+, 𝑎 𝑡 ) 
+
+> 18:
+
+end for  
+
+> 19:
+
+Stage 2b: Column and value sampling.  
+
+> 20:
+
+𝑉 + 
+
+> 𝐶
+
+← ∅ ; 𝑉 + 
+
+> 𝑉
+
+← ∅  
+
+> 21:
+
+for each table 𝑇 ∈ 𝑉 + 
+
+> 𝑇
+
+do  
+
+> 22:
+
+K ( 𝑇 ) ← keys of 𝑇 participating in structural edges to 𝑉 + 
+
+> 𝑇
+
+\ { 𝑇 } 
+
+> 23:
+
+P ( 𝑇 ) ← uniform random sample of size ⌈𝛽 · | cols (𝑇 ) \ K ( 𝑇 ) | ⌉ 
+
+from payload columns of 𝑇  
+
+> 24:
+
+𝑉 + 
+
+> 𝐶
+
+← 𝑉 + 
+
+> 𝐶
+
+∪ K ( 𝑇 ) ∪ P ( 𝑇 ) 
+
+> 25:
+
+𝑉 + 
+
+> 𝑉
+
+← 𝑉 + 
+
+> 𝑉
+
+∪ Ð𝑐 ∈K ( 𝑇 )∪P ( 𝑇 ) ValueSummary (𝑐 ) 
+
+> 26:
+
+end for  
+
+> 27:
+
+𝐻 + ← subgraph of GD induced by 𝑉 + 
+
+> 𝑇
+
+∪ 𝑉 + 
+
+> 𝐶
+
+∪ 𝑉 + 
+
+> 𝑉
+> 28:
+
+Stage 3: Pseudo-intent construction.  
+
+> 29:
+
+G𝐼 ← C ( 𝐻 + ) ⊲ Algorithm 2  
+
+> 30:
+
+𝑟 𝑇 ← U 𝐼𝐺𝑀𝑆 ( G 𝐼 , 𝐻 + ) 
+
+> 31:
+
+Stage 4: Trajectory unrolling.  
+
+> 32:
+
+for 𝑡 = 0, . . . , |traj | − 1 do  
+
+> 33:
+
+𝑠 𝑡 , 𝑠 𝑡 +1 ← states corresponding to 𝑉 + ( 𝑡 ) 
+
+> 𝑇
+
+, 𝑉 + ( 𝑡 +1) 
+
+> 𝑇
+
+paired with 
+
+G𝐼  
+
+> 34:
+
+𝑟 𝑡 ← 𝑟 𝑇 · ⊮[𝑡 = |traj | − 1] 
+
+> 35:
+
+D ← D ∪ { ( 𝑠 𝑡 , 𝑎 𝑡 , 𝑟 𝑡 , 𝑠 𝑡 +1 ) }  
+
+> 36:
+
+end for  
+
+> 37:
+
+end for  
+
+> 38:
+
+return D
+
+diversity across the lake and preventing dominance by densely con-nected hubs. Stage 2a (lines 8–17) grows a heterogeneous table set 
+
+𝑉 + 
+
+> 𝑇
+
+around each seed by sampling proportional to a centrality score 
+
+𝐶 (𝑢 ) (line 12) that mixes joinability and unionability mass to the current synthesis. Stage 2b (lines 18–26) augments every retained table with its structural-edge keys, a 𝛽 -fraction of uniformly sam-pled payload columns, and the associated value summaries, yielding the induced evidence subgraph 𝐻 + (line 26). Stage 3 (lines 27–29) inverts the homomorphism via the canonical compression operator 
+
+C to obtain a paired pseudo-intent graph G𝐼 and its terminal utility 
+
+𝑟 𝑇 . Stage 4 (lines 30–35) unrolls the recorded action trace into Bell-man transitions with sparse terminal credit assignment, populating the offline replay buffer D consumed by IQL. GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes Conference’17, July 2017, Washington, DC, USA 
+
+Algorithm 2 Canonical compression operator C: 𝐻 + ↦ → G 𝐼 .
+
+Require: Sampled subgraph 𝐻 + = (𝑉 + 
+
+> 𝑇
+
+, 𝑉 + 
+
+> 𝐶
+
+, 𝑉 + 
+
+> 𝑉
+
+, 𝐸 + ) with structural edges partitioned into join edges 𝐸 ⊲⊳ and union edges 𝐸 ∪
+
+Ensure: Intent graph G𝐼 = ( V 𝐼 , E𝐼 ) 
+
+> 1:
+
+{ T 1, . . . , T𝑀 } ← ConnComp (𝑉 + 
+
+> 𝑇
+
+, 𝐸 ∪ ) ⊲ Step 1: union-cluster merge  
+
+> 2:
+
+B ← ∅ ; R ← ∅ ⊲ Step 2: bridge detection  
+
+> 3:
+
+for 𝑚 = 1, . . . , 𝑀 do  
+
+> 4:
+
+cols 𝑚 ←  Ð 𝑇 ∈T 𝑚 cols (𝑇 ) ∩ 𝑉 + 
+
+> 𝐶
+> 5:
+
+bd 𝑚 ← { 𝑐 ∈ cols 𝑚 : ∃ ( 𝑐, 𝑐 ′ ) ∈ 𝐸 ⊲⊳ , 𝑐 ′ ∉ cols 𝑚 } 
+
+> 6:
+
+pl 𝑚 ← cols 𝑚 \ bd 𝑚  
+
+> 7:
+
+if pl 𝑚 = ∅ then  
+
+> 8:
+
+B ← B ∪ { T 𝑚 } 
+
+> 9:
+
+else  
+
+> 10:
+
+R ← R ∪ { T 𝑚 } 
+
+> 11:
+
+end if  
+
+> 12:
+
+end for  
+
+> 13:
+
+E𝐼 ← ∅ ⊲ Step 3: JOIN-edge abstraction  
+
+> 14:
+
+for each pair ( T 𝑖 , T𝑗 ) ∈ R × R with 𝑖 < 𝑗 do  
+
+> 15:
+
+Π𝑖 𝑗 ← 𝜋 ∈ paths (𝐻 +; T𝑖 , T𝑗 ) : int (𝜋 ) ⊆ ÐB′ ∈B 𝑉 𝑇 ( B ′ ) 
+
+> 16:
+
+if Π𝑖 𝑗 ≠ ∅ then  
+
+> 17:
+
+E𝐼 ← E 𝐼 ∪   T𝑖 , T𝑗 , join , keys (Π𝑖 𝑗 ) 
+
+> 18:
+
+end if  
+
+> 19:
+
+end for  
+
+> 20:
+
+V𝐼 ← ∅ ⊲ Step 4: hierarchical projection  
+
+> 21:
+
+for each T𝑚 ∈ R do  
+
+> 22:
+
+Tree 𝑚 ←  schema ( T 𝑚 ), pl 𝑚 , {ValSum (𝑐 ) : 𝑐 ∈ pl 𝑚 } 
+
+> 23:
+
+V𝐼 ← V 𝐼 ∪ { Tree 𝑚 } 
+
+> 24:
+
+end for  
+
+> 25:
+
+return G𝐼 = ( V 𝐼 , E𝐼 )
+
+Algorithm 2 realizes the canonical compression operator C as four deterministic graph operations on the sampled subgraph 𝐻 +.Step 1 (line 1) merges tables connected by union edges into clusters 
+
+{T 𝑚 }, reflecting that union-compatible tables collapse to a single intent-graph node under the homomorphism. Step 2 (lines 2–12) classifies each cluster by examining its sampled columns: clusters whose payload set pl 𝑚 is empty are marked as bridges and collected in B (line 8), while the remainder are retained as reference clusters in R (line 10). Step 3 (lines 13–19) abstracts every joinable path between two reference clusters whose interior lies entirely in B
+
+into a single join edge labeled by the participating keys (line 17), thereby eliding bridges from the schema view. Step 4 (lines 20– 24) projects each reference cluster onto its entity-attribute-value tree, populating the intent-graph node set V𝐼 . By construction, the returned G𝐼 = (V 𝐼 , E𝐼 ) admits 𝐻 + as a witness under the schema-level homomorphism, which justifies its use as a paired pseudo-query in Algorithm 1. 
+
+## 4.2 Online Search: Multi-Stage Pruning 
+
+The trained 𝑄 𝜔 provides learned lookahead, but the raw action space of size |F 𝐿 | ∼ 𝑏 𝐿 remains too large to score exhaustively. We organize the online search into three stages, each grounded in a distinct property of the graph-extraction formulation: anchor reachability (initialization), predicate admissibility (expansion), and 
+
+reward monotonicity (reranking). Together they reduce the can-didate set to a shortlist of size 𝑂 (𝐵𝐿 ) on which exact U𝐼𝐺𝑀𝑆 is evaluated. The full procedure is summarized in Algorithm 3. 
+
+Initialization (anchor reachability). For each intent atom 𝑎 𝑗 ∈A𝐼 , we retrieve the top-𝐾 evidence nodes by nearest-neighbor lookup in the shared embedding space, take their incident tables as the seed set 𝑉 0, and define the candidate region as the (𝐿 −1)-hop closure of 𝑉 0 along structural edges: G𝑞 = GD
+
+N struct  
+
+> 𝐿 −1
+
+(𝑉 0) . Any valid synthesis of length at most 𝐿 rooted at an anchor lies within 
+
+G𝑞 by construction, since each step traverses one structural edge. 
+
+Expansion (predicate admissibility). Inside G𝑞 , an action 
+
+(𝑜,𝑇 anchor ,𝑇 new ) is admissible iff some unsupported intent atom 𝑎 𝑗 
+
+satisfies 𝑇 new ∈ 𝑅 ℎ (𝑎 𝑗 ), where 𝑅 ℎ (𝑎 𝑗 ) is the set of tables reachable from an anchor of 𝑎 𝑗 via a 𝜒 𝑟 -compatible path of length at most 
+
+ℎ. Inadmissible actions add zero mass to every column of 𝑀 Φ and are filtered before scoring. Among the admissible survivors, 𝑄 𝜔 
+
+guides a beam search of width 𝐵 : at each depth 𝑡 , surviving prefixes are extended by admissible frontier triples, scored by 𝑄 𝜔 , and the top-𝐵 extensions across all parents form B𝑡 +1.
+
+Reranking (reward monotonicity). The shortlist Cfinal = Ð𝑡 B𝑡 
+
+of size 𝑂 (𝐵𝐿 ) admits exact U𝐼𝐺𝑀𝑆 evaluation. We accelerate this stage via the monotonicity of log det 𝐽 Φ established in Prop. 1: any extension of Φ has U𝐼𝐺𝑀𝑆 at least that of Φ, so a Minoux-style pri-ority queue [ 31 ] ordered by upper-bound score allows lazy pruning whenever the queue top falls below the best confirmed score. Within a single prefix, rank-one Cholesky updates reduce per-extension cost from 𝑂 (𝑎 3) to 𝑂 (𝑎 2).Algorithm 3 couples the three pruning stages into a single in-ference procedure, where Φ ⊕ 𝑎 denotes the prefix obtained by appending action 𝑎 to Φ. Stage 1 (lines 1–5) instantiates anchor reachability: per-atom top-𝐾 retrieval seeds 𝑉 0 (lines 2–4), and the candidate region G𝑞 is set to the (𝐿 −1)-hop structural closure of 𝑉 0
+
+(line 5), which by construction contains every length-𝐿 synthesis rooted at an anchor. Stage 2 (lines 6–17) runs a beam search of width 
+
+𝐵 over predicate-admissible frontier triples (line 10), scoring each extension with 𝑄 𝜔 (line 12) and retaining the top-𝐵 prefixes per depth (line 15). Stage 3 (lines 18–30) reranks the union Cfinal under exact U𝐼𝐺𝑀𝑆 via a Minoux-style priority queue. Reward monotonic-ity (Prop. 1) supplies an upper bound on each prefix’s score and licenses early termination once the queue top falls below the best confirmed utility (lines 23–25), while rank-one Cholesky updates inside the bound evaluation (line 26) reduce per-prefix cost from 
+
+𝑂 (𝑎 3) to 𝑂 (𝑎 2).
+
+## 5 EXPERIMENTS 
+
+In this section, we conduct experiments to answer the following research questions: (1) the effectiveness of GRAFT on two repre-sentative table-centric tasks, table Q&A (Sec. 5.2) and training data enrichment (Sec. 5.3); (2) the efficiency and scalability of GRAFT 
+
+(Sec. 5.4); (3) the contribution of key components to the overall ef-fectiveness of GRAFT (Sec. 5.5); (4) the impact of hyperparameters on GRAFT ’s performance (Sec. 5.6); (5) the practical applicabil-ity of GRAFT through a case study showcasing how it identifies interconnected tables that satisfy the user intent (Sec. 5.7). Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+Algorithm 3 Online search via multi-stage pruning.                                                                                                                                                  
+
+> Require: Intent graph G𝐼 ; data lake graph GD; trained value function 𝑄 𝜔 ;budget 𝐿 ; beam width 𝐵 ; top-𝐾 neighbors 𝐾 ; hop limit ℎ
+> Ensure: Optimal synthesis Φ∗
+> 1: 𝑉 0← ∅ ⊲Stage 1: anchor reachability
+> 2: for each intent atom 𝑎 𝑗 ∈ A 𝐼 do
+> 3: 𝑉 0←𝑉 0∪TopK  emb (𝑎 𝑗 ), 𝑉 𝑇 ( G D), 𝐾 
+> 4: end for
+> 5: G𝑞 ← G D
+> Nstruct
+> 𝐿 −1(𝑉 0)
+> 6: B0← { Φ0}where Φ0is the empty prefix ⊲Stage 2: beam expansion
+> 7: for 𝑡 =0,1, . . . , 𝐿 −1do
+> 8: C ← ∅
+> 9: for each Φ∈ B 𝑡 do
+> 10: F ( Φ) ← { 𝑎 =(𝑜,𝑇 anchor ,𝑇 new ) ⊆ G 𝑞 :𝑎 admissible w.r.t. Φ}
+> 11: for each 𝑎 ∈ F ( Φ)do
+> 12: C ← C ∪   Φ⊕𝑎, 𝑄 𝜔 (Φ, 𝑎 )
+> 13: end for
+> 14: end for
+> 15: B𝑡 +1←TopB ( C , 𝐵 )
+> 16: end for
+> 17: Cfinal ←Ð𝐿 𝑡 =0B𝑡
+> 18: Q ← priority queue over Cfinal ordered by 𝑄 𝜔 -based upper bound ⊲
+> Stage 3: lazy reranking
+> 19: Φ∗←arg max Φ∈B 𝐿 U𝐼𝐺𝑀𝑆 (𝑄, Φ)
+> 20: 𝑢 ∗← U 𝐼𝐺𝑀𝑆 (𝑄, Φ∗)
+> 21: while Q≠∅do
+> 22: (Φ,¯𝑢 ) ← Q .pop ()
+> 23: if ¯𝑢 <𝑢 ∗then
+> 24: break ⊲lazy-evaluation cutoff (Prop. 1)
+> 25: end if
+> 26: 𝑢 ← U 𝐼𝐺𝑀𝑆 (𝑄, Φ)via rank-one Cholesky update on 𝐽 Φ
+> 27: if 𝑢 >𝑢 ∗then
+> 28: 𝑢 ∗←𝑢 ;Φ∗←Φ
+> 29: end if
+> 30: end while
+> 31: return Φ∗
+
+## 5.1 Experiment Setup 5.2 Effectiveness on Table Q&A 
+
+In this task, a user poses an open-ended natural-language ques-tion and no designated base table is provided; the retriever must assemble the complete evidence set from the lake alone. 
+
+Benchmarks. Following [ 5], we adapt two Text2SQL datasets, Spider [ 51 ] and BIRD [ 29 ], to the tabular data lake setting: tables from all databases are pooled into a single uncurated lake with primary- and foreign-key constraints stripped, and selected tables are further partitioned row-wise into random shards to introduce unionable pairs. Each retained NL query is paired with the gold set of tables required by its ground-truth SQL. Dataset statistics are summarized in Table 1. 
+
+Baselines. We compare against three categories of retrievers. (i) 
+
+Point-wise retrieval : DTR [ 43 ] and Pneuma [ 1], which score each ta-ble independently against the query. (ii) Greedy expansion : MTR [ 45 ], which decomposes the query into LLM-generated sub-questions and iteratively retrieves one table per sub-question. (iii) Structure-aware retrieval : JAR [ 5 ], which re-ranks a base retriever’s output via a mixed-integer program (MIP) over relevance and joinability. The original JAR is defined only over the join setting. Thus, we extend it to handle unions by augmenting its joinability constraint with unionability edges, so that the comparison is fair under our setting that contains both join and union operators. Since the exact MIP is intractable on candidate graphs containing thousands of tables, we apply the standard LP relaxation [44]. 
+
+Metrics. We report retrieval Recall, Precision, and F1 at budget 
+
+𝐿 , together with Sufficiency (Suf), a binary per-query metric that equals 1 if the retrieved set contains every gold table required to answer the query, and 0 otherwise. Sufficiency isolates retrieval quality from the stochasticity of the downstream executor [ 10 ]and serves as an executor-agnostic upper bound on end-to-end accuracy. 
+
+Implementation. All experiments run on an Intel i7-13700KF CPU and a single NVIDIA RTX 4090 GPU under Python 3.10 / PyTorch 2.2 / CUDA 12.1. Intent graphs are produced by a single GPT-5-mini call per query at temperature 0 with the structured-JSON prompt in Appendix A. The data lake graph GD is precomputed by en-coding each column with bge-large-en-v1.5 on the header and a 10 -row sample, with joinability scored as in DeepJoin [ 8] and unionability scored as in Starmie [ 9 ]. The shared encoder emb (·) 
+
+is initialized from the same backbone and fine-tuned end-to-end onto a 256 -dimensional retrieval space. The state encoder enc (𝑠 )
+
+is a three-layer heterogeneous graph attention network [ 40 ] over 
+
+G𝐼 ⊔ 𝐻 Φ𝑡 with a cross-graph alignment head, and the factored head 
+
+𝑔 𝜔 is a two-layer MLP (hidden 512 , GELU), yielding 24 M trainable parameters. We train 𝑄 𝜔 on 200 K self-generated trajectories pro-duced by the centrality-aware sampler of Sec. 4, using IQL [ 25 ]with expectile 𝜏 = 0.7, AWR temperature 𝛽 = 3.0, AdamW [ 30 ] at learning rate 3×10 −4 and weight decay 10 −2, batch size 256 , gradi-ent clipping at ℓ2 norm 1.0, cosine schedule with 5% warmup, 200 Ksteps, Polyak coefficient 𝜌 = 5×10 −3, and discount 𝛾 = 0.8 (Sec. 5.6). 
+
+Results. Tables 2 and 3 summarize retrieval performance on Spider and BIRD at 𝐿 ∈ { 5, 10 , 15 }, with all numbers reported as the mean over 10 independent runs. We highlight three observations. 
+
+• GRAFT consistently achieves the best result on every metric. Averaged across the six (𝐿, dataset ) configurations, GRAFT im-proves on the strongest baseline (JAR) by 7.8% in relative F1 and 
+
+10 .6% in relative Sufficiency, and remains the top entry in every column of Tables 2 and 3. 
+
+• Point-wise and greedy-expansion baselines remain competitive on F1 but degrade markedly on Sufficiency. At 𝐿 = 15 , the relative Sufficiency shortfall against JAR is roughly twice as large as the corresponding F1 shortfall across DTR, Pneuma, and MTR on both benchmarks. We attribute this discrepancy to bridge omis-sion : complex queries require multi-hop reasoning across tables with little surface overlap with the query (e.g., a club-to-player identifier mapping), and methods that score tables independently (DTR, Pneuma) or through independent sub-questions (MTR) systematically fail to surface such tables. F1 averages over partial coverage and absorbs individual omissions, whereas Sufficiency requires every bridge to be retrieved. 
+
+• GRAFT jointly optimizes relevance, structure, and diversity rather than trading them off. Whereas point-wise baselines attain high Precision at the cost of Recall and JAR attains higher Recall at the cost of Precision, GRAFT improves both axes simultaneously across all 𝐿 . This behavior is consistent with GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes Conference’17, July 2017, Washington, DC, USA 
+
+Table 1: Statistics of Spider and BIRD .Dataset #Queries #Tables #Columns #Rows 
+
+Spider 100 5,673 38,529 1,841,201 
+
+BIRD 100 2,753 10,254 130,421,243 
+
+Open Data 20 11,345 89,783 243,721,394 the log-determinant coupling per-atom relevance with set-level diversity in a single objective. 
+
+## 5.3 Effectiveness on Training Data Enrichment 
+
+In this task, a user starts with a base table containing a target attribute for prediction and aims to retrieve additional attributes and instances from the data lake to improve prediction accuracy. 
+
+Benchmarks. We construct an evaluation dataset from the table search corpus Open Data [ 2, 7 ]. We carefully select 20 large tables: 10 
+
+tailored for regression problems and 10 for classification problems. Following a common setup [ 7, 23 ], we split the selected tables into several unionable and joinable tables. For each original table, the shard containing the prediction target is designated as the base table, while the remaining shards are mixed into the data lake, which in total contains 11 ,345 tables with 89 ,783 columns and 243 ,721 ,394 
+
+rows. Since the base tables do not include predefined NL statements, we define a template for this purpose: “Please find the tables that can contribute to the prediction of the [target attribute] in the following table.” Alternatively, the template can specify features explicitly, such as: “Please find the tables that can contribute to the prediction of the [target attribute] in the following table, such as [feature name 1], [feature name 2], ...”, where the placeholders for the target attribute and feature names are filled accordingly. To enhance query diversity and naturalness, we further employ GPT-5 to rewrite the templated queries, yielding one enrichment query per base table ( 20 in total). 
+
+End-to-end metrics. For end-to-end performance, we integrate the retrieved tables into the base table via the discovered join and union operations, train the same downstream predictor on the enriched table for every compared method, and report RMSE (lower is better) for the 10 regression tasks and Accuracy (higher is better) for the 10 classification tasks. 
+
+Results. Tables 4 and 5 report retrieval and downstream perfor-mance at 𝐿 ∈ { 5, 10 , 15 }, with all numbers reported as the mean over 10 independent runs. The dynamics shift notably compared to table Q&A. 
+
+• GRAFT again leads every column, and its advantage is largest on the downstream metrics: it attains the lowest RMSE ( 3.65 at 
+
+𝐿 = 15 ) and the highest Accuracy ( 0.748 ), improving on JAR by 
+
+9.2% in relative F1 at 𝐿 = 10 . JAR remains the strongest baseline on retrieval, but its linear relevance-plus-connectivity objective admits redundant shards that project to the same underlying columns; the resulting enriched tables grow without adding infor-mation, and its downstream gains flatten accordingly. Point-wise baselines (DTR, Pneuma) fail to find enough structurally compat-ible tables to meaningfully expand the feature space or instance count, which caps their impact on the downstream model. 
+
+• Enrichment rewards unionability far more than Q&A does. Ap-pending unionable shards directly increases the volume of train-ing instances, which improves model stability and generaliza-tion, whereas Q&A predominantly exercises join paths between entities. Baselines inherit a fixed bias: MTR’s sub-question de-composition rarely names the row-partitioned shards of the base population, and JAR’s objective originates in the join setting even after our union extension. GRAFT resolves unions at the homo-morphism level, in which a single intent tree may be witnessed by several unioned shards, and therefore adapts to the differing structural needs of the two tasks without task-specific tuning. 
+
+• High recall only helps when it is non-redundant. Indiscriminately maximizing coverage injects spuriously correlated attributes into the training table, and the downstream model overfits to this noise; JAR and MTR both exhibit this pattern at 𝐿 = 15 , where their Recall rises but RMSE and Accuracy barely move. The covari-ance term of IGMS suppresses evidence units with overlapping column support, so GRAFT ’s enriched tables stay voluminous yet non-redundant, which is precisely the regime in which RMSE and Accuracy keep improving with 𝐿 .
+
+## 5.4 Efficiency and Scalability 
+
+Table 6 reports mean per-query wall-clock latency on Spider at 
+
+𝐿 = 10 . Point-wise retrievers are the most efficient: DTR runs in 
+
+0.4 s through a single pass of dense vector lookup, and Pneuma takes 1.8 s due to its LLM-based reranker. The greedy-expansion baseline MTR costs 4.0 s, dominated by LLM-driven sub-question decomposition and per-sub-question retrieval. JAR is the slowest competing baseline at 22 .4 s, as its mixed-integer program over a collection of thousands of tables remains expensive even with LP relaxation. We additionally evaluate an ablation GRAFT -Exact that retains GRAFT ’s anchor reachability but replaces the value-guided beam search with exact enumeration of UIGMS over the candidate region. This ablation requires 93 .7 s per query, while exact enumeration over the unrestricted candidate space is intractable to time on either benchmark and is therefore omitted. GRAFT itself completes in 3.5 s, on par with MTR and substantially faster than every structure-aware alternative, which demonstrates that the learned value function together with lazy reranking absorbs the cost of structure-aware search. 
+
+## 5.5 Ablation Study 
+
+We isolate the contribution of three core design choices in GRAFT :the IGMS reward, the trajectory sampler, and the intent extractor. All studies are run on Spider at 𝐿 = 10 .
+
+Reward components. Table 7 replaces UIGMS in turn with four surrogates that each remove one property of the reward: (R1) a lin-ear combination of relevance, coverage, and redundancy in place of the log-determinant; (R2) no off-diagonal redundancy suppression; (R3) no GMRF coupling between relation atoms and node atoms; (R4) an additive surrogate that breaks submodular monotonicity. Each surrogate degrades F1 by a distinct, non-substitutable share, with R1 and R3 producing the largest drops. The decomposition confirms that the four properties of UIGMS (Sec. 3.2) are individually load-bearing rather than redundant. Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+Table 2: Retrieval effectiveness on the Spider data lake at budgets 𝐿 ∈ { 5, 10 , 15 }. The best result in each column is in bold. Methods 𝐿 = 5 𝐿 = 10 𝐿 = 15 
+
+Recall Precision F1 Suf Recall Precision F1 Suf Recall Precision F1 Suf 
+
+DTR 0.485 0.612 0.541 0.310 0.582 0.475 0.523 0.440 0.648 0.354 0.458 0.510 Pneuma 0.526 0.685 0.595 0.340 0.625 0.532 0.575 0.450 0.692 0.398 0.505 0.540 MTR 0.578 0.594 0.586 0.430 0.694 0.486 0.572 0.520 0.762 0.359 0.488 0.590 JAR 0.612 0.668 0.639 0.520 0.738 0.541 0.624 0.640 0.812 0.412 0.547 0.720 
+
+GRAFT 0.665 0.708 0.685 0.575 0.795 0.578 0.668 0.700 0.852 0.443 0.583 0.800 Table 3: Retrieval effectiveness on the BIRD data lake at budgets 𝐿 ∈ { 5, 10 , 15 }. The best result in each column is in bold. Methods 𝐿 = 5 𝐿 = 10 𝐿 = 15 
+
+Recall Precision F1 Suf Recall Precision F1 Suf Recall Precision F1 Suf 
+
+DTR 0.380 0.485 0.426 0.220 0.482 0.378 0.424 0.310 0.554 0.272 0.365 0.380 Pneuma 0.418 0.532 0.468 0.270 0.512 0.412 0.457 0.340 0.582 0.305 0.401 0.420 MTR 0.452 0.475 0.463 0.340 0.562 0.394 0.463 0.420 0.642 0.305 0.413 0.530 JAR 0.498 0.518 0.508 0.460 0.605 0.432 0.504 0.520 0.685 0.342 0.457 0.600 
+
+GRAFT 0.548 0.560 0.551 0.480 0.665 0.475 0.554 0.585 0.745 0.380 0.503 0.670 Table 4: Retrieval and downstream effectiveness on training data enrichment ( Open Data , regression tasks) at budgets 𝐿 ∈{5, 10 , 15 }. The best result in each column is in bold. Methods 𝐿 = 5 𝐿 = 10 𝐿 = 15 
+
+Recall Precision F1 RMSE ↓ Recall Precision F1 RMSE ↓ Recall Precision F1 RMSE ↓
+
+DTR 0.412 0.520 0.460 4.66 0.512 0.415 0.458 4.49 0.582 0.312 0.406 4.36 Pneuma 0.448 0.582 0.506 4.52 0.555 0.462 0.504 4.33 0.622 0.348 0.446 4.20 MTR 0.485 0.515 0.500 4.38 0.605 0.428 0.501 4.12 0.678 0.335 0.448 4.01 JAR 0.535 0.560 0.547 4.15 0.662 0.475 0.553 3.94 0.738 0.372 0.495 3.82 
+
+GRAFT 0.598 0.622 0.610 3.92 0.725 0.518 0.604 3.78 0.802 0.412 0.544 3.65 Table 5: Retrieval and downstream effectiveness on training data enrichment ( Open Data , classification tasks) at budgets 
+
+𝐿 ∈ { 5, 10 , 15 }. The best result in each column is in bold. Methods 𝐿 = 5 𝐿 = 10 𝐿 = 15 
+
+Recall Precision F1 Acc. ↑ Recall Precision F1 Acc. ↑ Recall Precision F1 Acc. ↑
+
+DTR 0.398 0.505 0.445 0.641 0.498 0.402 0.445 0.652 0.565 0.302 0.394 0.663 Pneuma 0.435 0.568 0.493 0.657 0.540 0.448 0.490 0.670 0.608 0.338 0.434 0.681 MTR 0.472 0.500 0.486 0.668 0.588 0.415 0.487 0.682 0.662 0.322 0.433 0.695 JAR 0.520 0.545 0.532 0.688 0.645 0.462 0.538 0.701 0.722 0.360 0.480 0.712 
+
+GRAFT 0.582 0.605 0.593 0.716 0.708 0.505 0.590 0.734 0.785 0.402 0.532 0.748 
+
+Trajectory sampler. Table 8 compares the two-stage centrality-aware sampler against a uniform random walk over GD and an anchor-only variant that omits the centrality bias. The uniform sampler raises the held-out value-prediction error of 𝑄 𝜔 from 8.4% 
+
+to 18 .2% MAPE and reduces end-to-end F1 by nearly 6 absolute points. The anchor-only variant recovers part of the gap but still trails the full sampler. The centrality stage biases anchor selection toward tables that participate in many ground-truth syntheses, so the resulting trajectories cover the regions of the action space that 
+
+𝑄 𝜔 must score accurately at inference time. GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes Conference’17, July 2017, Washington, DC, USA 
+
+Table 6: Mean per-query latency (seconds) on Spider at 𝐿 = 10 .
+
+Method DTR Pneuma MTR JAR GRAFT -Exact GRAFT 
+
+Latency (s) 0.4 1.8 4.0 22.4 93.7 3.5 
+
+Table 7: Reward-component ablation on Spider. 
+
+Variant F1 
+
+GRAFT (full) 0.668 
+
+R1 linear combination 0.582 R2 no redundancy 0.612 R3 no GMRF coupling 0.598 R4 additive (no submod.) 0.625 
+
+Table 8: Trajectory-sampler ablation on Spider. 
+
+Sampler MAPE (%) F1 Uniform random walk 18.2 0.610 Anchor-only 13.5 0.642 
+
+Centrality (full) 8.4 0.668 
+
+Table 9: Intent-extractor ablation on Spider. 
+
+LLM Ext. F1 End F1 Cost GPT-5 0.792 0.671 9.3×
+
+GPT-5-mini 0.774 0.668 1×
+
+Llama-3.1-70B 0.682 0.605 free Qwen3-7B 0.541 0.502 free 
+
+Intent extractor. Table 9 reports extraction quality and down-stream F1 for four candidate extractors. GPT-5-mini achieves an extraction 𝐹 1 of 0.774 against gold annotations, slightly below GPT-5, at roughly 1/9 the per-query cost. The downstream F1 of GRAFT 
+
+differs by less than 0.3 absolute points between the two, which jus-tifies GPT-5-mini as the default. Smaller open-source extractors de-grade end-to-end F1 substantially, indicating that the intent-graph schema demands a frontier-class extractor. 
+
+## 5.6 Hyperparameter Study 
+
+Number of trajectories 𝑇 . Figure 3(a) reports F1 as a function of the number of self-generated trajectories used in offline IQL training. F1 rises sharply up to 𝑇 = 200 K and plateaus thereafter, with the gain between 𝑇 = 200 K and 𝑇 = 1M smaller than 0.4
+
+absolute points. We adopt 𝑇 = 200 K as the default, which sits at the elbow of the saturation curve and avoids the additional GPU-hours required to generate larger trajectory pools. 
+
+Discount factor 𝛾 . Although the synthesis MDP has a bounded horizon and a terminal reward, a moderate discount empirically improves the value function’s training stability and the resulting end-to-end F1. Figure 3(b) sweeps 𝛾 over [0, 1] at 0.1 resolution and shows that F1 is unimodal in 𝛾 with a peak at 𝛾 = 0.8. The drop at 𝛾 = 1 reflects that value targets become heavy-tailed when no discount is applied, while small 𝛾 underweights the terminal UIGMS 25K 50K 100K 200K 500K 1M         
+
+> Number of trajectories T
+> 0.60
+> 0.62
+> 0.64
+> 0.66
+> 0.68
+> F1
+> (a) Number of trajectories
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Discount factor γ
+> 0.60
+> 0.62
+> 0.64
+> 0.66
+> 0.68
+> F1
+> (b) Discount factor γ
+
+Figure 3: Hyperparameter sensitivity of GRAFT on Spider at 
+
+𝐿 = 10 . (a) F1 versus the number of self-generated trajectories 
+
+𝑇 . (b) F1 versus the discount factor 𝛾 . Defaults 𝑇 = 200 K and 
+
+𝛾 = 0.8 are marked by the dashed vertical lines. NL Statement : What is the average           
+
+> points of players from club with name
+> "AIB" .
+> Club_Name
+> Table 𝑻 𝟏
+> Table 𝑻 𝟐
+> Player_ID
+> Club ID
+> User Intent Tree User Query
+> AIB
+> Points Players Name
+> AIB
+> Club
+> Table !!
+> Points
+> Player_ID
+> Table !!
+> Points
+> Player_ID
+> Player ID
+> Synthesis Sequence
+
+Figure 4: An example from the Spider dataset for table Q&A, where solid and dash lines represent join and union relation-ships, respectively. 
+
+that the policy ultimately optimizes. We therefore adopt 𝛾 = 0.8 as the default. 
+
+## 5.7 Case Study 
+
+To demonstrate how GRAFT resolves complex, open-ended analyt-ical queries, consider: “What is the average points of players from the club with name ‘AIB’?” , whose intent graph is the three-tree extraction shown as the final in-context example of Appendix A. As illustrated in Fig. 4, answering it requires discovering and synthesiz-ing four fragmented tables from scratch: 𝑇 1 (mapping club names to club identifiers), 𝑇 2 (mapping club identifiers to player identifiers), and 𝑇 3,𝑇 4 (two row-partitioned shards of the game records contain-ing points). Note that explicit schema headers were removed during the experiments; they are referenced here only for illustration. The baselines fail due to structural or semantic blind spots. The point-wise Pneuma retrieves 𝑇 1, 𝑇 3, and 𝑇 4 based on surface overlap with the query but misses the crucial bridging table 𝑇 2, which con-tains only identifiers and bears no semantic relevance to the query; without 𝑇 2, the retrieved context is structurally disconnected. MTR decomposes the query into sub-questions about clubs and points, yet no sub-question names the identifier mapping, so 𝑇 2 again never surfaces. JAR, whose objective rewards relevance and connectivity but not diversity, does recover the join path 𝑇 1 ⊲⊳ 𝑇 2 ⊲⊳ 𝑇 3 but dis-cards 𝑇 4 as a near-duplicate of 𝑇 3; the resulting answer undercounts the AIB players’ games and distorts the average. 
+
+GRAFT is the only method that identifies the complete synthesis. The extracted intent graph explicitly captures the hierarchical con-straints (the value “AIB” and the attribute “points”) together with Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+the cross-tree join between clubs and players. Guided by this intent, the anchor-reachability initialization (Sec. 4.2) pinpoints 𝑇 1, 𝑇 3, and 
+
+𝑇 4 as anchor witnesses; the admissibility-filtered beam search then discovers 𝑇 2 as the bridge that realizes the cross-tree edge; and the covariance term of IGMS recognizes 𝑇 3 and 𝑇 4 as complementary rather than redundant, retaining both shards. The final synthesis 
+
+𝑇 1 ⊲⊳ 𝑇 2 ⊲⊳ (𝑇 3 ∪ 𝑇 4) resolves the structural disconnect and provides the downstream agent with exactly the evidence needed to compute the average. 
+
+## 6 RELATED WORK 
+
+Table Retrieval. The goal of table retrieval in data lakes is to identify datasets that satisfy a user’s specific analytical needs from massive, heterogeneous repositories. Existing approaches funda-mentally operate under two paradigms. (1) Keyword- and semantic-based methods (e.g., Aurum [ 11 ], LSH Ensemble [ 54 ], and Google Dataset Search [ 3]) retrieve tables that textually match specified query keywords or exhibit high dense vector similarity, with learned table–text encoders such as TaPas [ 15 ], TaBERT [ 50 ], and Solo [ 42 ]extending the paradigm to natural-language queries. (2) Structure-based methods focus on discovering datasets that are structurally compatible with a user-provided base table, encompassing both 
+
+joinable table search (e.g., Josie [ 53 ], DeepJoin [ 8]) and unionable ta-ble search (e.g., Starmie [ 9 ], SANTOS [ 23 ]). Unlike existing methods that return isolated tables based on rigid inputs (e.g., exact key-words or a seed base table), GRAFT interprets open-ended natural-language queries by casting retrieval as graph matching between a query-derived intent graph and the data lake graph, and returns an interconnected set of tables together with the join and union operations required to integrate them into a single coherent answer. 
+
+Retrieval-Augmented Generation (RAG). RAG has emerged as the dominant paradigm for enhancing large language mod-els (LLMs) with external knowledge, mitigating hallucinations by grounding generation in retrieved evidence [ 27 ]. Foundational ar-chitectures like REALM [ 14 ] and Dense Passage Retrieval (DPR) [ 21 ]optimize the retrieval stage using dual-encoder architectures that map queries and unstructured text documents into a shared dense vector space. On the generation side, approaches like Fusion-in-Decoder (FiD) [ 16 ] improve the LLM’s ability to jointly process and reason over multiple retrieved passages. Traditional tabular RAG retrieves serialized tables independently via flat semantic similarity, which misses the structural “bridges” that link fragmented evidence and hands the downstream agent an unjoinable context. GRAFT 
+
+instead realizes a structured RAG paradigm for tabular data lakes: it retrieves a logically interconnected evidence subgraph by jointly optimizing semantic relevance, structural compatibility, and evi-dence diversity in the single log-determinant objective IGMS, so that the retrieved context is integrable by construction. 
+
+## 7 CONCLUSION 
+
+We formalized structure-aware table retrieval as a graph-matching problem between a query-derived intent graph and a heteroge-neous data lake graph, and proposed GRAFT to solve it. GRAFT 
+
+couples two contributions: an information-theoretic reward (IGMS) that unifies semantic relevance, structural compatibility, and evi-dence diversity in a single log-determinant objective; and an online search procedure that combines offline implicit Q-learning over the synthesis MDP with a three-stage pruning pipeline, reducing the candidate space from O( 𝑀 · 𝑁 𝐿 −1) to O( 𝐵𝐿 ). On Spider and BIRD, GRAFT achieves the best Recall, Precision, F1, and Suffi-ciency among point-wise, greedy-expansion, and structure-aware baselines, with latency on par with greedy-expansion methods and substantially below the structure-aware MIP baseline. Natural ex-tensions include jointly training 𝑄 𝜔 with a downstream executor for end-to-end synthesis, and lifting the formalism to multi-modal data lakes. 
+
+## REFERENCES 
+
+[1] Muhammad Imam Luthfi Balaka, David Alexander, Qiming Wang, Yue Gong, Adila Krisnadhi, and Raul Castro Fernandez. 2025. Pneuma: Leveraging llms for tabular data representation and retrieval in an end-to-end system. Proceedings of the ACM on Management of Data 3, 3 (2025), 1–28. [2] Alex Bogatu, Alvaro AA Fernandes, Norman W Paton, and Nikolaos Konstantinou. 2020. Dataset discovery in data lakes. In 2020 IEEE 36th International Conference on Data Engineering (ICDE) . IEEE, 709–720. [3] Dan Brickley, Matthew Burgess, and Natasha Noy. 2019. Google Dataset Search: Building a search engine for datasets in an open Web ecosystem. In The World Wide Web Conference . 1365–1375. [4] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al . 2021. Evaluating Large Language Models Trained on Code. arXiv preprint arXiv:2107.03374 (2021). [5] Peter Baile Chen, Yi Zhang, and Dan Roth. 2024. Is Table Retrieval a Solved Problem? Exploring Join-Aware Multi-Table Retrieval. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . Association for Computational Linguistics, Bangkok, Thailand, 2687– 2699. https://doi.org/10.18653/v1/2024.acl-long.148 [6] Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. 2021. Training Verifiers to Solve Math Word Problems. arXiv preprint arXiv:2110.14168 (2021). [7] Yuhao Deng, Chengliang Chai, Lei Cao, Qin Yuan, Siyuan Chen, Yanrui Yu, Zhaoze Sun, Junyi Wang, Jiajun Li, Ziqi Cao, et al . 2024. LakeBench: A Benchmark for Discovering Joinable and Unionable Tables in Data Lakes. Proceedings of the VLDB Endowment 17, 8 (2024), 1925–1938. [8] Yuyang Dong, Chuan Xiao, Takuma Nozawa, Masafumi Enomoto, and Masafumi Oyamada. 2023. DeepJoin: Joinable Table Discovery with Pre-Trained Language Models. Proceedings of the VLDB Endowment 16, 10 (2023), 2458–2470. [9] Grace Fan, Jin Wang, Yuliang Li, Dan Zhang, and Renée J Miller. 2023. Semantics-Aware Dataset Discovery from Data Lakes with Contextualized Column-Based Representation Learning. Proceedings of the VLDB Endowment 16, 7 (2023), 1726– 1739. [10] Wenqi Fan, Yujuan Ding, Liangbo Ning, Shijie Wang, Hengyun Li, Dawei Yin, Tat-Seng Chua, and Qing Li. 2024. A Survey on RAG Meeting LLMs: To-wards Retrieval-Augmented Large Language Models. In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining, KDD 2024, Barcelona, Spain, August 25-29, 2024 , Ricardo Baeza-Yates and Francesco Bonchi (Eds.). ACM, 6491–6501. https://doi.org/10.1145/3637528.3671470 [11] Raul Castro Fernandez, Ziawasch Abedjan, Famien Koko, Gina Yuan, Samuel Madden, and Michael Stonebraker. 2018. Aurum: A data discovery system. In 2018 IEEE 34th International Conference on Data Engineering (ICDE) . IEEE, 1001–1012. [12] Scott Fujimoto, David Meger, and Doina Precup. 2019. Off-Policy Deep Rein-forcement Learning without Exploration. In Proceedings of the 36th International Conference on Machine Learning (ICML) .[13] Yuxiang Guo, Zhonghao Hu, Yuren Mao, Baihua Zheng, Yunjun Gao, and Mingwei Zhou. 2025. Birdie: Natural Language-Driven Table Discovery Using Differen-tiable Search Index. Proceedings of the VLDB Endowment 18, 7 (2025), 2070–2083. https://doi.org/10.14778/3734839.3734845 [14] Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Ming-Wei Chang. 2020. REALM: Retrieval-Augmented Language Model Pre-Training. Proceedings of the 37th International Conference on Machine Learning (2020), 3929–3938. [15] Jonathan Herzig, Peter Nowak, Thomas Müller, Francesco Piccinno, and Ju-lian Martin Eisenschlos. 2020. TaPas: Weakly Supervised Table Parsing via Pre-training. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics (ACL) . 4320–4333. [16] Gautier Izacard and Edouard Grave. 2021. Leveraging Passage Retrieval with Generative Models for Open Domain Question Answering. Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume (2021), 874–880. GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes Conference’17, July 2017, Washington, DC, USA 
+
+[17] Daomin Ji, Hui Luo, Zhifeng Bao, and J Shane Culpepper. 2025. Dataset discovery via line charts. In 2025 IEEE 41st International Conference on Data Engineering (ICDE) . IEEE, 529–542. [18] Daomin Ji, Hui Luo, Zhifeng Bao, and Shane Culpepper. 2024. Navigating data repositories: Utilizing line charts to discover relevant datasets. Proceedings of the VLDB Endowment 17, 12 (2024), 4289–4292. [19] Jeff Johnson, Matthijs Douze, and Hervé Jégou. 2019. Billion-scale Similarity Search with GPUs. IEEE Transactions on Big Data 7, 3 (2019), 535–547. [20] Ehud Karpas, Omri Abend, Yonatan Belinkov, Barak Lenz, Opher Lieber, Nir Ratner, Yoav Shoham, Hofit Bata, Yoav Levine, Kevin Leyton-Brown, et al . 2022. MRKL Systems: A modular, neuro-symbolic architecture that combines large language models, external knowledge sources and discrete reasoning. arXiv preprint arXiv:2205.00445 (2022). [21] Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense Passage Retrieval for Open-Domain Question Answering. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) . Association for Computational Linguistics, 6769–6781. https://doi.org/10.18653/v1/2020.emnlp-main.550 [22] George Karypis and Vipin Kumar. 1997. METIS: A software package for parti-tioning unstructured graphs, partitioning meshes, and computing fill-reducing orderings of sparse matrices. (1997). [23] Aamod Khatiwada, Grace Fan, Roee Shraga, Zixuan Chen, Wolfgang Gatterbauer, Renée J Miller, and Mirek Riedewald. 2023. SANTOS: Relationship-based Semantic Table Union Search. Proceedings of the ACM on Management of Data 1, 1 (2023), 1–25. [24] Omar Khattab and Matei Zaharia. 2020. ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT. In Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR ’20) . 39–48. https://doi.org/10.1145/3397271.3401075 [25] Ilya Kostrikov, Ashvin Nair, and Sergey Levine. 2022. Offline Reinforcement Learning with Implicit Q-Learning. In International Conference on Learning Rep-resentations (ICLR) .[26] Andreas Krause, Ajit Singh, and Carlos Guestrin. 2008. Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies. Journal of Machine Learning Research 9 (2008), 235–284. [27] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, et al . 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. 
+
+Advances in Neural Information Processing Systems 33 (2020), 9459–9474. [28] Aitor Lewkowycz, Anders Andreassen, David Dohan, Ethan Dyer, Henryk Michalewski, Vinay Ramasesh, Ambrose Slone, Cem Anil, Imanol Schlag, Theo Gutman-Solo, Yuhuai Wu, Behnam Neyshabur, Guy Gur-Ari, and Vedant Misra. 2022. Solving Quantitative Reasoning Problems with Language Models. In Ad-vances in Neural Information Processing Systems (NeurIPS) .[29] Jinyang Li, Binyuan Hui, Ge Qu, and et al. 2023. Can LLM Already Serve as a Database Interface? A BIg Bench for Large-Scale Database Grounded Text-to-SQLs. In Advances in Neural Information Processing Systems (Datasets and Benchmarks Track) .[30] Ilya Loshchilov and Frank Hutter. 2019. Decoupled Weight Decay Regular-ization. In International Conference on Learning Representations (ICLR) . https: //openreview.net/forum?id=Bkg6RiCqY7 [31] Michel Minoux. 1978. Accelerated Greedy Algorithms for Maximizing Sub-modular Set Functions. Optimization Techniques (Lecture Notes in Control and Information Sciences) 7 (1978), 234–243. [32] Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei A. Rusu, Joel Veness, Marc G. Bellemare, Alex Graves, Martin Riedmiller, Andreas K. Fidjeland, Georg Ostrovski, Stig Petersen, Charles Beattie, Amir Sadik, Ioannis Antonoglou, Helen King, Dharshan Kumaran, Daan Wierstra, Shane Legg, and Demis Hassabis. 2015. Human-level control through deep reinforcement learning. Nature 518, 7540 (2015), 529–533. https://doi.org/10.1038/nature14236 [33] Fatemeh Nargesian, Erkang Zhu, Ken Q Pu, and Renée J Miller. 2018. Table union search on open data. Proceedings of the VLDB Endowment 11, 7 (2018), 813–825. [34] George L. Nemhauser, Laurence A. Wolsey, and Marshall L. Fisher. 1978. An Analysis of Approximations for Maximizing Submodular Set Functions—I. Math-ematical Programming 14, 1, 265–294. [35] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. 2021. Learning Transferable Visual Models From Natural Language Supervision. In Proceedings of the 38th International Conference on Machine Learning (ICML 2021) (Proceedings of Machine Learning Re-search, Vol. 139) . PMLR, 8748–8763. http://proceedings.mlr.press/v139/radford21a. html [36] Aécio Santos, Aline Bessa, Fernando Chirigati, Christopher Musco, and Juliana Freire. 2021. Correlation sketches for approximate join-correlation queries. In 
+
+Proceedings of the 2021 International Conference on Management of Data . 1531– 1544. [37] Zirui Tang, Boyu Niu, Xuanhe Zhou, Boxiu Li, Wei Zhou, Jiannan Wang, Guoliang Li, Xinyi Zhang, and Fan Wu. 2025. ST-Raptor: LLM-Powered Semi-Structured Table Question Answering. Proceedings of the ACM on Management of Data 3, 6, Article 364 (Dec. 2025), 27 pages. https://doi.org/10.1145/3769829 [38] Zirui Tang, Weizheng Wang, Zihang Zhou, Yang Jiao, Bangrui Xu, Boyu Niu, Xuanhe Zhou, Guoliang Li, Yeye He, Wei Zhou, Yitong Song, Cheng Tan, Bin Wang, Conghui He, Xiaoyang Wang, and Fan Wu. 2025. LLM/Agent-as-Data-Analyst: A Survey. arXiv preprint arXiv:2509.23988 (2025). https://doi.org/10. 48550/arXiv.2509.23988 arXiv:2509.23988 [cs.AI] [39] James Thorne, Andreas Vlachos, Christos Christodoulopoulos, and Arpit Mittal. 2018. FEVER: a Large-scale Dataset for Fact Extraction and VERification. In 
+
+Proceedings of NAACL-HLT 2018 (Long Papers) .[40] Petar Veličković, Guillem Cucurullo, Arantxa Casanova, Adriana Romero, Pietro Liò, and Yoshua Bengio. 2018. Graph Attention Networks. In International Con-ference on Learning Representations (ICLR) . https://openreview.net/forum?id= rJXMpikCZ [41] Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan Chen, Jiakai Tang, Xu Chen, Yankai Lin, Wayne Xin Zhao, Zhewei Wei, and Ji-Rong Wen. 2023. A Survey on Large Language Model based Autonomous Agents. arXiv preprint arXiv:2308.11432 (2023). [42] Qiming Wang and Raul Castro Fernandez. 2023. Solo: Data discovery using natural language questions via a self-supervised approach. Proceedings of the ACM on Management of Data 1, 4 (2023), 1–27. [43] Zhiruo Wang, Zhengbao Jiang, Eric Nyberg, and Graham Neubig. 2022. Table Retrieval May Not Necessitate Table-specific Model Design. In Proceedings of the Workshop on Structured and Unstructured Knowledge Integration (SUKI) . Associa-tion for Computational Linguistics, 36–46. https://doi.org/10.18653/v1/2022.suki-1.5 [44] Laurence A. Wolsey. 2020. Integer Programming (2 ed.). Wiley, Hoboken, NJ. [45] Jian Wu, Linyi Yang, Dongyuan Li, Yuliang Ji, Manabu Okumura, and Yue Zhang. 2025. MMQA: Evaluating LLMs with multi-table multi-hop complex questions. In The thirteenth international conference on learning representations .[46] Zhiheng Xi, Wenxiang Chen, Xin Guo, Wei He, Yiwen Ding, Boyang Hong, Ming Zhang, Junzhe Wang, Senjie Jin, Enyu Zhou, et al . 2023. The Rise and Potential of Large Language Model Based Agents: A Survey. arXiv preprint arXiv:2309.07864 
+
+(2023). [47] John Yang, Carlos E. Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-Computer Inter-faces Enable Automated Software Engineering. arXiv preprint arXiv:2405.15793 
+
+(2024). [48] Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William W. Cohen, Ruslan Salakhutdinov, and Christopher D. Manning. 2018. HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering. In Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP) .[49] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. 2023. ReAct: Synergizing Reasoning and Acting in Language Models. In International Conference on Learning Representations (ICLR) . https: //openreview.net/forum?id=WE_vluYUL-X [50] Pengcheng Yin, Graham Neubig, Wen-tau Yih, and Sebastian Riedel. 2020. TaBERT: Pretraining for Joint Understanding of Textual and Tabular Data. In 
+
+Proceedings of the 58th Annual Meeting of the Association for Computational Lin-guistics (ACL) . 8413–8426. [51] Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li, James Ma, Irene Li, Qingning Yao, Shanelle Roman, et al . 2018. Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task. arXiv preprint arXiv:1809.08887 (2018). [52] Chi Zhang, Meihui Zhang, Yuxin Yang, Tao Chen, and Zhaojing Luo. 2025. Aixe-lAsk: A Stepwise-Guided Retrieval and Reasoning Framework for Large Table QA. Proceedings of the ACM on Management of Data 3, 6, Article 366 (Dec. 2025), 25 pages. https://doi.org/10.1145/3769831 [53] Erkang Zhu, Dong Deng, Fatemeh Nargesian, and Renée J Miller. 2019. Josie: Overlap set similarity search for finding joinable tables in data lakes. In Proceed-ings of the 2019 International Conference on Management of Data . 847–864. [54] Erkang Zhu, Fatemeh Nargesian, Ken Q. Pu, and Renée J. Miller. 2016. LSH Ensemble: Internet-Scale Domain Search. Proceedings of the VLDB Endowment 9, 12 (2016), 1185–1196. https://doi.org/10.14778/2994509.2994534 [55] Yizhang Zhu, Liangwei Wang, Chenyu Yang, Xiaotian Lin, Boyan Li, Wei Zhou, Xinyu Liu, Zhangyang Peng, Tianqi Luo, Yu Li, et al . 2025. A Survey of Data Agents: Emerging Paradigm or Overstated Hype? arXiv preprint arXiv:2510.23587 
+
+(2025). 
+
+## A INTENT-GRAPH EXTRACTION PROMPT 
+
+This appendix reproduces the full intent-graph extraction prompt issued to the LLM (GPT-5-mini in our default configuration), as described in Sec. 3.1: the task description, the JSON output schema, the extraction rules, and the three in-context examples. The {query} Conference’17, July 2017, Washington, DC, USA Ji et al. 
+
+placeholder is replaced by the user’s natural-language query at inference time. 
+
+You are an expert at decomposing analytical questions into a structured intent graph over a tabular data lake. Given a natural-language QUERY, output a JSON object representing the intent graph as a forest of intent trees plus cross-tree join relations. # OUTPUT SCHEMA {"trees": [ {"tree_id": "<unique short id>", "entity": "<target entity, e.g., 'Player ', 'Game '>", "attributes": [ {"attribute_id": "<unique short id>", "name": "<attribute, e.g., 'name ', 'score ', 'year '>", "values": ["<optional value constraints>"] }]}], "joins": [ {"from_tree": "<tree_id>", "from_attribute": "<attribute_id in from_tree>", "to_tree": "<tree_id>", "to_attribute": "<attribute_id in to_tree>" }]}# RULES 1. Use one tree per coherent data need: a single entity type together with its required attributes. 2. Each logical entity appears in at most one tree. 3. Add a join when two data needs are linked through a shared key, even if the link entity is not explicitly named in the query (introduce a bridge tree for it). 4. Include only entities, attributes, and values mentioned in or directly implied by the query. Do not invent unrelated attributes. 5. Do not include union relations. A single intent tree may be satisfied by multiple unioned tables at retrieval time; this is handled outside the intent graph and requires no graph annotation. 6. The "values" field is a (possibly empty) list of explicit value filters from the query. Leave it empty if the attribute is requested without a constraint. 7. Output valid JSON only. Do not include explanations, markdown fences, or any other text outside the JSON object. # EXAMPLES ## Example 1 (single tree, value constraint). QUERY: "List the top 5 universities in California by enrollment." OUTPUT: {"trees": [ {"tree_id": "t1", "entity": "University", "attributes": [ {"attribute_id": "a1", "name": "name", "values": []}, {"attribute_id": "a2", "name": "state", "values": ["California"]}, {"attribute_id": "a3", "name": "enrollment", "values": []} ]}], "joins": [] }## Example 2 (two trees, single join). QUERY: "What is the average score of female players in basketball games during 2020?" OUTPUT: {"trees": [ {"tree_id": "t1", "entity": "Player", "attributes": [ {"attribute_id": "a1", "name": "id", "values": []}, {"attribute_id": "a2", "name": "gender", "values": ["female"]} ]}, {"tree_id": "t2", "entity": "Game", "attributes": [ {"attribute_id": "a3", "name": "player_id", "values": []}, {"attribute_id": "a4", "name": "score", "values": []}, {"attribute_id": "a5", "name": "year", "values": ["2020"]}, {"attribute_id": "a6", "name": "sport", "values": ["basketball"]} ]}], "joins": [ {"from_tree": "t1", "from_attribute": "a1", "to_tree": "t2", "to_attribute": "a3"} ]}## Example 3 (three trees, two joins, bridge entity). QUERY: "What is the average points of AIB club players across matches?" OUTPUT: {"trees": [ {"tree_id": "t1", "entity": "Club", "attributes": [ {"attribute_id": "a1", "name": "id", "values": []}, {"attribute_id": "a2", "name": "name", "values": ["AIB"]} ]}, {"tree_id": "t2", "entity": "Player", "attributes": [ {"attribute_id": "a3", "name": "id", "values": []}, {"attribute_id": "a4", "name": "club_id", "values": []} ]}, {"tree_id": "t3", "entity": "Match", "attributes": [ {"attribute_id": "a5", "name": "player_id", "values": []}, {"attribute_id": "a6", "name": "points", "values": []} ]}], "joins": [ {"from_tree": "t1", "from_attribute": "a1", "to_tree": "t2", "to_attribute": "a4"}, {"from_tree": "t2", "from_attribute": "a3", "to_tree": "t3", "to_attribute": "a5"} ]}# QUERY {query} # OUTPUT

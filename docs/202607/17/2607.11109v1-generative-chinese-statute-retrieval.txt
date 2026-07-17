@@ -1,0 +1,244 @@
+Title: Generative Chinese Statute Retrieval
+
+URL Source: https://arxiv.org/pdf/2607.11109v1
+
+Published Time: Tue, 14 Jul 2026 03:04:01 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Generative Chinese Statute Retrieval 
+
+# Yiteng Tu 
+
+Tsinghua University Quancheng Laboratory Beijing, China yitengtu16@gmail.com 
+
+# Zitao Su 
+
+Renmin University of China Beijing, China 
+
+# Weihang Su 
+
+Tsinghua University Beijing, China 
+
+# Xuanyi Chen 
+
+Tsinghua University Beijing, China 
+
+# Yueyue Wu 
+
+Tsinghua University Beijing, China 
+
+# Yiqun Liu 
+
+Tsinghua University Beijing, China 
+
+# Min Zhang 
+
+Tsinghua University Beijing, China 
+
+# Qingyao Ai ∗
+
+Quancheng Laboratory Tsinghua University Beijing, China aiqingyao@gmail.com 
+
+## Abstract 
+
+Statute retrieval is a fundamental task in legal information retrieval, yet existing approaches struggle to bridge the gap between collo-quial legal queries and formal statutory language. In this paper, we propose GCSR, a generative statute retrieval framework that reformulates statute retrieval as a sequence generation problem and internalizes statutory knowledge into a generative model. Specifi-cally, we propose a multi-granularity structured docid that encodes legal hierarchy and semantic information, together with a multi-task training strategy. Experiments show that GCSR consistently outperforms strong sparse, dense, and legal-domain baselines. Our results demonstrate the effectiveness of generative retrieval for statute retrieval and highlight its potential for broader legal infor-mation access and downstream legal reasoning tasks. 
+
+## CCS Concepts 
+
+• Information systems → Retrieval models and ranking ; •
+
+Applied computing → Law .
+
+## Keywords 
+
+Statute Retrieval, Generative Retrieval, Legal 
+
+## 1 Introduction 
+
+In modern rule-of-law societies, the rapid growth of legal infor-mation has positioned Information Retrieval (IR) as a cornerstone of legal information systems [ 7, 11 , 14 , 17 , 20 ]. From legal advi-sory services and due diligence to judicial decision support, prac-titioners and citizens routinely rely on search engines to access relevant legal materials [ 9 , 19 , 32 ]. While statutes are foundational across legal systems, many civil-law jurisdictions such as China place particular emphasis on codified provisions as the starting point for legal authority [ 2 , 12 ]. Therefore, statute retrieval, the process of identifying relevant statutory articles for specific legal queries, serves as a core component of a wide range of downstream applications, including legal question answering, legal document drafting, and public legal consultation services [ 10 , 22 ]. It is also essential to retrieval-augmented generation (RAG) [ 23 , 24 ] systems for legal applications, where retrieved statutory provisions provide authoritative grounding for model-generated outputs. For legal pro-fessionals such as judges and lawyers, efficient retrieval systems 
+
+> ∗Corresponding Author
+
+significantly reduce the cognitive load of navigating vast legislative corpora. Moreover, for the general public, these systems provide a vital bridge to authoritative legal support, facilitating social justice and the accessibility of law. However, accurately retrieving statutes remains challenging. On the one hand, everyday legal queries are typically formulated in colloquial, narrative language, whereas statutes are drafted using highly condensed and technical terminology [ 3, 18 , 36 ]. Bridging this mismatch requires not only lexical matching but also the ability to interpret real-world narratives and map them to legally operative facts and applicable provisions. For example, a query stating that “my employer did not pay me for overtime work” must be connected to legally operative issues, such as the applicable working-hours regime and the employee’s entitlement to overtime compensation, even when the query contains no corresponding statutory termi-nology. On the other hand, statute retrieval necessitates complex legal reasoning that transcends simple keyword matching [ 10 , 28 ], requiring an understanding of dependencies among provisions and the hierarchy of legal principles. Conventional legal search systems typically adopt a retrieve-then-rerank pipeline, where a first-stage retriever produces a lim-ited candidate set and a reranker refines it [ 8 , 33 ]. Such pipelines are vulnerable to the colloquial–legal semantic gap: once the correct statute is missed at the first stage, later reranking cannot recover it, and fixed matching signals may underutilize statutory struc-ture (e.g., hierarchy and cross-references). In contrast, Generative Retrieval (GR) reformulates retrieval as an end-to-end sequence gen-eration problem, directly producing document identifiers (docids) conditioned on the query [ 5, 26 , 29 ]. This paradigm is particularly attractive for statute retrieval because the corpus is relatively static and highly structured, enabling a GR model to internalize corpus semantics and decode docids that reflect statutory organization. To this end, we propose a Generative retrieval framework, GCSR, tailored for Chinese Statute Retrieval. Specifically, we first design a structured docid scheme that explicitly captures the hierarchical or-ganization and internal structure of Chinese legislation. It enhances the semantic richness and interpretability of identifiers compared to traditional docids. Next, we design a multi-task training strat-egy encompassing general corpus training to capture document semantics, search-oriented training via pseudo-queries to bridge the colloquial-professional gap, and supervised fine-tuning on anno-tated query-statute pairs to establish robust relevance associations. arXiv:2607.11109v1 [cs.IR] 13 Jul 2026 Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Yiteng Tu et al. 
+
+Experimental results show that our proposed generative approach significantly outperforms traditional sparse and dense retrieval baselines, demonstrating the promise of generative retrieval for bridging the semantic gap between user queries and statutory pro-visions. In summary, this paper makes three key contributions: 
+
+• We propose a semantically and structurally grounded docid schema that improves interpretability and reduces ambiguity among sim-ilar articles. 
+
+• We design a multi-task training strategy that integrates three complementary tasks: statute indexing, LLM-based pseudo-query augmentation, and user-query-oriented supervised fine-tuning on annotated query-statute pairs. 
+
+• Experiments show that GCSR consistently improves over strong sparse and dense retrieval baselines on Chinese statute retrieval benchmarks. 
+
+## 2 Related Work 2.1 Legal Information Retrieval 
+
+Information Retrieval (IR) has become an indispensable catalyst for legal intelligence, significantly enhancing access to justice and the efficiency of judicial proceedings by enabling the rapid iden-tification of relevant legal sources [ 1, 21 , 25 , 31 ]. However, exist-ing research in legal IR has primarily focused on legal case re-trieval [ 8 , 11 , 20 ], whose objective is to identify historical precedents with similar factual circumstances to ensure judicial consistency. Significant efforts have been directed toward modeling long-form judgment documents and capturing complex legal elements within criminal or civil cases [ 7 , 33 ]. While these applications have ad-vanced the automation of judicial decision-making, they primarily address analogy-based relevance between past and present cases. On the other hand, the retrieval of statutory articles has received relatively less attention than the retrieval of legal cases, despite being the primary source of authority in legal systems. 
+
+## 2.2 Generative Retrieval (GR) 
+
+The landscape of IR has recently undergone a paradigm shift with the emergence of Generative Retrieval (GR) [ 13 ]. Unlike the tradi-tional "index-then-retrieve" framework, which relies on an external inverted index or vector store, GR integrates the corpus directly into the model’s parameters using a model-based indexer [ 13 , 26 , 37 ]. By transforming the retrieval task into a sequence-to-sequence generation problem, in which the model directly decodes document identifiers (docids), generative approaches enable end-to-end opti-mization that captures deeper semantic relationships [ 29 , 30 , 38 ]. In the legal domain, the inherent hierarchy of statutes (e.g., titles, chapters, and articles) provides a natural structure for designing semantically meaningful docids. This paper builds upon this gener-ative paradigm, proposing a structured DocID scheme and a multi-stage training workflow to bridge the gap between informal legal inquiries and the rigid structure of Chinese statutes. 
+
+## 3 Methodology 
+
+In this section, we present GCSR (Generative Chinese Statute Re-trieval), an end-to-end framework that internalizes the statutory corpus within a generative model to bridge the semantic gap be-tween colloquial queries and professional law. GCSR utilizes a multi-granularity structured docid to capture the hierarchical and func-tional essence of Chinese statutes, providing a semantically rich target space for decoding. At inference time, given a user query, GCSR decodes the top-𝑘 structured docids (e.g., via beam search) and deterministically maps them back to corresponding statutory articles. To ensure robust performance, we employ a multi-task training strategy that optimizes the model across three tasks: statute indexing, pseudo-query augmentation, and supervised retrieval. 
+
+## 3.1 Multi-granularity Structured Docid 
+
+In generative retrieval, the design of the document identifier (docid) is pivotal, as it serves as the bridge between the model’s output space and the actual statutory content. Specifically, we propose a Multi-granularity Structured docid tailored to the unique hierar-chical and functional characteristics of the Chinese legal system. Formally, for each statutory article 𝑑 , we represent its docid as a concatenated sequence of specialized field-marked semantic tokens: 
+
+𝑑𝑜𝑐𝑖𝑑 (𝑑 ) = [𝐵 ⊕ 𝐶 ⊕ 𝑇 ⊕ 𝐿 ⊕ 𝑂 ⊕ 𝐴 ⊕ 𝑆 ] (1) where ⊕ denotes the string concatenation operator, and each com-ponent is defined as (an example is provided in 1): 
+
+• 𝐵 and 𝐶 : Legal branch and sub-category. To capture the high-level legal context, we utilize a predefined legal taxonomy. These tokens are identified by mapping the article to its correspond-ing legal department (e.g., Civil, Administrative) and sub-fields through keyword matching and structural metadata. 
+
+• 𝑇 : Provision type. This captures the functional nature of the statute. We employ a rule-based classifier to identify typical lexi-cal patterns in the text. For instance, keywords like "penalty/fine" categorize the article as a Punishment Clause, while "applica-tion/period" indicates a Procedural Clause. 
+
+• 𝐿 : Legislation category. It identifies the legal hierarchy of the source (e.g., National Law, Administrative Regulation, or Judicial Interpretation) based on literal patterns in the title. 
+
+• 𝑂 : Involved objects. We extract primary subjects or facilities men-tioned in the text (e.g., "Industrial Enterprises," "Primary Schools"). If no specific entity is detected, a coarse-grained category is used as a placeholder. 
+
+• 𝐴 : Abbreviated title. To maintain distinctiveness while ensuring brevity, we use a shortened version of the statute’s title, stripping away redundant numbering. 
+
+• 𝑆 : Summary. To resolve collisions between articles within the same subcategory, we employ DeepSeek-R1-Distill-Qwen-7B 1 [6 ]to generate a concise summary of the article’s core content. By integrating these multi-level semantic features, our multi-granularity structured docid not only enables the model to dis-tinguish between highly similar articles but also provides a struc-tured semantic "path" that guides the auto-regressive decoding process, significantly alleviating the mapping difficulty from collo-quial queries to professional legal rules.  
+
+> 1https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B Generative Chinese Statute Retrieval Conference acronym ’XX, June 03–05, 2018, Woodstock, NY
+
+Table 1: Instantiations of the Multi-granularity Structured Docid. The upper block presents the raw statutory input, where key spans supporting the categorization are highlighted in bold. The lower block displays the hierarchical semantic components generated by GCSR, transforming unstructured text into a structured, navigable retrieval path.                                   
+
+> Input Space Example A (Civil Law) Example B (Administrative Law)
+> Statute Title Article 1202 of the Civil Code of the PRC Article 24 of the Regulations on Land Compensation and Resettle-ment for Water and Hydropower Projects
+> Statute Content Where a product defect causes harm to others, the
+> manufacturer shall bear tort liability .The relocation of industrial and mining enterprises ... shall be compensated... restoring original scale/standards .
+> Output Space: Structured Docid Components
+> 𝐵 Legal Branch Civil and Commercial Law Administration
+> 𝐶 Sub-category Civil Code Resources
+> 𝑇 Provision Type Substantive (Liability Definition) Safeguards (Compensation Rule)
+> 𝐿 Legislation Lvl. National Law Administrative Regulations
+> 𝑂 Involved Object Producer Industrial and Mining Enterprises
+> 𝐴 Abbrev. Title Civil Code of the PRC Large/Medium Water Conservancy Projects
+> 𝑆 Content Summary Liability for tort due to product defects Relocation/reconstruction compensation at original standards
+
+## 3.2 Multi-task Training Strategy 
+
+To effectively internalize the massive statutory corpus and bridge the gap between colloquial expressions and professional legal rules, we employ a multi-task training strategy. This strategy optimizes the model through three complementary tasks, enabling it to func-tion as both a robust indexer and an agile retriever: 
+
+• Statute Indexing Task. This task aims to encode the foundational legal knowledge into the model’s parameters. Given the full text of a statutory article as input, the model is required to recon-struct its corresponding docid. By treating the statute content as a "query" for its own identifier, the model establishes a direct mapping between professional legal language and the semantic segments of the docid. 
+
+• Pseudo-query Augmentation Task. To alleviate the data scarcity and simulate real-world consultation scenarios, we leverage the Qwen2.5-14B model 2 [27 ] to generate 10 diverse pseudo-queries for each statutory article. These generated queries mimic the in-formal and descriptive style of non-professional users. Training on these (pseudo-query, docid) pairs allows the model to learn the alignment between various linguistic variations and the authori-tative legal concepts. 
+
+• Supervised Retrieval Task. Finally, to ensure the model’s effec-tiveness in real-world applications, we fine-tune it using the authentic query-statute pairs from the official dataset. It forces the model to adapt to the authentic logic and noise present in real-life legal consultations, refining the decision boundaries for the most relevant docids. In summary, the integration of these tasks creates a holistic train-ing regime that balances the model’s ability to memorize the static legal corpus and its flexibility in understanding dynamic, colloquial user intents. For all three tasks, we utilize a unified generative ob-jective. Given an input sequence 𝑥 (which could be a statute text, a pseudo-query, or a real user query) and the target structured docid 
+
+𝑦 = {𝑦 1, 𝑦 2, ..., 𝑦 𝑛 }, the model is trained to minimize the negative 
+
+> 2https://huggingface.co/Qwen/Qwen2.5-14B-Instruct
+
+log-likelihood via an auto-regressive objective: 
+
+L = −
+
+> 𝑛
+
+∑︁ 
+
+> 𝑡 =1
+
+log 𝑃 (𝑦 𝑡 |𝑦 <𝑡 , 𝑥 ; 𝜃 ) (2) where 𝜃 represents the model parameters and 𝑛 is the length of the ground-truth docid sequence. By minimizing this loss across all tasks, the model learns to transition from various semantic spaces into the structured, hierarchical space of Chinese legal identifiers. This end-to-end optimization enables our generative retriever to directly optimize the docid generation rather than relying solely on similarity in embedding space, leading to more precise and context-aware statute retrieval. 
+
+## 4 Experiments 
+
+In this section, we evaluate GCSR through comprehensive experi-ments. We first introduce the dataset, evaluation metrics, and im-plementation details, then compare GCSR with representative base-lines, and finally examine the effects of its structured docid design and multi-task training strategy through ablation studies. 
+
+## 4.1 Datasets & Metrics 
+
+We evaluate our GCSR method on the STARD dataset [ 22 ], the first Chinese statute retrieval benchmark derived from real-world legal consultations from the general public. It comprises 1,543 non-professional query cases and a comprehensive corpus of 55,348 candidate statutory articles extracted from official Chinese laws and judicial interpretations. We adopt Hits@ {3, 5, 10 , 20 } as our primary evaluation metric. It reflects the model’s ability to provide a concise and accurate set of candidate laws for practical legal consultation, where users typically only examine the top few results. 
+
+## 4.2 Experimental Settings 
+
+We employ mT5-base 3 [ 35 ] as the backbone architecture for our GCSR model, as it provides a robust balance between multilingual representation capability and computational efficiency. The model  
+
+> 3https://huggingface.co/google/mt5-base Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Yiteng Tu et al.
+
+Table 2: Performance comparison of different retrieval paradigms. We compare our proposed GCSR against tradi-tional sparse, pre-trained, and legal retrieval models. Eval-uation metrics are Hits@K (H@K). The best results are in bold, and " ∗" indicates significantly worse than GCSR at the 
+
+𝑝 < 0.05 level using the two-tailed pairwise t-test. Category Model Retrieval Performance H@3 H@5 H@10 H@20 
+
+Sparse Retrieval QL 0.305* 0.318* 0.330* 0.339* BM25 0.319* 0.324* 0.337* 0.343* 
+
+Pre-trained Embedder Roberta 0.273* 0.285* 0.293* 0.299* BGE 0.411* 0.424* 0.439* 0.443* 
+
+Legal Retriever SAILER 0.201* 0.214* 0.223* 0.236* Lawformer 0.220* 0.231* 0.241* 0.257* 
+
+Fine-tuned Retriever Dense 0.468* 0.486* 0.495* 0.507 
+
+GCSR 0.522 0.536 0.544 0.547 
+
+is trained for 300k steps using a learning rate of 1e-3 on 4 NVIDIA A100-SXM4-40GB GPUs, with a per-device batch size of 48. During the evaluation phase, to ensure the validity of the generated docids, the decoding strategy is constrained by a Trie (prefix tree) following previous works [ 5 , 26 ]. We utilize beam search with a beam size of 20 to find the most probable candidate statutes for each query. 
+
+## 4.3 Main Results 
+
+We compare our proposed GCSR with several representative re-trieval methods, categorized into four groups: 
+
+• Sparse Retrievers. Traditional lexical matching methods, includ-ing QL[15] and BM25 [16]. 
+
+• Pre-trained Embedders. Strong dense retrieval models trained on general-domain data, specifically Chinese-RoBERTa-WWM 4 [ 4](denoted as RoBERTa) and BGE 5 [34]. 
+
+• Legal Retrievers. Models specifically pre-trained on legal corpora, including SAILER [7] and Lawformer [33]. 
+
+• Fine-tuned Retrievers. Following the official settings of STARD [ 22 ], we include a dense retriever fine-tuned on the STARD training set using RoBERTa as the backbone, denoted as Dense. Table 2 reports the performance of all models. First, our GCSR consistently outperforms all baseline methods across all evalua-tion scales. This demonstrates the effectiveness of the generative retrieval paradigm in the legal domain, where the model-based in-dexer can better internalize the authoritative knowledge of statutes compared to dual-encoder architectures. Besides, traditional sparse retrievers (i.e., QL and BM25) surprisingly outperform several zero-shot neural models such as RoBERTa and SAILER. This phenom-enon, also observed in the original STARD study, suggests that many statutory articles contain unique legal keywords that are crucial for matching, yet zero-shot dense models often struggle to prioritize these specific terms over general semantic similarity. Fi-nally, legal-domain pre-trained models (i.e., SAILER and Lawformer) show suboptimal performance, likely because these models were primarily optimized for legal case retrieval using long-form judicial 
+
+> 4https://huggingface.co/hfl/chinese-roberta-wwm-ext
+> 5https://huggingface.co/BAAI/bge-base-zh-v1.5
+
+Table 3: Results of the ablation experiment for the docid type. The best results are in bold. 
+
+docid type Hits@3 Hits@5 Hits@10 Hits@20 GCSR(ours) 0.522 0.536 0.544 0.547 Atomic 0.515 0.528 0.539 0.541 Title 0.482 0.492 0.498 0.503 PQ 0.482 0.49 0.501 0.504 Semantic 0.517 0.531 0.542 0.548 Table 4: Results of ablation experiments for training tasks. The best results are in bold.                                      
+
+> Docid Type Tasks Hits@3 Hits@5 Hits@10 Hits@20 GCSR Full 0.522 0.536 0.544 0.547
+> w/o SIT 0.486 0.510 0.516 0.519 w/o PAT 0.387 0.399 0.413 0.418 w/o SRT 0.373 0.380 0.391 0.395 Atomic Full 0.515 0.528 0.539 0.541
+> w/o SIT 0.429 0.442 0.452 0.457 w/o PAT 0.386 0.398 0.408 0.411 w/o SRT 0.389 0.400 0.403 0.406
+
+documents. When faced with the "semantic chasm" between short, colloquial layperson queries and abstract statutory provisions, their pre-trained knowledge fails to generalize effectively. Overall, the superior performance of GCSR highlights the advan-tage of our multi-task training and our structured docid design. By explicitly modeling the hierarchical structure of Chinese law and augmenting training with LLM-generated pseudo-queries, GCSR successfully bridges the gap between informal user intent and pro-fessional legal authority, establishing a new state-of-the-art for Chinese statute retrieval. 
+
+## 4.4 Ablation Study 
+
+To evaluate the effectiveness of the various components in GCSR, we conduct a detailed ablation study from two perspectives: docid design and training task strategy. 
+
+4.4.1 Impact of Docid Design. 
+
+We first investigate how different types of docids affect the perfor-mance of generative retrieval. We compare our proposed method with four alternatives: 
+
+• Atomic [ 26 ]: Assigning a unique, random integer id to each statu-tory article. 
+
+• Title [26]: Using the literal title of the statute as the docid. 
+
+• PQ [ 37 ]: Using discrete codes generated by Product Quantization based on the document embeddings. 
+
+• Semantic: Concatenating the statute title with the summary. The results are summarized in Table 3. It can be observed that our GCSR achieves the best overall performance, indicating that integrating multi-level structural information provides stronger se-mantic constraints and guidance for the model. On the other hand, Title and PQ perform poorly. Titles often suffer from collisions or extreme similarity across different articles, leading to decoding Generative Chinese Statute Retrieval Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+ambiguity. PQ codes, while capturing vector features, lack human-readable semantic logic, making it harder for the model to "memo-rize" the mapping. Semantic yields results close to GCSR, proving that summary information is vital for distinguishing similar articles. However, it still falls short of GCSR at a fine-grained level due to the lack of explicit hierarchical legal context. 
+
+4.4.2 Impact of Training Tasks. 
+
+Next, we analyze the contribution of our three training tasks in §3.2, i.e, the Statute Indexing Task (SIT), the Pseudo-query Augmentation Task (PAT), and the Supervised Retrieval Task (SRT). Table 4 shows that full-task training consistently achieves the highest accuracy, and removing any single task leads to a noticeable performance decline. Especially, PAT and SRT are more critical than SIT. Re-moving one of the two would result in a drastic performance drop. This confirms that fine-tuning on pseudo- or real-world judicial consultation data is effective for the model to learn the mapping between colloquial queries and professional statutes. 
+
+## 5 Conclusions and Future Work 
+
+This paper proposes GCSR, a generative statute retrieval frame-work that reformulates statute retrieval as a sequence-generation problem and internalizes statutory knowledge within the model parameters. By introducing a multi-granularity structured docid and a multi-task training strategy, GCSR effectively bridges the gap between colloquial legal queries and formal statutory language. Experimental results demonstrate that GCSR consistently outper-forms strong sparse, dense, and legal-domain baselines. It suggests generative retrieval as a promising paradigm for statute retrieval and can be extended to broader legal systems and downstream legal reasoning tasks. While the proposed framework is jurisdiction-agnostic by design, our evaluation is currently limited to Chinese statutes. We plan to apply it to other legal systems and languages. Additionally, accurate statute retrieval also serves as a foundational capability for downstream legal intelligence applications such as legal question answering, regulatory compliance checking, and decision support systems, which we leave for future exploration. 
+
+## References 
+
+[1] Francesco Borgesano, Annarita De Maio, Pasquale Laghi, and Roberto Musmanno. 2025. Artificial intelligence and justice: a systematic literature review and future research perspectives on Justice 5.0. European Journal of Innovation Management 
+
+28, 11 (2025), 349–385. [2] Jianfu Chen. 2023. Chinese law: Towards an understanding of Chinese law, its nature and developments . Vol. 3. Martinus Nijhoff Publishers. [3] Szu-Ju Chen, Jing Jin, Sheng-Lun Wei, Chien-Hung Chen, and Hsin-Hsi Chen. 2025. Retrieving the Right Law: Enhancing Legal Search with Style Translation. In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval . 2951–2955. [4] Yiming Cui, Wanxiang Che, Ting Liu, Bing Qin, and Ziqing Yang. 2021. Pre-training with whole word masking for chinese bert. IEEE/ACM Transactions on Audio, Speech, and Language Processing 29 (2021), 3504–3514. [5] Nicola De Cao, Gautier Izacard, Sebastian Riedel, and Fabio Petroni. 2020. Au-toregressive entity retrieval. arXiv preprint arXiv:2010.00904 (2020). [6] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Peiyi Wang, Qihao Zhu, Runxin Xu, Ruoyu Zhang, Shirong Ma, Xiao Bi, et al. 2025. Deepseek-r1: Incen-tivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025). [7] Haitao Li, Qingyao Ai, Jia Chen, Qian Dong, Yueyue Wu, Yiqun Liu, Chong Chen, and Qi Tian. 2023. SAILER: structure-aware pre-trained language model for legal case retrieval. In Proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval . 1035–1044. [8] Haitao Li, Weihang Su, Changyue Wang, Yueyue Wu, Qingyao Ai, and Yiqun Liu. 2023. Thuir@ coliee 2023: Incorporating structural knowledge into pre-trained language models for legal case retrieval. arXiv preprint arXiv:2305.06812 (2023). [9] Daniel Locke and Guido Zuccon. 2022. Case law retrieval: problems, methods, challenges and evaluations in the last 20 years. arXiv preprint arXiv:2202.07209 
+
+(2022). [10] Antoine Louis, Gijs Van Dijck, and Gerasimos Spanakis. 2023. Finding the law: Enhancing statutory article retrieval via graph neural networks. arXiv preprint arXiv:2301.12847 (2023). [11] Yixiao Ma, Yueyue Wu, Weihang Su, Qingyao Ai, and Yiqun Liu. 2023. CaseEn-coder: A Knowledge-enhanced Pre-trained Model for Legal Case Encoding. arXiv preprint arXiv:2305.05393 (2023). [12] John Merryman and Rogelio Pérez-Perdomo. 2023. The civil law tradition: an introduction to the legal systems of Europe and Latin America . Stanford University Press. [13] Donald Metzler, Yi Tay, Dara Bahri, and Marc Najork. 2021. Rethinking search: making domain experts out of dilettantes. In Acm sigir forum , Vol. 55. ACM New York, NY, USA, 1–27. [14] Ha-Thanh Nguyen, Manh-Kien Phi, Xuan-Bach Ngo, Vu Tran, Le-Minh Nguyen, and Minh-Phuong Tu. 2024. Attentive deep neural networks for legal document retrieval. Artificial Intelligence and Law 32, 1 (2024), 57–86. [15] Jay M Ponte and W Bruce Croft. 2017. A language modeling approach to in-formation retrieval. In ACM SIGIR Forum , Vol. 51. ACM New York, NY, USA, 202–208. [16] Stephen Robertson, Hugo Zaragoza, et al . 2009. The probabilistic relevance framework: BM25 and beyond. Foundations and Trends ® in Information Retrieval 
+
+3, 4 (2009), 333–389. [17] Carlo Sansone and Giancarlo Sperlí. 2022. Legal information retrieval systems: state-of-the-art and open issues. Information Systems 106 (2022), 101967. [18] Jaromír Šavelka and Kevin D Ashley. 2022. Legal information retrieval for understanding statutory terms. Artificial Intelligence and Law 30, 2 (2022), 245– 289. [19] Yunqiu Shao, Haitao Li, Yueyue Wu, Yiqun Liu, Qingyao Ai, Jiaxin Mao, Yixiao Ma, and Shaoping Ma. 2023. An intent taxonomy of legal case retrieval. ACM Transactions on Information Systems 42, 2 (2023), 1–27. [20] Weihang Su, Qingyao Ai, Yueyue Wu, Anzhe Xie, Changyue Wang, Yixiao Ma, Haitao Li, Zhijing Wu, Yiqun Liu, and Min Zhang. 2025. Pre-training for legal case retrieval based on inter-case distinctions. ACM Transactions on Information Systems 43, 5 (2025), 1–27. [21] Weihang Su, Xuanyi Chen, Yueyue Wu, Qingyao Ai, and Yiqun Liu. 2026. Enhanc-ing Judgment Document Generation via Agentic Legal Information Collection and Rubric-Guided Optimization. arXiv preprint arXiv:2605.02011 (2026). [22] Weihang Su, Yiran Hu, Anzhe Xie, Qingyao Ai, Quezi Bing, Ning Zheng, Yun Liu, Weixing Shen, and Yiqun Liu. 2024. STARD: A Chinese Statute Retrieval Dataset Derived from Real-life Queries by Non-professionals. In Findings of the Association for Computational Linguistics: EMNLP 2024 . 10658–10671. [23] Weihang Su, Yichen Tang, Qingyao Ai, Zhijing Wu, and Yiqun Liu. 2024. Dragin: Dynamic retrieval augmented generation based on the real-time information needs of large language models. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . 12991–13013. [24] Weihang Su, Yichen Tang, Qingyao Ai, Junxi Yan, Changyue Wang, Hongning Wang, Ziyi Ye, Yujia Zhou, and Yiqun Liu. 2025. Parametric retrieval augmented generation. In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval . 1240–1250. [25] Weihang Su, Baoqing Yue, Qingyao Ai, Yiran Hu, Jiaqi Li, Changyue Wang, Kaiyuan Zhang, Yueyue Wu, and Yiqun Liu. 2025. Judge: Benchmarking judg-ment document generation for chinese legal system. In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval . 3573–3583. [26] Yi Tay, Vinh Tran, Mostafa Dehghani, Jianmo Ni, Dara Bahri, Harsh Mehta, Zhen Qin, Kai Hui, Zhe Zhao, Jai Gupta, et al . 2022. Transformer memory as a differentiable search index. Advances in Neural Information Processing Systems 
+
+35 (2022), 21831–21843. [27] Qwen Team et al . 2024. Qwen2 technical report. arXiv preprint arXiv:2407.10671 
+
+2, 3 (2024). [28] Marc Van Opijnen and Cristiana Santos. 2017. On the concept of relevance in legal information retrieval. Artificial Intelligence and Law 25, 1 (2017), 65–87. [29] Yujing Wang, Yingyan Hou, Haonan Wang, Ziming Miao, Shibin Wu, Qi Chen, Yuqing Xia, Chengmin Chi, Guoshuai Zhao, Zheng Liu, et al . 2022. A neural corpus indexer for document retrieval. Advances in Neural Information Processing Systems 35 (2022), 25600–25614. [30] Zihan Wang, Yujia Zhou, Yiteng Tu, and Zhicheng Dou. 2023. NOVO: learnable and interpretable document identifiers for model-based IR. In Proceedings of the 32nd ACM International Conference on Information and Knowledge Management .2656–2665. [31] Gineke Wiggers, Suzan Verberne, Wouter van Loon, and Gerrit-Jan Zwenne. 2023. Bibliometric-enhanced legal information retrieval: Combining usage and Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Yiteng Tu et al. 
+
+citations as flavors of impact relevance. Journal of the Association for Information Science and Technology 74, 8 (2023), 1010–1025. [32] Gineke Wiggers, Suzan Verberne, Gerrit-Jan Zwenne, and Wouter Van Loon. 2022. Exploration of domain relevance by legal professionals in information retrieval systems. Legal Information Management 22, 1 (2022), 49–67. [33] Chaojun Xiao, Xueyu Hu, Zhiyuan Liu, Cunchao Tu, and Maosong Sun. 2021. Lawformer: A pre-trained language model for chinese legal long documents. AI Open 2 (2021), 79–84. [34] Shitao Xiao, Zheng Liu, Peitian Zhang, Niklas Muennighoff, Defu Lian, and Jian-Yun Nie. 2024. C-pack: Packed resources for general chinese embeddings. In Proceedings of the 47th international ACM SIGIR conference on research and development in information retrieval . 641–649. [35] Linting Xue, Noah Constant, Adam Roberts, Mihir Kale, et al . 2021. mT5: A massively multilingual pre-trained text-to-text transformer. In Proceedings of the 2021 conference of the North American chapter of the association for computational linguistics: Human language technologies . 483–498. [36] Mingruo Yuan, Ben Kao, and Tien-Hsuan Wu. 2025. QBR: A Question-Bank-Based Approach to Fine-Grained Legal Knowledge Retrieval for the General Public. arXiv preprint arXiv:2505.04883 (2025). [37] Yujia Zhou, Jing Yao, Zhicheng Dou, Ledell Wu, Peitian Zhang, and Ji-Rong Wen. 2022. Ultron: An ultimate retriever on corpus with a model-based indexer. arXiv preprint arXiv:2208.09257 (2022). [38] Shengyao Zhuang, Houxing Ren, Linjun Shou, Jian Pei, Ming Gong, Guido Zuc-con, and Daxin Jiang. 2022. Bridging the gap between indexing and retrieval for differentiable search index with query generation. arXiv preprint arXiv:2206.10128 
+
+(2022).

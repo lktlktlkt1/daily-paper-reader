@@ -6,106 +6,65 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-08 ~ 2026-07-17
-- 运行时间：2026-07-17 06:48:46 UTC
+- 最新运行日期：2026-07-17
+- 运行时间：2026-07-17 21:39:02 UTC
 - 运行状态：成功
-- 本次总论文数：28
-- 精读区：17
-- 速读区：11
+- 本次总论文数：15
+- 精读区：7
+- 速读区：8
 
 ### 今日简报（AI）
-智能体强化检索与生成的前沿探索：深入评估搜索策略的粒度感知与因果效用，揭示静态检索得分无法预测多步搜索的最终成效。  
-最值得关注的方向是《GRASP》的粒度自适应搜索和《Bridge Evidence》对检索因果性的颠覆性发现。  
-建议读者从这两篇满分精读入手，重新审视你的RAG流程是否在“认真思考”而非“机械匹配”。
-- 详情：[/20260708-20260717/README](/20260708-20260717/README)
+知识图谱问答进入多跳自适应检索新阶段，图匹配检索增强生成初现锋芒。多模态模型开始内建认知结构，并主动应对污染数据挑战。关注推理型AI助手在真实课堂的规模化落地，会是近期高价值趋势。
+- 详情：[/202607/17/README](/202607/17/README)
 
 ### 精读区论文标签
-1. [GRASP: GRanularity-Aware Search Policy for Agentic RAG](/20260708-20260717/2607.10463v1-grasp-granularity-aware-search-policy-for-agentic-rag)  
+1. [MARS: Multi-hop Adaptive Retrieval and SPARQL Generation for KGQA](/202607/17/2607.14561v1-mars-multi-hop-adaptive-retrieval-and-sparql-generation-for-kgqa)  
    标签：评分：10.0/10、query:agentic-rag
-   evidence：提出强化学习框架，在智能RAG中自适应协调语义搜索、关键词搜索和段落阅读动作
-2. [Bridge Evidence: Static Retrieval Utility Does Not Predict Causal Utility in Multi-Step Agentic Search](/20260708-20260717/2607.15253v1-bridge-evidence-static-retrieval-utility-does-not-predict-causal-utility-in-multi-step-agentic-search)  
-   标签：评分：10.0/10、query:agentic-rag
-   evidence：量化多步智能搜索中静态检索效用与因果效用的差距，表明文档影响后续行动而不仅是直接回答
-3. [Interpretable Uncertainty for Adaptive Retrieval and Reasoning in Question Answering](/20260708-20260717/2607.07380v1-interpretable-uncertainty-for-adaptive-retrieval-and-reasoning-in-question-answering)  
+   evidence：面向知识图谱问答的多跳自适应检索
+2. [NGM-RAG: Neural Graph Matching based Retrieval-Augmented Generation](/202607/17/2607.11159v1-ngm-rag-neural-graph-matching-based-retrieval-augmented-generation)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：利用LLM内部不确定性自适应触发RAG，提升推理与事实性。
-4. [MMAgent-R$^2$: Learning to Rerank and Reject for Agentic mRAG](/20260708-20260717/2607.07383v1-mmagent-r2-learning-to-rerank-and-reject-for-agentic-mrag)  
+   evidence：神经图匹配用于RAG中的多跳推理
+3. [Boolean queries are all you need?](/202607/17/2607.11362v1-boolean-queries-are-all-you-need)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：学习重排序与拒绝的agentic多模态RAG，以排除混淆实体
-5. [Think Big, Search Small: Where Capacity Matters in Hierarchical Search Agents?](/20260708-20260717/2607.07548v1-think-big-search-small-where-capacity-matters-in-hierarchical-search-agents)  
+   evidence：基于LLM的搜索代理利用布尔检索在RAG赛道取得优异检索效果
+4. [RAGU: A Multi-Step GraphRAG Engine with a Compact Domain-Adapted LLM](/202607/17/2607.11683v1-ragu-a-multi-step-graphrag-engine-with-a-compact-domain-adapted-llm)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：面向多跳问答的层次化多智能体搜索，含任务分解与执行
-6. [PolyUQuest: Verifiable Structure-Aware Web RAG over Heterogeneous Graphs](/20260708-20260717/2607.08269v1-polyuquest-verifiable-structure-aware-web-rag-over-heterogeneous-graphs)  
+   evidence：多步GraphRAG引擎，具有结构整合、去重和紧凑LLM，提升知识增强生成
+5. [Transforming LLMs into Efficient Cross-Encoders via Knowledge Distillation for RAG Reranking](/202607/17/2607.11933v1-transforming-llms-into-efficient-cross-encoders-via-knowledge-distillation-for-rag-reranking)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：PolyUQuest在可验证的RAG框架中实现基于网页结构的多跳实体推理。
-7. [AgentKGV: Agentic LLM-RAG Framework with Two-Stage Training for the Fact Verification of Knowledge Graphs](/20260708-20260717/2607.09092v1-agentkgv-agentic-llm-rag-framework-with-two-stage-training-for-the-fact-verification-of-knowledge-graphs)  
+   evidence：微调LLaMA 3作为交叉编码器重排序器，提升RAG答案相关性和上下文精度
+6. [GRAFT: Graph-Matched Retrieval and Fusion of Tables in Data Lakes](/202607/17/2607.12717v1-graft-graph-matched-retrieval-and-fusion-of-tables-in-data-lakes)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：结合动态路由与迭代查询重写的Agentic LLM-RAG框架
-8. [Equal Accuracy, Unequal Evidence: Search APIs as Decision Surfaces for Tool-Using Agents](/20260708-20260717/2607.10198v1-equal-accuracy-unequal-evidence-search-apis-as-decision-surfaces-for-tool-using-agents)  
+   evidence：面向自主数据智能体的图匹配检索与融合
+7. [SearchOS-V1: Towards Robust Open-Domain Information-Seeking Agent Collaboration](/202607/17/2607.15257v1-searchos-v1-towards-robust-open-domain-information-seeking-agent-collaboration)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：将搜索API视为工具使用智能体的决策界面，是智能体RAG架构的关键。
-9. [EvidentialRAG: Quantifying and Mitigating Information Conflict in Multi-Source Retrieval-Augmented Generation via Evidential Deep Learning](/20260708-20260717/2607.10491v1-evidentialrag-quantifying-and-mitigating-information-conflict-in-multi-source-retrieval-augmented-generation-via-evidential-deep-learning)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：处理多源信息冲突的不确定性感知RAG框架
-10. [Tool-Adaptive LLM Reranker](/20260708-20260717/2607.10555v1-tool-adaptive-llm-reranker)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：基于工具调用的智能体马尔可夫决策过程用于逐点相关性评分
-11. [STEC: Evidence Compression for Deep Search in Open-domain Multi-Hop QA](/20260708-20260717/2607.10795v1-stec-evidence-compression-for-deep-search-in-open-domain-multi-hop-qa)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：面向多跳问答搜索代理的多轨迹证据压缩
-12. [A Multi-Agent Framework for Zero-Dimensional Reduced-Order Model Planning](/20260708-20260717/2607.10994v1-a-multi-agent-framework-for-zero-dimensional-reduced-order-model-planning)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：多智能体框架结合RAG与LLM智能体进行工程规划
-13. [Enhancing LLMs through human feedback: a journey towards self-improvement](/20260708-20260717/2607.11267v1-enhancing-llms-through-human-feedback-a-journey-towards-self-improvement)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：通过辅助反馈系统与人类反馈实现RAG自我改进
-14. [Track, Rank, Crack: Epistemic Working Memory Scales Multi-Hop Reasoning in Language Agents](/20260708-20260717/2607.12267v1-track-rank-crack-epistemic-working-memory-scales-multi-hop-reasoning-in-language-agents)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：SLEUTH通过结构化认知工作记忆克服工具型多步推理中的上下文稀释，实现自反思。
-15. [EvoGraph-R1: Self-Evolving Multimodal Knowledge Hypergraphs for Agentic Retrieval](/20260708-20260717/2607.12764v1-evograph-r1-self-evolving-multimodal-knowledge-hypergraphs-for-agentic-retrieval)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：用于agentic RAG的自进化知识超图，支持迭代细化
-16. [Knowledgeless Language Models: Suppressing Parametric Recall for Evidence-Grounded Language Modeling](/20260708-20260717/2607.12831v1-knowledgeless-language-models-suppressing-parametric-recall-for-evidence-grounded-language-modeling)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：训练LLM依赖证据而非参数回忆以改进RAG
-17. [DS@GT ARC at LongEval: Citation Integrity and Factual Grounding in Scientific QA](/20260708-20260717/2607.14400v1-dsgt-arc-at-longeval-citation-integrity-and-factual-grounding-in-scientific-qa)  
-   标签：评分：9.0/10、query:agentic-rag
-   evidence：评估具有自我校正和引用完整性的矫正RAG
+   evidence：带显式共享状态的多智能体框架用于迭代式网络搜索和RAG
 
 ### 速读区论文标签
-1. [Co-LMLM: Continuous-Query Limited Memory Language Models](/20260708-20260717/2607.07707v1-co-lmlm-continuous-query-limited-memory-language-models)  
+1. [Cognitive-structured Multimodal Agent for Multimodal Understanding, Generation, and Editing](/202607/17/2607.08497v1-cognitive-structured-multimodal-agent-for-multimodal-understanding-generation-and-editing)  
    标签：评分：8.0/10、query:agentic-rag
-   evidence：提出连续查询的有限记忆语言模型，生成时从知识库检索知识以提升事实性。
-2. [Agentic AI and Retrieval-Augmented Models in Straight-Through Underwriting](/20260708-20260717/2607.07858v1-agentic-ai-and-retrieval-augmented-models-in-straight-through-underwriting)  
+   evidence：认知检索引擎选择性激活相关片段以增强代理推理
+2. [Trust Before Fusion: QIMG-7 and Source-Aware Resolution for Polluted Multimodal RAG](/202607/17/2607.10798v1-trust-before-fusion-qimg-7-and-source-aware-resolution-for-polluted-multimodal-rag)  
    标签：评分：8.0/10、query:agentic-rag
-   evidence：用于承保的多智能体agentic系统，具备规划、检索、工具调用和反思能力
-3. [WebSwarm: Recursive Multi-Agent Orchestration for Deep-and-Wide Web Search](/20260708-20260717/2607.08662v1-webswarm-recursive-multi-agent-orchestration-for-deep-and-wide-web-search)  
+   evidence：提出面向污染多模态RAG的基准，揭示融合脆弱性，旨在提升RAG可靠性
+3. [Learning Engagement Assistant (LEA): Cross-Course Scalability and Classroom Evaluation of an Agentic AI Tutoring System](/202607/17/2607.13370v1-learning-engagement-assistant-lea-cross-course-scalability-and-classroom-evaluation-of-an-agentic-ai-tutoring-system)  
    标签：评分：8.0/10、query:agentic-rag
-   evidence：提出递归多智能体协同框架，进行任务分解和多轮迭代检索以完成复杂搜索
-4. [Deceptive Grounding: Entity Attribution Failure in Clinical Retrieval-Augmented Generation](/20260708-20260717/2607.09349v1-deceptive-grounding-entity-attribution-failure-in-clinical-retrieval-augmented-generation)  
+   evidence：结合课程专用检索增强生成的智能体AI教学系统
+4. [Memory as a Controlled Process: Learned Adaptive Memory Management for LLM Agents](/202607/17/2607.13591v1-memory-as-a-controlled-process-learned-adaptive-memory-management-for-llm-agents)  
    标签：评分：8.0/10、query:agentic-rag
-   evidence：揭示临床RAG中的虚假归因失败
-5. [MC-RAG System: A Structure-Driven RAG System for Multi-Constraint Queries](/20260708-20260717/2607.10151v1-mc-rag-system-a-structure-driven-rag-system-for-multi-constraint-queries)  
+   evidence：自适应记忆检索根据上下文动态复用计划，增强智能体推理
+5. [Chat2Scenic: An Iterative RAG-Based Framework for Scenario Generation in Autonomous Driving](/202607/17/2607.14387v1-chat2scenic-an-iterative-rag-based-framework-for-scenario-generation-in-autonomous-driving)  
    标签：评分：8.0/10、query:agentic-rag
-   evidence：结构驱动的RAG系统，利用子图匹配实现多约束查询问答。
-6. [SVD-RAG: Efficient Tree-Organized Retrieval-Augmented Generation via Singular Value Decomposition](/20260708-20260717/2607.10316v1-svd-rag-efficient-tree-organized-retrieval-augmented-generation-via-singular-value-decomposition)  
-   标签：评分：8.0/10、query:agentic-rag
-   evidence：SVD-RAG利用奇异值分解实现层次化RAG的高效抽取式摘要，降低LLM调用成本。
-7. [FAIR GraphRAG: A Retrieval-Augmented Generation Approach for Semantic Data Analysis](/20260708-20260717/2607.11464v1-fair-graphrag-a-retrieval-augmented-generation-approach-for-semantic-data-analysis)  
+   evidence：迭代检索增强框架用于场景脚本生成
+6. [SmartRAG: Native Graph-Based RAG for Mobile Device](/202607/17/2607.14661v1-smartrag-native-graph-based-rag-for-mobile-device)  
    标签：评分：7.0/10、query:agentic-rag
-   evidence：融合FAIR原则的图形RAG方法用于语义数据分析
-8. [QUBO-Optimized Evidence Selection for Retrieval-Augmented Question Answering with Unconventional Solvers](/20260708-20260717/2607.12334v1-qubo-optimized-evidence-selection-for-retrieval-augmented-question-answering-with-unconventional-solvers)  
-   标签：评分：7.0/10、query:agentic-rag
-   evidence：在RAG中通过QUBO优化为多跳问答选择互补证据集
-9. [Enhancing Small Language Models Reasoning through Knowledge Graph Grounding](/20260708-20260717/2607.14149v1-enhancing-small-language-models-reasoning-through-knowledge-graph-grounding)  
-   标签：评分：7.0/10、query:agentic-rag
-   evidence：智能体式知识图谱检索增强小模型推理
-10. [SAGA: Schema-Aware Grounding for Agentic Text-to-SPARQL Generation](/20260708-20260717/2607.14494v1-saga-schema-aware-grounding-for-agentic-text-to-sparql-generation)  
-   标签：评分：7.0/10、query:agentic-rag
-   evidence：交互式语义解析agent，交替进行推理、知识库查询和SPARQL扩展
-11. [RAGthoven at SemEval-2026 Task 1: A Multi-Stage Pipeline Walks Into a Benchmark and Barely Clears the Bar](/20260708-20260717/2607.13189v1-ragthoven-at-semeval-2026-task-1-a-multi-stage-pipeline-walks-into-a-benchmark-and-barely-clears-the-bar)  
+   evidence：提出四模块（感知、记忆、聚焦、思考）全端侧RAG框架
+7. [Generative Chinese Statute Retrieval](/202607/17/2607.11109v1-generative-chinese-statute-retrieval)  
    标签：评分：6.0/10、query:agentic-rag
-   evidence：在多阶段流水线中从笑话语料库进行检索增强生成以产生幽默文本
+   evidence：生成式检索引擎将法规检索重新定义为序列生成
+8. [Beyond Semantic IDs: Encoding Business-Value Ranking into Document Identifiers for Generative Retrieval](/202607/17/2607.11392v1-beyond-semantic-ids-encoding-business-value-ranking-into-document-identifiers-for-generative-retrieval)  
+   标签：评分：6.0/10、query:agentic-rag
+   evidence：簇排序标识符的生成式检索提升文档检索质量
 
 
 <div class="dpr-home-promo-card">
