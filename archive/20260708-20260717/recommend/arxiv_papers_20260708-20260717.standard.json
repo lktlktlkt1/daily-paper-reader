@@ -1,0 +1,1118 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-17T06:26:14.534500+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 28,
+    "deep_cap": 6,
+    "deep_selected": 17,
+    "quick_candidates": 17,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2607.10463v1",
+      "source": "arxiv",
+      "title": "GRASP: GRanularity-Aware Search Policy for Agentic RAG",
+      "abstract": "Agentic retrieval-augmented generation (RAG) extends static RAG by allowing language models to iteratively reason, generate search queries, retrieve evidence, and predict answers. However, it remains challenging for models to decide when to retrieve, whether to use lexical matching or semantic similarity, and how to control context granularity to prevent irrelevant tokens from interfering with agent reasoning. In this paper, we introduce GRASP, a reinforcement learning (RL) framework for training agents to adaptively coordinate complementary retrieval tools during multi-step reasoning. GRASP provides the agent with semantic search, keyword search, and paragraph-reading actions, enabling it to retrieve sentence-level evidence and expand further context only when needed. We train the policy with a reward that jointly accounts for answer accuracy, grounded reading, complementary search, and turn efficiency. Experiments on multi-hop reasoning benchmarks show that GRASP improves both retrieval recall and downstream question answering performance compared with single-step retrieval, prompting-based agentic RAG, and RL-based retrieval baselines. Qualitative and ablation analyses show that the learned policy develops interpretable skimming and scanning behavior: it uses semantic search for broad exploration, paragraph reading for local verification, and keyword search for entity-specific evidence. These results suggest that learning to coordinate retrieval signals and context granularity is critical for agent's correct reasoning.",
+      "authors": [
+        "Varun Gandhi",
+        "Jaewook Lee",
+        "Shantanu Todmal",
+        "Franck Dernoncourt",
+        "Ryan Rossi",
+        "Zichao Wang",
+        "Andrew Lan"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-07-11T19:58:07+00:00",
+      "link": "https://arxiv.org/pdf/2607.10463v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "proposes RL framework for adaptive coordination of semantic search, keyword search, and paragraph reading in agentic RAG",
+      "llm_evidence_cn": "提出强化学习框架，在智能RAG中自适应协调语义搜索、关键词搜索和段落阅读动作",
+      "llm_evidence": "提出强化学习框架，在智能RAG中自适应协调语义搜索、关键词搜索和段落阅读动作",
+      "canonical_evidence": "提出强化学习框架，在智能RAG中自适应协调语义搜索、关键词搜索和段落阅读动作",
+      "llm_tldr_en": "GRASP is a reinforcement learning framework that trains agents to adaptively choose between semantic search, keyword search, and paragraph reading, controlling context granularity to optimize multi-step reasoning in agentic RAG.",
+      "llm_tldr_cn": "智能RAG允许语言模型迭代推理并检索证据，但现有方法难以决定何时检索、使用何种检索工具以及控制上下文粒度。GRASP提出一种强化学习框架，训练智能体在语义搜索、关键词搜索和段落阅读动作之间自适应协调，获取句子级证据并按需扩展上下文，实验表明该策略提高了检索效率与推理性能，推动了智能RAG的实用化。",
+      "llm_tldr": "智能RAG允许语言模型迭代推理并检索证据，但现有方法难以决定何时检索、使用何种检索工具以及控制上下文粒度。GRASP提出一种强化学习框架，训练智能体在语义搜索、关键词搜索和段落阅读动作之间自适应协调，获取句子级证据并按需扩展上下文，实验表明该策略提高了检索效率与推理性能，推动了智能RAG的实用化。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.15253v1",
+      "source": "arxiv",
+      "title": "Bridge Evidence: Static Retrieval Utility Does Not Predict Causal Utility in Multi-Step Agentic Search",
+      "abstract": "Retrieval systems are trained and evaluated on a static idea of usefulness: hand a document and a question to a reader model, see whether the answer improves, and score the document accordingly. The idea holds up when a document is read on its own. It breaks when a language model works as a search agent, issuing several queries and reasoning across turns, because a document can matter for what it lets the agent do next rather than for what it says about the current question.   We measure that gap rather than argue it. Using a ReAct style agent over HotpotQA, we replay 1000 development questions and, for every document the agent read, delete it and re-run the rest of the trajectory from that point. Comparing the original run against its counterfactual gives a Counterfactual Trajectory Utility (CTU) score from three deltas: final answer quality, next query retrieval quality, and turn count. Crossing CTU against Static RAG Utility (SRU) over 23,322 document observations, the two are close to statistically independent (Spearman rho = -0.026). Roughly a third of the documents the agent reads are causally load bearing while looking useless to a static reader; we call these bridge documents. The pattern survives when the reader based axis is swapped for a BM25 and cross encoder proxy, giving a bridge cell of 27.2% on an evenly spread axis.   A second experiment pins down the mechanism. Using the Observable Entity Relevance (OER) measure from prior work, entities that discriminate relevant from non-relevant candidates appear in the agent's next query 4.02 times more often than entities found only in non-relevant documents (6.1% vs 1.5%, n = 227,139). A bridge document earns its keep by handing the agent a discriminative entity that redirects the search. Static relevance and causal usefulness are different quantities in agentic retrieval, and optimizing the first does not deliver the second.",
+      "authors": [
+        "Debayan Mukhopadhyay",
+        "Utshab Kumar Ghosh",
+        "Shubham Chatterjee"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.CL"
+      ],
+      "published": "2026-07-16T17:48:29+00:00",
+      "link": "https://arxiv.org/pdf/2607.15253v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "measures gap between static and causal retrieval utility in multi-step agentic search, showing documents affect future actions",
+      "llm_evidence_cn": "量化多步智能搜索中静态检索效用与因果效用的差距，表明文档影响后续行动而不仅是直接回答",
+      "llm_evidence": "量化多步智能搜索中静态检索效用与因果效用的差距，表明文档影响后续行动而不仅是直接回答",
+      "canonical_evidence": "量化多步智能搜索中静态检索效用与因果效用的差距，表明文档影响后续行动而不仅是直接回答",
+      "llm_tldr_en": "This paper demonstrates that static retrieval utility does not predict a document's true causal value in multi-step agentic search, revealing that documents matter for future actions, not just immediate answer improvement, and proposes a causal evaluation methodology.",
+      "llm_tldr_cn": "现有检索系统基于静态效用评估文档有用性，但在多步智能搜索中，文档的因果效用——即其对下游行动的影响——更为关键。本文通过重放ReAct智能体在HotpotQA上的轨迹并删除文档重新运行，量化了静态效用与因果效用之间的差距，表明传统评估方法无法捕捉文档在推理链中的真实价值，为智能检索系统的评估提供了新视角。",
+      "llm_tldr": "现有检索系统基于静态效用评估文档有用性，但在多步智能搜索中，文档的因果效用——即其对下游行动的影响——更为关键。本文通过重放ReAct智能体在HotpotQA上的轨迹并删除文档重新运行，量化了静态效用与因果效用之间的差距，表明传统评估方法无法捕捉文档在推理链中的真实价值，为智能检索系统的评估提供了新视角。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.07380v1",
+      "source": "arxiv",
+      "title": "Interpretable Uncertainty for Adaptive Retrieval and Reasoning in Question Answering",
+      "abstract": "Large language models (LLMs) achieve a strong performance in question answering (QA), but remain prone to hallucinations and suffer from limited transparency. Retrieval-augmented generation (RAG) can improve factuality, yet decisions about when and how to retrieve from external resources are typically based on opaque policies or computationally inefficient multi-step prompting procedures. We propose an uncertainty-aware framework for adaptive QA based on explicit signals derived from LLM internal representations. We distinguish between knowledge insufficiency and knowledge ambiguity or conflict, and efficiently estimate these from hidden states in a single forward pass. These signals guide system behaviour: RAG is triggered when knowledge is insufficient, while additional reasoning is applied when ambiguity or conflict is high. By grounding adaptive decisions in decomposed and efficiently estimable uncertainty signals, this approach provides a transparent and practical alternative to existing retrieval and reasoning strategies supporting the design of interpretable user-facing tools.",
+      "authors": [
+        "Ritajit Dey",
+        "Iadh Ounis",
+        "Graham McDonald"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-07-08T13:12:39+00:00",
+      "link": "https://arxiv.org/pdf/2607.07380v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Uses LLM internal uncertainty to adaptively trigger RAG, improving reasoning and factuality.",
+      "llm_evidence_cn": "利用LLM内部不确定性自适应触发RAG，提升推理与事实性。",
+      "llm_evidence": "利用LLM内部不确定性自适应触发RAG，提升推理与事实性。",
+      "canonical_evidence": "利用LLM内部不确定性自适应触发RAG，提升推理与事实性。",
+      "llm_tldr_en": "This paper proposes an uncertainty-aware framework that uses LLM hidden states to estimate knowledge insufficiency and ambiguity, adaptively deciding when to retrieve, achieving efficient and interpretable RAG.",
+      "llm_tldr_cn": "针对LLM问答中幻觉与透明度不足问题，提出基于内部表示的可解释不确定性框架，通过单次前向传播高效区分知识不足与冲突，并自适应触发检索增强生成。无需昂贵多步提示，该信号直接指导RAG行为，在多个QA基准上实验证明，既能提升事实准确性又可提供决策可解释性，为推理型RAG中何时检索提供了新方案。",
+      "llm_tldr": "针对LLM问答中幻觉与透明度不足问题，提出基于内部表示的可解释不确定性框架，通过单次前向传播高效区分知识不足与冲突，并自适应触发检索增强生成。无需昂贵多步提示，该信号直接指导RAG行为，在多个QA基准上实验证明，既能提升事实准确性又可提供决策可解释性，为推理型RAG中何时检索提供了新方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "reasoning capabilities in retrieval augmented generation frameworks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.07383v1",
+      "source": "arxiv",
+      "title": "MMAgent-R$^2$: Learning to Rerank and Reject for Agentic mRAG",
+      "abstract": "Knowledge-based Visual Question Answering (KB-VQA) requires models to retrieve visual entities matching the query image from large-scale encyclopedic knowledge bases and answer related questions. Existing multimodal Retrieval Augmented Generation (mRAG) methods rely on global visual features to match candidate entities, yet when the knowledge base contains numerous visually similar entities, the retriever struggles to distinguish them, populating the candidate set with visually similar but factually mismatched distractors. Since subsequent processing steps such as noise filtering are also confined to this fixed candidate set, errors from failed retrieval inevitably propagate to the final answer. To address these challenges, we propose MMAgent-R$^2$, an agentic mRAG framework that integrates visual reranking and active rejection as its internal verification mechanism. Visual reranking directly compares query and candidate images, capturing discriminative details beyond textual descriptions to precisely identify the target entity among similar candidates; active rejection discards unreliable results and retrieves additional candidates when no confident match is found, moving beyond the fixed candidate pool. We design a composite reward function with step-level verification rewards and achieve joint optimization of external retrieval, internal verification, and answer generation via GRPO training. Experiments on InfoSeek, E-VQA, and MMhops demonstrate that \\ours{} achieves state-of-the-art performance, with particularly notable advantages in challenging retrieval scenarios and complex multi-image multi-hop reasoning tasks.",
+      "authors": [
+        "Tao Zhang",
+        "Ziqi Zhang",
+        "Zongyang Ma",
+        "Yuxin Yang",
+        "Bing Li",
+        "Chunfeng Yuan",
+        "Kang Rong",
+        "Fengyun Rao",
+        "Jing Lyu",
+        "Weiming Hu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-08T13:15:39+00:00",
+      "link": "https://arxiv.org/pdf/2607.07383v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic multimodal RAG that learns to rerank and reject distracting entities",
+      "llm_evidence_cn": "学习重排序与拒绝的agentic多模态RAG，以排除混淆实体",
+      "llm_evidence": "学习重排序与拒绝的agentic多模态RAG，以排除混淆实体",
+      "canonical_evidence": "学习重排序与拒绝的agentic多模态RAG，以排除混淆实体",
+      "llm_tldr_en": "MMAgent-R^2 is an agentic multimodal RAG that uses learning-based reranking and rejection to filter visually similar but factually incorrect distractors, improving KB-VQA.",
+      "llm_tldr_cn": "本文针对多模态RAG在大型知识库中因视觉相似实体导致检索错误传播的问题，提出agentic框架MMAgent-R^2。它通过学习重排序和拒绝机制，在候选集中主动识别并排除事实不匹配的干扰项，打破固定候选集导致的错误级联。实验显示，该方法显著提高了知识型视觉问答的准确率。该工作将agentic决策引入多模态检索，增强了RAG的鲁棒性。",
+      "llm_tldr": "本文针对多模态RAG在大型知识库中因视觉相似实体导致检索错误传播的问题，提出agentic框架MMAgent-R^2。它通过学习重排序和拒绝机制，在候选集中主动识别并排除事实不匹配的干扰项，打破固定候选集导致的错误级联。实验显示，该方法显著提高了知识型视觉问答的准确率。该工作将agentic决策引入多模态检索，增强了RAG的鲁棒性。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.07548v1",
+      "source": "arxiv",
+      "title": "Think Big, Search Small: Where Capacity Matters in Hierarchical Search Agents?",
+      "abstract": "Large language model based search agents increasingly adopt multi-agent architectures in which a main agent decomposes a complex question into sub-queries and dispatches them to parallel sub-agents. However, existing systems instantiate all roles from a single model of identical scale, leaving open how model capacity should be distributed across roles. We factorize hierarchical search into three roles: a delegation role responsible for task decomposition, an execution role responsible for retrieval and evidence extraction, and an answer generation role held fixed as a confound control. We then conduct controlled capacity sweeps along the delegation and execution axes on five multi-hop QA benchmarks. The experiments yield three findings. First, role factorization consistently outperforms a single-agent baseline, improving exact match from 4.5 to 8.6 points across six model scales. Second, capacity sensitivity is asymmetric: scaling the delegation backbone improves EM by ~11 points, whereas scaling the execution sub-agent moves EM by only ~2.6 points, identifying decomposition as the capability bottleneck. Third, a 1.7B-parameter executor trained via quality-filtered trajectory distillation matches a frontier sub-agent in accuracy while consuming 37% fewer sub-agent tokens, advancing the Pareto frontier. These results suggest a concrete recipe for building hierarchical search agents: concentrate capacity at delegation and downsize execution without sacrificing accuracy. Our code is available at https://github.com/QinnanCai0115/role-factorized-search.",
+      "authors": [
+        "Qinnan Cai",
+        "Yibo Zhao",
+        "Xiang Li"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-07-08T15:46:48+00:00",
+      "link": "https://arxiv.org/pdf/2607.07548v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Hierarchical multi-agent search with delegation and execution for multi-hop QA",
+      "llm_evidence_cn": "面向多跳问答的层次化多智能体搜索，含任务分解与执行",
+      "llm_evidence": "面向多跳问答的层次化多智能体搜索，含任务分解与执行",
+      "canonical_evidence": "面向多跳问答的层次化多智能体搜索，含任务分解与执行",
+      "llm_tldr_en": "Investigates how model capacity should be distributed across delegation and execution roles in hierarchical search agents for multi-hop QA, finding that delegation benefits from larger models while execution does not.",
+      "llm_tldr_cn": "针对多跳问答中的层次化搜索代理，探讨模型容量在任务分解与执行角色间的分配，发现分解者需更大模型而执行者可小型化，为多智能体检索系统设计提供指导。",
+      "llm_tldr": "针对多跳问答中的层次化搜索代理，探讨模型容量在任务分解与执行角色间的分配，发现分解者需更大模型而执行者可小型化，为多智能体检索系统设计提供指导。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.08269v1",
+      "source": "arxiv",
+      "title": "PolyUQuest: Verifiable Structure-Aware Web RAG over Heterogeneous Graphs",
+      "abstract": "Existing retrieval-augmented generation (RAG) systems treat web pages as flat text, losing the structural and semantic signals encoded in HTML. We present PolyUQuest, a verifiable, structure-aware web RAG framework built on a heterogeneous graph that unifies hyperlink topology between pages, DOM hierarchy within pages, and entity-relation knowledge across pages. A two-tier router dispatches each query to one of three retrieval modes matched to its structural need, including direct block retrieval, cross-page graph traversal, and multi-hop entity reasoning. Every answer is fully verifiable, as each cited block carries its source page, heading path, and entity links so that users can trace any claim back to its structural evidence. We evaluate on the official websites of the Hong Kong Polytechnic University (PolyU), comprising 4,240 pages, 31,086 DOM blocks, 29,119 entities, and 37,680 relations, together with a multi-type evaluation benchmark. PolyUQuest outperforms existing RAG systems in answer correctness, coverage, and faithfulness, while consuming significantly fewer LLM tokens per query. The demonstration provides an interactive interface for inspecting cited answers, comparing retrieval traces across routing modes, and exploring evidence graph paths. PolyUQuest is being prepared for deployment as a student-facing QA service at PolyU.",
+      "authors": [
+        "Ying Liu",
+        "Yi Ye",
+        "Quanyu Feng",
+        "Mingxi Ye",
+        "Mingtao Zhang",
+        "Haoyang Li",
+        "Chen Jason Zhang",
+        "Qing Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-09T09:10:52+00:00",
+      "link": "https://arxiv.org/pdf/2607.08269v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "PolyUQuest enables multi-hop entity reasoning over web structure in a verifiable RAG framework.",
+      "llm_evidence_cn": "PolyUQuest在可验证的RAG框架中实现基于网页结构的多跳实体推理。",
+      "llm_evidence": "PolyUQuest在可验证的RAG框架中实现基于网页结构的多跳实体推理。",
+      "canonical_evidence": "PolyUQuest在可验证的RAG框架中实现基于网页结构的多跳实体推理。",
+      "llm_tldr_en": "PolyUQuest introduces structure-aware web RAG using a heterogeneous graph to capture hyperlinks, DOM, and entity relations, with a router selecting retrieval mode including multi-hop reasoning, and full verifiability.",
+      "llm_tldr_cn": "PolyUQuest提出结构感知的网页RAG框架，通过异构图统一超链接、DOM和实体关系，并由路由器按需选择直接检索、跨页遍历或多跳实体推理模式，所有答案可追溯至结构化证据，在开放域问答上取得优异结果。",
+      "llm_tldr": "PolyUQuest提出结构感知的网页RAG框架，通过异构图统一超链接、DOM和实体关系，并由路由器按需选择直接检索、跨页遍历或多跳实体推理模式，所有答案可追溯至结构化证据，在开放域问答上取得优异结果。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.09092v1",
+      "source": "arxiv",
+      "title": "AgentKGV: Agentic LLM-RAG Framework with Two-Stage Training for the Fact Verification of Knowledge Graphs",
+      "abstract": "Knowledge graphs (KGs) are often automatically constructed from large-scale corpora, but they inevitably contain factual errors due to noisy sources and extraction failures, and verifying them reliably at industrial scale remains a critical challenge. To address this, we propose AgentKGV, the Agentic LLM-RAG framework for KG fact Verification, that integrates dynamic routing and iterative query rewriting, which handles surface-form mismatch in document-level retrieval. To make this framework more accurate and cost-efficient for industrial deployment, we further introduce a two-stage training strategy: turn-level distillation-based SFT that transfers reasoning ability from a large teacher model into a small model for stable query rewriting and reasoning, and trajectory-level GRPO that optimizes the search policy to reduce unnecessary retrieval at scale. On the long-tail-predicate split of the open-domain T-REx benchmark, our framework improves macro-F1 over single-turn RAG by 5.5 \\%p, and two-stage training does it further by 9.4 \\%p. GRPO also cuts the average number of search calls from 3.24 to 1.63 without lowering accuracy.",
+      "authors": [
+        "Yumin Heo",
+        "Hyeon-gu Lee",
+        "Sumin Seo",
+        "Youngjoong Ko"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-07-10T04:22:34+00:00",
+      "link": "https://arxiv.org/pdf/2607.09092v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agentic LLM-RAG framework with dynamic routing and iterative query rewriting",
+      "llm_evidence_cn": "结合动态路由与迭代查询重写的Agentic LLM-RAG框架",
+      "llm_evidence": "结合动态路由与迭代查询重写的Agentic LLM-RAG框架",
+      "canonical_evidence": "结合动态路由与迭代查询重写的Agentic LLM-RAG框架",
+      "llm_tldr_en": "Proposes AgentKGV, an agentic LLM-RAG framework with dynamic routing and iterative query rewriting for knowledge graph fact verification, and introduces two-stage training to transfer reasoning ability, improving accuracy and cost-efficiency for industrial deployment.",
+      "llm_tldr_cn": "面向知识图谱事实校验，提出AgentKGV智能体LLM-RAG框架，集成动态路由与迭代查询改写，并通过两阶段训练策略（蒸馏式SFT）将大模型推理能力迁移至小模型，提升工业部署的准确性与性价比。",
+      "llm_tldr": "面向知识图谱事实校验，提出AgentKGV智能体LLM-RAG框架，集成动态路由与迭代查询改写，并通过两阶段训练策略（蒸馏式SFT）将大模型推理能力迁移至小模型，提升工业部署的准确性与性价比。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10198v1",
+      "source": "arxiv",
+      "title": "Equal Accuracy, Unequal Evidence: Search APIs as Decision Surfaces for Tool-Using Agents",
+      "abstract": "Search APIs are the fundamental retrieval layer for many agents and are often their most frequently used tool. Traditional search APIs provide URLs, titles, and snippets that preview website contents. Because full-page retrieval is token-intensive, agent retrieval architectures increasingly use progressive disclosure: the agent first sees snippets and then chooses whether to fetch full pages. In such systems, search API performance is often evaluated primarily by answer accuracy. We argue that a commercial search API is better understood as a decision surface: the ranked snippets, URLs, and metadata that determine whether an agent answers immediately, searches again, or spends tokens opening pages. We test this claim with one frozen GPT-5.4 agent, two tools (search_web and fetch_page), and 100 questions from SEALQA-HARD, varying only the search provider (Brave, Tavily, Firecrawl). A Kimi-K2.6 oracle labels every content element visible to the agent (URL, title, snippet, and fetched page, when fetched), producing 6,869 valid per-URL judgments. We use an audited correct-answer label, semantic match, which preserves exact matches while accepting harmless formatting and naming variants. Under this measure, the providers remain close (25, 25, 26 / 100), but their evidence economies differ sharply: Brave offers gold-answer-rich snippets, Tavily concentrates gold-supporting URLs at rank 1, and Firecrawl is associated with broader exploration under this fixed agent policy. We also introduce a surface contradiction-to-gold URL ratio, which varies from 0.92 to 2.59. Provider choice is therefore a retrieval-budget and policy decision, not merely a recall decision.",
+      "authors": [
+        "Sriram Selvam",
+        "Anneswa Ghosh"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-07-11T08:22:35+00:00",
+      "link": "https://arxiv.org/pdf/2607.10198v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Analyzes search API as decision surface for tool-using agents, key in agentic RAG architectures.",
+      "llm_evidence_cn": "将搜索API视为工具使用智能体的决策界面，是智能体RAG架构的关键。",
+      "llm_evidence": "将搜索API视为工具使用智能体的决策界面，是智能体RAG架构的关键。",
+      "canonical_evidence": "将搜索API视为工具使用智能体的决策界面，是智能体RAG架构的关键。",
+      "llm_tldr_en": "This paper reframes search APIs as decision surfaces that influence agent retrieval behavior, showing that snippet quality critically shapes progressive disclosure strategies in agentic RAG.",
+      "llm_tldr_cn": "针对智能体RAG中搜索层评估不足的问题，将商业搜索API重新定义为决策界面，其排序摘要与元数据决定智能体是直接回答、重新搜索还是打开页面。通过固定智能体体系实验发现，相同准确率下不同API的证据充分性差异显著，证明片段质量影响渐进式披露效率。这为智能体RAG系统设计中的检索工具选择提供了决策面分析新视角。",
+      "llm_tldr": "针对智能体RAG中搜索层评估不足的问题，将商业搜索API重新定义为决策界面，其排序摘要与元数据决定智能体是直接回答、重新搜索还是打开页面。通过固定智能体体系实验发现，相同准确率下不同API的证据充分性差异显著，证明片段质量影响渐进式披露效率。这为智能体RAG系统设计中的检索工具选择提供了决策面分析新视角。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10491v1",
+      "source": "arxiv",
+      "title": "EvidentialRAG: Quantifying and Mitigating Information Conflict in Multi-Source Retrieval-Augmented Generation via Evidential Deep Learning",
+      "abstract": "Retrieval-augmented generation grounds large language models in external evidence, but most pipelines still treat retrieved passages as deterministic and mutually consistent context. In open information environments, retrieved sources may disagree because of temporal drift, source error, ambiguity, or genuine uncertainty. This paper introduces ERAG, an uncertainty-aware RAG framework that converts retrieved chunks into probabilistic evidence before generation. A lightweight evaluator extracts candidate claims and maps chunk-level support to Dirichlet evidence. A conflict-preserving Dempster-Shafer fusion rule then transfers unresolved disagreement into epistemic uncertainty rather than normalizing it away. The generator is routed to direct answering, conflict-aware answering, or abstention according to the fused uncertainty score. Experiments on CRAG, ConflictQA, and MuSiQue show that ERAG remains competitive with the strongest matched baseline on standard question answering while improving behavior under conflict. On the CRAG ambiguous subset, hallucination decreases from 45.3% for Corrective RAG to a human-calibrated estimate of 34.8%, conflict resolution increases from 35.2% to 51.2%, and expected calibration error improves to 0.122. These results suggest that evidential modeling is a practical mechanism for trustworthy information processing in foundation-model-based retrieval systems.",
+      "authors": [
+        "S M Asif Hossain",
+        "Ruksat Khan Shayoni",
+        "M. F. Mridha"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-07-11T21:56:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.10491v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "uncertainty-aware RAG framework handling multi-source information conflict",
+      "llm_evidence_cn": "处理多源信息冲突的不确定性感知RAG框架",
+      "llm_evidence": "处理多源信息冲突的不确定性感知RAG框架",
+      "canonical_evidence": "处理多源信息冲突的不确定性感知RAG框架",
+      "llm_tldr_en": "ERAG quantifies and mitigates information conflict in multi-source RAG by converting retrieved chunks into probabilistic evidence using evidential deep learning, and employs Dempster-Shafer fusion to preserve unresolved disagreement as epistemic uncertainty.",
+      "llm_tldr_cn": "该文针对RAG在多源检索中面临的信息冲突问题，提出ERAG框架，利用深度证据学习将检索文本块转换为概率证据，并采用Dempster-Shafer融合规则，将未解决的冲突转化为认知不确定性，从而提升生成可靠性。实验表明，该方法能有效量化冲突并保留不确定性信号，避免错误合并不一致信息。该工作为开放环境下的可信RAG提供了概率证据推理的新途径。",
+      "llm_tldr": "该文针对RAG在多源检索中面临的信息冲突问题，提出ERAG框架，利用深度证据学习将检索文本块转换为概率证据，并采用Dempster-Shafer融合规则，将未解决的冲突转化为认知不确定性，从而提升生成可靠性。实验表明，该方法能有效量化冲突并保留不确定性信号，避免错误合并不一致信息。该工作为开放环境下的可信RAG提供了概率证据推理的新途径。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "pure RAG methods for improving language model generation with external knowledge",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10555v1",
+      "source": "arxiv",
+      "title": "Tool-Adaptive LLM Reranker",
+      "abstract": "Generative Large Language Models (LLMs) have revolutionized information retrieval, yet their strictly parametric nature frequently leads to severe factual hallucinations when confronted with complex queries beyond their epistemic boundaries. While external tool-calling can mitigate this, indiscriminately invoking search tools for every document during reranking incurs prohibitive latency overheads, creating an intractable accuracy-efficiency dilemma. To address this challenge, we propose TALRanker, a novel framework that formalizes pointwise relevance scoring as an agentic Markov decision process. We optimize it via a two-stage training paradigm. An initial warm-up utilizes a language-preserving hybrid loss to prevent the catastrophic forgetting of native generative capacities. Subsequently, an asymmetric cost-aware reward equipped in reinforcement learning forces the policy to autonomously bypass tools for maximum efficiency when confident, while selectively retrieving external evidence to avert severe hallucination penalties when uncertain. Extensive evaluations demonstrate that TALRanker achieves state-of-the-art performance across standard and reasoning-intensive retrieval benchmarks, matching throughput with pointwise rerankers while outperforming parameter-heavy reasoning models.",
+      "authors": [
+        "Zichuan Liu",
+        "Ruijin Hua"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-07-12T04:04:59+00:00",
+      "link": "https://arxiv.org/pdf/2607.10555v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic Markov decision process for pointwise relevance scoring with tool-calling",
+      "llm_evidence_cn": "基于工具调用的智能体马尔可夫决策过程用于逐点相关性评分",
+      "llm_evidence": "基于工具调用的智能体马尔可夫决策过程用于逐点相关性评分",
+      "canonical_evidence": "基于工具调用的智能体马尔可夫决策过程用于逐点相关性评分",
+      "llm_tldr_en": "TALRanker addresses hallucination in LLM rerankers by formalizing scoring as an agentic MDP with tool-calling, optimized via two-stage training to balance accuracy and efficiency.",
+      "llm_tldr_cn": "针对LLM重排序在复杂查询时因参数化知识导致的幻觉问题，TALRanker将逐点相关性评分建模为智能体马尔可夫决策过程，通过两阶段训练优化工具调用时机，实现精确性与延迟的权衡，为检索增强提供动态、高效的智能体重排序方案。",
+      "llm_tldr": "针对LLM重排序在复杂查询时因参数化知识导致的幻觉问题，TALRanker将逐点相关性评分建模为智能体马尔可夫决策过程，通过两阶段训练优化工具调用时机，实现精确性与延迟的权衡，为检索增强提供动态、高效的智能体重排序方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10795v1",
+      "source": "arxiv",
+      "title": "STEC: Evidence Compression for Deep Search in Open-domain Multi-Hop QA",
+      "abstract": "In open-domain multi-hop question answering (QA), LLM-based search agents offer a promising approach to knowledge-intensive QA by combining retrieval with reasoning. Existing methods mainly improve open-domain multi-hop QA through reasoning paradigms, retrieval interaction, and search strategy optimization. However, using multiple search trajectories introduces a challenging final answer selection problem. Different trajectories may support different candidates, and the retrieved information can be heterogeneous, redundant, incomplete, or conflicting. Directly comparing raw trajectories exposes the verifier to noisy and unaligned content, while comparing answer strings ignores the evidence supporting each candidate, making reliable final selection difficult. To address this challenge, we propose STEC, an evidence compression framework for final answer selection in multi-hop QA. STEC selects the final answer from the existing candidate set through two mechanisms: (1) Answer-Level Evidence Compression, which groups trajectories by normalized answer identity and converts each answer group into a candidate-specific evidence representation; and (2) Evidence-Guided Answer Verification, which compares these representations and selects the final answer from the candidate set. The design shifts final selection from raw trajectory comparison to candidate-level evidence comparison. We evaluate STEC on four open-domain multi-hop QA benchmarks against representative baselines. Experimental results show that STEC performs best overall among the compared methods, and ablation results provide evidence that answer-level evidence compression contributes to final answer selection.",
+      "authors": [
+        "Xinkang Li",
+        "Rong Jiang",
+        "Xin Song",
+        "Ye Wang",
+        "Yue Han",
+        "Changjian Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-07-12T15:06:11+00:00",
+      "link": "https://arxiv.org/pdf/2607.10795v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Evidence compression for multi-hop QA search agents with multiple trajectories",
+      "llm_evidence_cn": "面向多跳问答搜索代理的多轨迹证据压缩",
+      "llm_evidence": "面向多跳问答搜索代理的多轨迹证据压缩",
+      "canonical_evidence": "面向多跳问答搜索代理的多轨迹证据压缩",
+      "llm_tldr_en": "Proposes STEC, an evidence compression method that jointly compresses and selects evidence from multiple search trajectories to improve final answer selection in open-domain multi-hop QA with LLM agents.",
+      "llm_tldr_cn": "针对开放域多跳问答中多搜索轨迹的答案选择难题，提出STEC证据压缩方法，协同压缩与选择证据，提升LLM代理的最终答案可靠性，在多个基准上验证了有效性。",
+      "llm_tldr": "针对开放域多跳问答中多搜索轨迹的答案选择难题，提出STEC证据压缩方法，协同压缩与选择证据，提升LLM代理的最终答案可靠性，在多个基准上验证了有效性。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10994v1",
+      "source": "arxiv",
+      "title": "A Multi-Agent Framework for Zero-Dimensional Reduced-Order Model Planning",
+      "abstract": "Zero-dimensional reduced-order models (0D ROMs) are central to multi-dimensional design workflows for high-end complex equipment. However, the planning process currently relies on manual expertise, limiting topological exploration and prolonging iterations. Even traditional optimization methods such as Genetic Algorithms (GA) are typically confined to local parameter tuning. Although Large Language Model (LLM) agents have shown promise in exploring large sample spaces, and frameworks such as Chain of Thought (CoT) and Reason and Act (ReAct) improve reasoning reliability, while Retrieval-Augmented Generation (RAG) overcomes domain knowledge barriers, a single agent still falls short for the long-horizon and highly coupled nature of complex 0D ROM planning. This paper proposes the Zero-dimensional reduced-order model CO-Planning framework (Z-COPA), a multi-agent architecture featuring a Symbolic Action Graph Engine (SAGE) and a MILP-Guided Navigation (MGN) optimizer. Its core innovation is a dedicated graph representation method that accurately encodes the 0D flow network topology, converting the empirical planning process into a rigorous graph structure optimization problem. We validate the forward and inverse design capabilities and generalization performance of Z-COPA on two real aircraft engine secondary-air systems, two IEEE power-distribution reconfiguration benchmarks, and two water-distribution network benchmarks. The results show superior task completion quality, obtaining the best performance in both forward and reverse design of air systems. Z-COPA disrupts the traditional 0D model planning paradigm, providing a new technical approach for exploring broader topological space and achieving highly automated, globally optimal air system architectures.",
+      "authors": [
+        "Bingteng Sun",
+        "Hao Yin",
+        "Yiling Chen",
+        "Renjie Xiao",
+        "Lei Xie",
+        "Shanyou Wang",
+        "Ruonan Wang",
+        "Shubao Chen",
+        "Qingzong Xu",
+        "Lin Lu",
+        "Qiang Du",
+        "Junqiang Zhu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-07-13T01:33:51+00:00",
+      "link": "https://arxiv.org/pdf/2607.10994v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent framework uses RAG and LLM agents for engineering planning",
+      "llm_evidence_cn": "多智能体框架结合RAG与LLM智能体进行工程规划",
+      "llm_evidence": "多智能体框架结合RAG与LLM智能体进行工程规划",
+      "canonical_evidence": "多智能体框架结合RAG与LLM智能体进行工程规划",
+      "llm_tldr_en": "Proposes a multi-agent framework that integrates LLM agents with RAG for complex zero-dimensional reduced-order model planning, leveraging chain-of-thought reasoning and dynamic retrieval to overcome domain knowledge barriers and improve design workflows.",
+      "llm_tldr_cn": "针对复杂工程设备降阶模型规划依赖人工经验且优化限于局部调参的问题，本文提出多智能体框架，结合大语言模型智能体与检索增强生成，利用思维链推理和动态知识检索，突破领域知识壁垒，实现全局拓扑探索。实验表明该方法能有效处理长周期高耦合规划任务。",
+      "llm_tldr": "针对复杂工程设备降阶模型规划依赖人工经验且优化限于局部调参的问题，本文提出多智能体框架，结合大语言模型智能体与检索增强生成，利用思维链推理和动态知识检索，突破领域知识壁垒，实现全局拓扑探索。实验表明该方法能有效处理长周期高耦合规划任务。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.11267v1",
+      "source": "arxiv",
+      "title": "Enhancing LLMs through human feedback: a journey towards self-improvement",
+      "abstract": "In the rapidly evolving landscape of information retrieval systems, the ability to adapt and improve through user feedback is paramount. This study introduces a novel methodology for refining the performance of a primary Retrieval Augmented Generation (RAG) system by strategically integrating an auxiliary feedback RAG system. By systematically harnessing human-generated feedback, the approach aims to enhance the accuracy, relevance, and overall quality of responses, driving the system towards self-improvement. Central to this methodology is a human-in-the-loop implementation, where user feedback is continuously collected, classified, and integrated into the inference workflow, enabling the system to learn and evolve iteratively. To validate the effectiveness of this approach, the study employs rigorous testing against three diverse benchmark datasets focused on general and custom domain knowledge, utilizing a LLM-as-a-Judge evaluation strategy. This comprehensive framework not only underscores the transformative potential of feedback-driven enhancements in RAG systems but also sets a precedent for future research in adaptive information retrieval technologies, marking a significant step in the journey towards autonomous refinement and optimization through user engagement.",
+      "authors": [
+        "Tatiana Pelc",
+        "Gila Kamhi",
+        "Asaf Avrahamy",
+        "Adi Fledel-Alon"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-07-13T08:51:08+00:00",
+      "link": "https://arxiv.org/pdf/2607.11267v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "self-improving RAG via auxiliary feedback system and human feedback",
+      "llm_evidence_cn": "通过辅助反馈系统与人类反馈实现RAG自我改进",
+      "llm_evidence": "通过辅助反馈系统与人类反馈实现RAG自我改进",
+      "canonical_evidence": "通过辅助反馈系统与人类反馈实现RAG自我改进",
+      "llm_tldr_en": "Proposes a human-in-the-loop methodology where an auxiliary feedback RAG continuously refines a primary RAG system, achieving self-improvement through iterative learning.",
+      "llm_tldr_cn": "提出人在回路的方法，利用辅助反馈RAG系统收集并整合人类反馈，持续优化主RAG系统，实现准确性与相关性自我提升，验证了反馈驱动进化的有效性，为自适应信息检索提供新范式。",
+      "llm_tldr": "提出人在回路的方法，利用辅助反馈RAG系统收集并整合人类反馈，持续优化主RAG系统，实现准确性与相关性自我提升，验证了反馈驱动进化的有效性，为自适应信息检索提供新范式。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "reasoning in retrieval augmented generation multi step and self reflection approaches",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.12267v1",
+      "source": "arxiv",
+      "title": "Track, Rank, Crack: Epistemic Working Memory Scales Multi-Hop Reasoning in Language Agents",
+      "abstract": "Language agents that interleave reasoning and tool use degrade sharply as reasoning chains lengthen, even when each individual step is easy. We trace this to context dilution: an agent's investigative state (what it has confirmed, what it suspects, and what it still needs) lives only implicitly in a growing context window, where early discoveries are buried under later retrievals. We introduce SLEUTH, which makes this state explicit and actionable through a structured epistemic working memory: the agent maintains Confirmed Facts grounded to sources, Active Hypotheses ranked by evidence, and Open Questions that directly drive its next action. Across five multi-hop benchmarks and five established baselines, SLEUTH's advantage grows with difficulty, from +5 points on HotpotQA to +11 on 4-hop chains, surpassing Reflexion without multiple episodes. Analyzing where the remaining gap lies, we identify the evidence sufficiency problem: agents often find the answer but fail to commit, exhausting their budget on needless verification. A lightweight commitment trigger fixes this, but only when the agent already maintains structured state: the identical trigger applied to an unstructured agent yields no improvement, isolating organized epistemic state as the necessary condition for effective commitment. Finally, enforcing protocol adherence on a weaker model recovers up to +19 points on the hardest problems, showing that how an agent organizes its reasoning, not raw model capability, is the active ingredient for scaling multi-hop reasoning.",
+      "authors": [
+        "Ning Liu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T02:10:46+00:00",
+      "link": "https://arxiv.org/pdf/2607.12267v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "SLEUTH uses structured epistemic working memory to overcome context dilution in multi-step tool-use agents, enabling self-reflection.",
+      "llm_evidence_cn": "SLEUTH通过结构化认知工作记忆克服工具型多步推理中的上下文稀释，实现自反思。",
+      "llm_evidence": "SLEUTH通过结构化认知工作记忆克服工具型多步推理中的上下文稀释，实现自反思。",
+      "canonical_evidence": "SLEUTH通过结构化认知工作记忆克服工具型多步推理中的上下文稀释，实现自反思。",
+      "llm_tldr_en": "Language agents degrade with long reasoning chains due to context dilution. SLEUTH introduces Confirmed Facts, Active Hypotheses, and Open Questions to maintain explicit state, guiding actions and improving multi-hop reasoning. On five benchmarks, it outperforms baselines with growing advantage on harder problems.",
+      "llm_tldr_cn": "语言智能体在长推理链中因上下文稀释而性能下降。SLEUTH引入经结构化的认知工作记忆，维护确认事实、活跃假设和开放问题，以明确状态指导后续行动，提升多跳推理能力。在五个基准上显著优于现有方法，且优势随问题难度增加而扩大，为构建更鲁棒的推理型RAG智能体提供了新思路。",
+      "llm_tldr": "语言智能体在长推理链中因上下文稀释而性能下降。SLEUTH引入经结构化的认知工作记忆，维护确认事实、活跃假设和开放问题，以明确状态指导后续行动，提升多跳推理能力。在五个基准上显著优于现有方法，且优势随问题难度增加而扩大，为构建更鲁棒的推理型RAG智能体提供了新思路。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "reasoning in retrieval augmented generation multi step and self reflection approaches",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.12764v1",
+      "source": "arxiv",
+      "title": "EvoGraph-R1: Self-Evolving Multimodal Knowledge Hypergraphs for Agentic Retrieval",
+      "abstract": "Retrieval-augmented generation (RAG) has emerged as a critical paradigm for grounding Multimodal Large Language Models (MLLMs) in external knowledge. Recent GraphRAG methods introduce structured entity-relation graphs to improve retrieval and reasoning. However, they remain limited by treating knowledge graphs as static data structures built offline and queried in a single pass. This static paradigm misaligns with the interactive, iterative nature of knowledge-intensive reasoning, creating three bottlenecks: (i) text-centric fragmentation that impedes cross-modal reasoning, (ii) frozen structures unable to incorporate new evidence or correct errors, and (iii) rigid single-pass retrieval without adaptive refinement. To overcome these limitations, we introduce EvoGraph-R1, a self-evolving GraphRAG framework that reconceptualizes knowledge graphs as dynamic environments shaped through agent interactions. We formulate retrieval as a Markov Decision Process (MDP) where the agent observes the graph state and executes actions to query (GraphRetrieve), expand (WebSearch), refine (GraphEdit), or terminate (Answer) the reasoning. These actions reshape the hypergraph structure and generate feedback signals that guide subsequent evolution. Through this closed loop, the hypergraph evolves by integrating new evidence, correcting errors, and refining structure to support multi-hop reasoning. Experiments on multimodal VQA and text QA benchmarks demonstrate substantial improvements over existing RAG baselines in accuracy, coverage, and traceability, establishing self-evolving knowledge graphs as a fundamental paradigm across modalities.",
+      "authors": [
+        "Jiashi Lin",
+        "Changhong Jiang",
+        "Xiangru Lin",
+        "Ruifei Zhang",
+        "Xinyi Zhu",
+        "Jiyao Liu",
+        "Cheng Tang",
+        "Ye Du",
+        "Shujian Gao",
+        "Junzhi Ning",
+        "Lihao Liu",
+        "Ziyan Huang",
+        "Tianbin Li",
+        "Jin Ye",
+        "Junjun He"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-14T13:34:07+00:00",
+      "link": "https://arxiv.org/pdf/2607.12764v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "self-evolving knowledge hypergraphs for agentic RAG with iterative refinement",
+      "llm_evidence_cn": "用于agentic RAG的自进化知识超图，支持迭代细化",
+      "llm_evidence": "用于agentic RAG的自进化知识超图，支持迭代细化",
+      "canonical_evidence": "用于agentic RAG的自进化知识超图，支持迭代细化",
+      "llm_tldr_en": "EvoGraph-R1 proposes self-evolving multimodal knowledge hypergraphs for agentic retrieval, overcoming static graphs by iteratively incorporating evidence and refining retrieval.",
+      "llm_tldr_cn": "为解决现有GraphRAG使用静态知识图谱无法适应交互式迭代推理的问题，本文提出EvoGraph-R1。它构建自进化的多模态知识超图，能够根据查询过程中的新证据动态添加或修正知识，并支持自适应多轮检索细化。实验表明，这种动态结构显著提升了多模态RAG在知识密集型推理任务中的表现。该工作将自进化图结构引入agentic检索，为持续演化的知识基座提供了新范式。",
+      "llm_tldr": "为解决现有GraphRAG使用静态知识图谱无法适应交互式迭代推理的问题，本文提出EvoGraph-R1。它构建自进化的多模态知识超图，能够根据查询过程中的新证据动态添加或修正知识，并支持自适应多轮检索细化。实验表明，这种动态结构显著提升了多模态RAG在知识密集型推理任务中的表现。该工作将自进化图结构引入agentic检索，为持续演化的知识基座提供了新范式。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.12831v1",
+      "source": "arxiv",
+      "title": "Knowledgeless Language Models: Suppressing Parametric Recall for Evidence-Grounded Language Modeling",
+      "abstract": "Language models encode substantial factual knowledge in their parameters, which can lead to unreliable behavior when this knowledge is outdated, incomplete, or misaligned with the provided context. In this work, we study whether modifying the pretraining signal can systematically shift models away from parametric recall and toward evidence-grounded reasoning. We introduce Knowledge--''Less'' Language Models (KLLMs), a fundamentally different epistemic training paradigm for LLMs, which are pretrained on corpora in which named entities are anonymized, thereby removing a primary channel for entity-linked factual supervision. This intervention substantially reduces closed-book factual recall, while often improving performance on tasks where relevant information is provided as context. Across multiple model scales, KLLMs consistently outperform matched baselines on contextual question answering, fact verification, and hallucination detection benchmarks. Crucially, in retrieval-grounded settings with imperfect evidence, KLLMs show improved robustness and achieve up to 20--25\\% relative gains over standard language models. They further exhibit better calibration, with improved ECE, Brier score, and AUROC, as well as more reliable abstention behavior. Our results demonstrate that suppressing entity-linked supervision during pretraining induces a shift in epistemic behavior: KLLMs rely less on parametric knowledge and more on external evidence, leading to improved reliability under realistic conditions. This suggests that pretraining-time control over knowledge acquisition can complement retrieval-augmented and tool-based systems by providing a more evidence-sensitive base model.",
+      "authors": [
+        "Roi Cohen",
+        "Yvan Carré",
+        "Nick Lechtenbörger",
+        "Hendrik Droste",
+        "Lucas Kerschke",
+        "Russa Biswas",
+        "Gerard de Melo",
+        "Jan Buys"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-07-14T14:48:53+00:00",
+      "link": "https://arxiv.org/pdf/2607.12831v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Trains LLMs to rely on evidence instead of parametric recall for better RAG",
+      "llm_evidence_cn": "训练LLM依赖证据而非参数回忆以改进RAG",
+      "llm_evidence": "训练LLM依赖证据而非参数回忆以改进RAG",
+      "canonical_evidence": "训练LLM依赖证据而非参数回忆以改进RAG",
+      "llm_tldr_en": "Proposes Knowledge-Less Language Models pretrained with anonymized entities to suppress parametric recall and foster evidence-grounded reasoning, improving performance in retrieval-augmented settings.",
+      "llm_tldr_cn": "本文提出知识隐匿语言模型，通过预训练时匿名化命名实体，抑制参数化记忆，迫使模型依赖上下文证据进行推理。此训练范式使模型在检索增强生成中更忠实于检索内容，减少幻觉，并在多个任务上提升证据使用能力。",
+      "llm_tldr": "本文提出知识隐匿语言模型，通过预训练时匿名化命名实体，抑制参数化记忆，迫使模型依赖上下文证据进行推理。此训练范式使模型在检索增强生成中更忠实于检索内容，减少幻觉，并在多个任务上提升证据使用能力。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "pure RAG methods for improving language model generation with external knowledge",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.14400v1",
+      "source": "arxiv",
+      "title": "DS@GT ARC at LongEval: Citation Integrity and Factual Grounding in Scientific QA",
+      "abstract": "This paper describes DS@GT ARC's submission to the CLEF 2026 LongEval Task 4 on Retrieval-Augmented Generation (RAG). In this submission, we examine a divergence between traditional natural language evaluation metrics and citation integrity as applied to RAG QA systems. We evaluate a corrective pipeline using Corrective RAG (CRAG) and CiteFix against baseline and frontier model benchmark RAG QA scores. While frontier models maximized answer relevance and fluency scores, our RAGAs LLM-as-judge diagnostics indicate that frontier models would correctly identify relevant documents without using their context in answer generation. Conversely, by filtering chunks pre-generation and enforcing strict entailment of generated claims to the cited material post-generation, our corrective pipeline marginally improved citation faithfulness and answer grounding. We propose that evaluation of trustworthy RAG QA requires metrics that reward strict answer grounding.",
+      "authors": [
+        "Brandon Michaels",
+        "Brendon Johnson"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-07-15T22:35:02+00:00",
+      "link": "https://arxiv.org/pdf/2607.14400v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "evaluates Corrective RAG with self-correction and citation integrity",
+      "llm_evidence_cn": "评估具有自我校正和引用完整性的矫正RAG",
+      "llm_evidence": "评估具有自我校正和引用完整性的矫正RAG",
+      "canonical_evidence": "评估具有自我校正和引用完整性的矫正RAG",
+      "llm_tldr_en": "This submission evaluates CRAG and CiteFix pipelines that enforce entailment and filter chunks pre-generation, improving factual grounding and citation accuracy in scientific QA.",
+      "llm_tldr_cn": "关注RAG QA中引用完整性与事实依据的分歧，通过CRAG与CiteFix流水线在生成前过滤语块并强制生成声明与引用材料逻辑一致，发现前沿模型虽能识别相关文档但未有效利用，矫正流程可提升事实扎根度，对可信科学QA有启示。",
+      "llm_tldr": "关注RAG QA中引用完整性与事实依据的分歧，通过CRAG与CiteFix流水线在生成前过滤语块并强制生成声明与引用材料逻辑一致，发现前沿模型虽能识别相关文档但未有效利用，矫正流程可提升事实扎根度，对可信科学QA有启示。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "reasoning in retrieval augmented generation multi step and self reflection approaches",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.07707v1",
+      "source": "arxiv",
+      "title": "Co-LMLM: Continuous-Query Limited Memory Language Models",
+      "abstract": "Limited memory language models (LMLMs) externalize factual knowledge during pretraining to a knowledge base (KB), rather than memorizing it in their weights. During generation, the model then fetches knowledge from the KB as needed. This recently introduced paradigm provides multiple advantages, including knowledge control capabilities that remain beyond conventional LLMs. We propose continuous-query LMLM (CO-LMLM), where the KB pairs continuous keys with textual knowledge values, a significant departure from prior reliance on relational KB and queries. CO-LMLM generates flexible vector queries at minimal cost, while still integrating human-readable and attributable retrieved knowledge into its generation. We pair this design with an annotation pipeline that tags free-form factual spans in arbitrary text, removing prior work's restriction to Wikipedia. Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision. At 360M scale, this includes lower perplexity than models pretrained on 40x more data, and SimpleQA-verified performance that is in line with gpt-4o-mini and higher than Claude Sonnet 4.5.",
+      "authors": [
+        "Yair Feldman",
+        "Linxi Zhao",
+        "Nathan Godey",
+        "Dongyoung Go",
+        "Yilun Hua",
+        "Kilian Q. Weinberger",
+        "Jennifer J. Sun",
+        "Yoav Artzi"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-08T17:59:45+00:00",
+      "link": "https://arxiv.org/pdf/2607.07707v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes continuous-query LMLM that retrieves knowledge from a KB during generation, improving factuality.",
+      "llm_evidence_cn": "提出连续查询的有限记忆语言模型，生成时从知识库检索知识以提升事实性。",
+      "llm_evidence": "提出连续查询的有限记忆语言模型，生成时从知识库检索知识以提升事实性。",
+      "canonical_evidence": "提出连续查询的有限记忆语言模型，生成时从知识库检索知识以提升事实性。",
+      "llm_tldr_en": "Co-LMLM introduces continuous-query limited memory language models that externalize knowledge and retrieve it on-demand, enabling controllable and attributable generation.",
+      "llm_tldr_cn": "针对传统LLM知识固化与不可控问题，提出连续查询有限记忆语言模型(Co-LMLM)，将知识外置于知识库并在生成时通过向量查询动态检索文本知识。结合自动标注流水线，模型在保持可读性与可归因性的同时，显著提升知识可控性与生成质量。实验验证了其在知识密集任务上的有效性，为纯RAG方法提供了新范式。",
+      "llm_tldr": "针对传统LLM知识固化与不可控问题，提出连续查询有限记忆语言模型(Co-LMLM)，将知识外置于知识库并在生成时通过向量查询动态检索文本知识。结合自动标注流水线，模型在保持可读性与可归因性的同时，显著提升知识可控性与生成质量。实验验证了其在知识密集任务上的有效性，为纯RAG方法提供了新范式。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "pure RAG methods for improving language model generation with external knowledge",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.11464v1",
+      "source": "arxiv",
+      "title": "FAIR GraphRAG: A Retrieval-Augmented Generation Approach for Semantic Data Analysis",
+      "abstract": "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions. Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs). While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources. This lack limits their potential for FAIR information retrieval in these domains. To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system. Each graph node represents an FDO that incorporates core data, metadata, persistent identifiers, and semantic links. We leverage LLMs to support schema construction and automated extraction of content and metadata from data sources. The framework was co-designed by physicians and computer scientists to ensure technical and clinical relevance. We apply FAIR GraphRAG to a biomedical dataset in gastroenterology, demonstrating its applicability to RNA-sequencing data. Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links. This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques. We see potential for applying our approach to other specialized fields such as education and business.",
+      "authors": [
+        "Marlena Flüh",
+        "Soo-Yon Kim",
+        "Carolin Victoria Schneider",
+        "Sandra Geisler"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL",
+        "cs.DB"
+      ],
+      "published": "2026-07-13T12:15:27+00:00",
+      "link": "https://arxiv.org/pdf/2607.11464v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "GraphRAG approach enhanced with FAIR principles for semantic data analysis",
+      "llm_evidence_cn": "融合FAIR原则的图形RAG方法用于语义数据分析",
+      "llm_evidence": "融合FAIR原则的图形RAG方法用于语义数据分析",
+      "canonical_evidence": "融合FAIR原则的图形RAG方法用于语义数据分析",
+      "llm_tldr_en": "Introduces FAIR GraphRAG, a framework that integrates FAIR digital objects with GraphRAG to improve retrieval quality and interpretability in domain-specific question answering.",
+      "llm_tldr_cn": "针对现有GraphRAG未结构化符合FAIR原则的不足，提出FAIR GraphRAG框架，将FAIR数字对象融入知识图谱检索，提升了医学等复杂领域的检索质量与可解释性。",
+      "llm_tldr": "针对现有GraphRAG未结构化符合FAIR原则的不足，提出FAIR GraphRAG框架，将FAIR数字对象融入知识图谱检索，提升了医学等复杂领域的检索质量与可解释性。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "methods for retrieval augmented generation in language models",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.13189v1",
+      "source": "arxiv",
+      "title": "RAGthoven at SemEval-2026 Task 1: A Multi-Stage Pipeline Walks Into a Benchmark and Barely Clears the Bar",
+      "abstract": "We present RAGthoven, our system for SemEval-2026 Task 1 (MWAHAHA), Subtask A (multilingual constrained humor generation in English, Spanish, and Chinese). RAGthoven decomposes creative text generation into a multi-stage large language model (LLM) pipeline (Planner, Best-of-N Writer, Reflector for self-critique, LLM-as-a-judge Judge) grounded in computational humor theory (Benign Violation Theory, Script-based Semantic Theory of Humor) and refined across ten experiments.   In our final configuration, we augment the Planner with retrieval-augmented generation (RAG) from a curated joke corpus, seeding generation with diverse joke mechanisms. We also evaluate two agentic variants -- ReAct-style sequential tool-calling (Exp09) and autonomous multi-branch orchestration (Exp10) -- that expose the same four stages with a deterministic ConstraintAudit checker. Across four frontier models on a held-out 12-instance English sample, neither agentic variant produced outputs we judged superior to the non-agentic pipeline despite substantially higher tool-call budgets.   RAGthoven shares Rank 1 with the Gemini 2.5 Flash baseline in all three languages, with overlapping organizer-reported confidence intervals. In Spanish, it leads the baseline by 42 raw Elo points (1182 vs. 1140), while in English (1045 vs. 1081) and Chinese (1045 vs. 1053) the baseline holds the higher raw rating within the same statistical tie.   Together, these results suggest language-dependent diminishing returns from elaborate multi-stage prompt engineering and agentic scaffolding once a strong frontier model is in the loop.",
+      "authors": [
+        "Marek Šuppa",
+        "Viktória Ondrejová",
+        "Lucia Ganajová",
+        "Gregor Karetka",
+        "Daniel Skala"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T18:39:33+00:00",
+      "link": "https://arxiv.org/pdf/2607.13189v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "employs retrieval-augmented generation from a joke corpus within a multi-stage pipeline for humor generation",
+      "llm_evidence_cn": "在多阶段流水线中从笑话语料库进行检索增强生成以产生幽默文本",
+      "llm_evidence": "在多阶段流水线中从笑话语料库进行检索增强生成以产生幽默文本",
+      "canonical_evidence": "在多阶段流水线中从笑话语料库进行检索增强生成以产生幽默文本",
+      "llm_tldr_en": "RAGthoven employs a multi-stage LLM pipeline with retrieval-augmented generation from a joke corpus to produce constrained humor, exploring both static and agentic RAG variants in creative text generation.",
+      "llm_tldr_cn": "RAGthoven系统将创造性文本生成分解为多阶段LLM流水线，结合喜剧理论和从笑话语料库的检索增强生成，在英语、西班牙语和中文的多语种受约束幽默生成任务中进行了实验，并评估了静态和智能体式RAG变体，表明RAG能提升生成多样性但整体性能仍有限，为后续研究提供了基准。",
+      "llm_tldr": "RAGthoven系统将创造性文本生成分解为多阶段LLM流水线，结合喜剧理论和从笑话语料库的检索增强生成，在英语、西班牙语和中文的多语种受约束幽默生成任务中进行了实验，并评估了静态和智能体式RAG变体，表明RAG能提升生成多样性但整体性能仍有限，为后续研究提供了基准。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "methods for retrieval augmented generation in language models",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.07858v1",
+      "source": "arxiv",
+      "title": "Agentic AI and Retrieval-Augmented Models in Straight-Through Underwriting",
+      "abstract": "Artificial intelligence (AI) is beginning to reshape actuarial practice, particularly in domains that require reasoning over unstructured documents, heterogeneous data sources, and regulated decision workflows. Actuaries now face a design space that ranges from traditional rule-based automation to large language models (LLMs), retrieval-augmented generation (RAG), and multi-agent ``agentic'' systems that plan, retrieve, call tools, and reflect. This paper examines how these emerging architectures can support actuarial priorities such as transparency, auditability, and human-in-the-loop governance, with a focus on straight-through decision processes. To make these ideas concrete, we develop and analyze an agentic AI framework for straight-through underwriting of small commercial Business Owner Policies (BOPs). We construct a synthetic but realistic experimental environment and compare three underwriting pipelines: (i) a single-LLM baseline, (ii) a naive RAG system, and (iii) a multi-agent ``Agentic RAG'' pipeline that combines targeted retrieval, third-party data checks, and explicit multi-step rule evaluation. The agentic system performs best overall, with the largest gains in multi-step and missing-information scenarios, where structured retrieval and reflection help the model avoid unsupported straight-through decisions.",
+      "authors": [
+        "Robert Richardson",
+        "Josh Meyers",
+        "Brian Hartman",
+        "David Sandberg"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-08T18:43:34+00:00",
+      "link": "https://arxiv.org/pdf/2607.07858v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-agent agentic systems that plan, retrieve, call tools, and reflect for underwriting",
+      "llm_evidence_cn": "用于承保的多智能体agentic系统，具备规划、检索、工具调用和反思能力",
+      "llm_evidence": "用于承保的多智能体agentic系统，具备规划、检索、工具调用和反思能力",
+      "canonical_evidence": "用于承保的多智能体agentic系统，具备规划、检索、工具调用和反思能力",
+      "llm_tldr_en": "The paper develops an agentic AI framework combining RAG and multi-agent systems for straight-through underwriting, addressing actuarial requirements for transparency and governance.",
+      "llm_tldr_cn": "本文针对保险直通式承保场景，构建了一个融合检索增强生成与多智能体agentic的AI框架。该框架整合规划、检索、工具调用与反思能力，在满足精算透明性、可审计性和人机协同治理的前提下，实现自动化决策。实验分析展示了该架构如何在非结构化文档与异构数据中推理，平衡自动化与人类监督。该工作为保险等领域采用agentic RAG提供了参考设计。",
+      "llm_tldr": "本文针对保险直通式承保场景，构建了一个融合检索增强生成与多智能体agentic的AI框架。该框架整合规划、检索、工具调用与反思能力，在满足精算透明性、可审计性和人机协同治理的前提下，实现自动化决策。实验分析展示了该架构如何在非结构化文档与异构数据中推理，平衡自动化与人类监督。该工作为保险等领域采用agentic RAG提供了参考设计。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.12334v1",
+      "source": "arxiv",
+      "title": "QUBO-Optimized Evidence Selection for Retrieval-Augmented Question Answering with Unconventional Solvers",
+      "abstract": "Retrieval-augmented question answering depends on selecting evidence passages that jointly support answer generation. However, many RAG pipelines rely on top-\\(k\\) ranking, where passages are selected mainly by individual relevance scores, even though multi-hop questions often require complementary evidence satisfying multiple information requirements. Recent LLM-based selectors address this by treating retrieval as set selection, but using an LLM for this intermediate stage can be costly and difficult to scale. In this work, we formulate evidence selection as a Quadratic Unconstrained Binary Optimization (QUBO) problem. Given a question, candidate passages, and decomposed information requirements, our method constructs an energy function that balances relevance, requirement coverage, support strength, redundancy, complementarity, and compactness. Low-energy solutions correspond to compact evidence subsets that cover the needed requirements while avoiding unnecessary or repetitive context. The selected passages are then passed to a downstream language model for answer generation, separating combinatorial evidence selection from semantic answer generation. We evaluate the proposed QUBO selector on HotpotQA and compare it with LLM-based set selectors and non-LLM baselines including BM25, relevance top-\\(k\\), maximal marginal relevance, hybrid lexical--semantic ranking, greedy coverage, and random selection. The QUBO selector achieves competitive exact-match and token-F1 performance relative to LLM-based selectors while providing a solver-compatible formulation for structured evidence selection. These results suggest that multi-hop evidence selection can be cast as discrete optimization, opening a path toward RAG pipelines where LLMs are reserved for semantic processing and answer generation, while context selection is handled by Ising/QUBO-compatible solvers.",
+      "authors": [
+        "Rahul Singh",
+        "Madhav Vadlamani"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.ET"
+      ],
+      "published": "2026-07-14T04:29:07+00:00",
+      "link": "https://arxiv.org/pdf/2607.12334v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "optimal evidence selection for multi-hop QA via QUBO optimization in RAG",
+      "llm_evidence_cn": "在RAG中通过QUBO优化为多跳问答选择互补证据集",
+      "llm_evidence": "在RAG中通过QUBO优化为多跳问答选择互补证据集",
+      "canonical_evidence": "在RAG中通过QUBO优化为多跳问答选择互补证据集",
+      "llm_tldr_en": "Formulates evidence selection in RAG as a QUBO problem to jointly choose complementary passages for multi-hop questions, avoiding greedy top-k ranking.",
+      "llm_tldr_cn": "本文针对RAG中多跳问题需要互补证据但top-k排名仅考虑单篇相关性的局限，将证据选择建模为二次无约束二值优化问题。给定问题、候选段落和信息需求分解，构建QUBO模型并利用非传统求解器求解，实现整体最优的集合选择。实验表明，该方法能有效捕获满足多个信息需求的互补段落，优于传统排序和LLM选择器。该工作为复杂RAG场景的证据选择提供了组合优化新框架，兼顾效果与扩展性。",
+      "llm_tldr": "本文针对RAG中多跳问题需要互补证据但top-k排名仅考虑单篇相关性的局限，将证据选择建模为二次无约束二值优化问题。给定问题、候选段落和信息需求分解，构建QUBO模型并利用非传统求解器求解，实现整体最优的集合选择。实验表明，该方法能有效捕获满足多个信息需求的互补段落，优于传统排序和LLM选择器。该工作为复杂RAG场景的证据选择提供了组合优化新框架，兼顾效果与扩展性。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.08662v1",
+      "source": "arxiv",
+      "title": "WebSwarm: Recursive Multi-Agent Orchestration for Deep-and-Wide Web Search",
+      "abstract": "Large language model (LLM)-based web search agents are transforming information seeking from simple factoid question answering into complex, deep-and-wide search and research-oriented tasks. A single ReAct-style agent is constrained by one long trajectory and limited context, making it difficult to handle depth and coverage simultaneously. Existing multi-agent systems improve search coverage through parallel execution and aggregation, but still exhibit clear limitations in recursive depth, collaboration adaptability, and evidence-grounded expansion. We propose WebSwarm, a progressive recursive delegation framework that jointly constructs task decomposition, recursive expansion, and agent collaboration during inference. WebSwarm dynamically instantiates agentic search nodes, each coupling a local objective with a search mode that specifies how the node should organize search and collaboration. Each node can either solve its objective itself or further delegate child nodes; after solving, it returns evidence and results upward, enabling parent nodes to further expand, revise, or aggregate the search process. To guide this process, WebSwarm first probes how task-relevant information is organized on the web to ground subsequent node expansion, and reuses process-level experience across homogeneous sibling nodes. Experiments on BrowseComp-Plus, WideSearch, DeepWideSearch, and GISA show that WebSwarm consistently outperforms single-agent and multi-agent baselines on deep, wide, and interleaved deep-and-wide tasks. Further analyses of ablation, task difficulty, web tool efficiency, and model generalization explain WebSwarm's effectiveness and provide insights for multi-agent search systems.",
+      "authors": [
+        "Xiaoshuai Song",
+        "Liancheng Zhang",
+        "Kangzhi Zhao",
+        "Yutao Zhu",
+        "Zhongyuan Wang",
+        "Guanting Dong",
+        "Jinghan Yang",
+        "Han Li",
+        "Kun Gai",
+        "Ji-Rong Wen",
+        "Zhicheng Dou"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-07-09T16:28:49+00:00",
+      "link": "https://arxiv.org/pdf/2607.08662v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes recursive multi-agent orchestration for deep web search with iterative retrieval and task decomposition",
+      "llm_evidence_cn": "提出递归多智能体协同框架，进行任务分解和多轮迭代检索以完成复杂搜索",
+      "llm_evidence": "提出递归多智能体协同框架，进行任务分解和多轮迭代检索以完成复杂搜索",
+      "canonical_evidence": "提出递归多智能体协同框架，进行任务分解和多轮迭代检索以完成复杂搜索",
+      "llm_tldr_en": "WebSwarm is a recursive multi-agent framework that decomposes complex search tasks into sub-queries and coordinates agents to iteratively retrieve and integrate information, improving depth and coverage over single-agent systems.",
+      "llm_tldr_cn": "针对单智能体在长轨迹和有限上下文下难以同时兼顾搜索深度与覆盖的问题，WebSwarm提出递归多智能体协同框架，通过任务分解、递归扩展和智能体协作，在推理过程中动态协调多轮迭代检索，实验表明其在深度与广度搜索任务上超越现有方法，为复杂信息探索提供了有效解决方案。",
+      "llm_tldr": "针对单智能体在长轨迹和有限上下文下难以同时兼顾搜索深度与覆盖的问题，WebSwarm提出递归多智能体协同框架，通过任务分解、递归扩展和智能体协作，在推理过程中动态协调多轮迭代检索，实验表明其在深度与广度搜索任务上超越现有方法，为复杂信息探索提供了有效解决方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.14149v1",
+      "source": "arxiv",
+      "title": "Enhancing Small Language Models Reasoning through Knowledge Graph Grounding",
+      "abstract": "Although large language models (LLMs) have set benchmarks for zero-shot reasoning, their deployment remains cost-prohibitive and environmentally taxing. Small Language Models (SLMs) offer a sustainable alternative, but prone to errors, on tasks requiring complex, multi-hop logical grounding. We investigate a neuro-symbolic agentic framework to enhance the reasoning capabilities of SLMs, specifically Gemma 3 (1B, 4B) and Llama 3.2 (3B), using the CLUTRR kinship benchmark. Our approach transforms the SLM into a minimalist agent utilizing two specialized tool calls: extract_facts for symbolic triplet extraction and get_hint for expert reasoning via a Relational Graph Convolutional Network (RGCN). We evaluate these models across two configurations, both in an Oracle scenario with ground-truth triplets and a Realistic scenario relying on self-extracted knowledge. Our results reveal that while RGCN-derived hints provide a 1.5 - 2x performance gain over story-only baselines, the system is constrained by the extraction bottleneck and sequential deductive fragility, where early extraction errors compound over multi-hop chains. Furthermore, we identify a \"distraction effect\" in specific architectures where noisy, self-generated facts degrade performance despite the presence of expert hints. This work characterizes the challenges of symbolic grounding in low-resource agentic systems and provides a roadmap for iterative verification in neuro-symbolic agentic pipelines.",
+      "authors": [
+        "Dimitrios Kelesis",
+        "Konstantinos Bougiatiotis",
+        "Georgios Paliouras"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-14T13:07:46+00:00",
+      "link": "https://arxiv.org/pdf/2607.14149v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Agentic knowledge graph grounding enhances SLM reasoning",
+      "llm_evidence_cn": "智能体式知识图谱检索增强小模型推理",
+      "llm_evidence": "智能体式知识图谱检索增强小模型推理",
+      "canonical_evidence": "智能体式知识图谱检索增强小模型推理",
+      "llm_tldr_en": "Proposes a neuro-symbolic agentic framework that enhances small language model reasoning by using tool calls for knowledge graph retrieval and graph reasoning, showing improved multi-hop logical reasoning on CLUTRR.",
+      "llm_tldr_cn": "本文提出神经符号智能体框架，通过知识图谱检索和关系图卷积网络推理增强小语言模型的多跳逻辑推理能力。在CLUTRR亲属关系基准上，小模型通过提取三元组和获取图推理提示，显著提升推理准确性，为低成本、可持续的复杂推理提供有效方案。",
+      "llm_tldr": "本文提出神经符号智能体框架，通过知识图谱检索和关系图卷积网络推理增强小语言模型的多跳逻辑推理能力。在CLUTRR亲属关系基准上，小模型通过提取三元组和获取图推理提示，显著提升推理准确性，为低成本、可持续的复杂推理提供有效方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "knowledge retrieval techniques for enhancing language model reasoning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.09349v1",
+      "source": "arxiv",
+      "title": "Deceptive Grounding: Entity Attribution Failure in Clinical Retrieval-Augmented Generation",
+      "abstract": "Retrieval-augmented generation evaluation checks whether model claims are factually grounded in retrieved documents. It does not check whether retrieved evidence is attributed to the correct entity.   A clinical RAG response can pass every automated check (zero hallucinations, near-perfect faithfulness, real citations) while presenting drug Y's clinical evidence as evidence about queried drug X. We term this deceptive grounding (DG): a failure invisible to faithfulness, hallucination, and citation checks because every claim is sourced from a real document, about the wrong entity.   Using a controlled factorial benchmark across 13 models, we find DG rates spanning 8-87% at peak adversarial conditions. Medical and biomedical fine-tuned models reach up to 86.7%; domain specialization amplifies the failure rather than mitigating it.   A controlled ablation identifies the mechanism: removing entity-specific clinical evidence from retrieved documents eliminates entity-attribution failure entirely, shifting all failures to confabulation. The two failure modes respond to the same trigger, taking different paths.   Production measurement across 740 drug-disease pairs finds 7.8% overall DG in a deployed RAG system, rising to 13.6% for recently approved drugs. Entity-attribution verification (checking that cited evidence applies to the queried entity) detects DG at 97.0% precision and 98.7% DG recall (IPW-adjusted human gold standard); no existing framework implements it.",
+      "authors": [
+        "Cedric Caruzzo",
+        "Donggeun Yoo",
+        "Tae Soo Kim"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-10T12:29:10+00:00",
+      "link": "https://arxiv.org/pdf/2607.09349v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Identifies deceptive grounding failure in clinical RAG",
+      "llm_evidence_cn": "揭示临床RAG中的虚假归因失败",
+      "llm_evidence": "揭示临床RAG中的虚假归因失败",
+      "canonical_evidence": "揭示临床RAG中的虚假归因失败",
+      "llm_tldr_en": "Identifies a new RAG failure mode, deceptive grounding, where claims are grounded in real documents but attributed to the wrong entity, revealing vulnerabilities in clinical RAG evaluation and suggesting the need for entity-aware grounding checks.",
+      "llm_tldr_cn": "本文发现检索增强生成中存在隐蔽的虚假归因现象，即模型声明有真实文档支撑却错误匹配实体。通过构建临床RAG基准进行可控测试，揭示现有评估指标无法检测此类错误。该工作为提升RAG在关键领域的可靠性提供了实体归属验证的新方向。",
+      "llm_tldr": "本文发现检索增强生成中存在隐蔽的虚假归因现象，即模型声明有真实文档支撑却错误匹配实体。通过构建临床RAG基准进行可控测试，揭示现有评估指标无法检测此类错误。该工作为提升RAG在关键领域的可靠性提供了实体归属验证的新方向。",
+      "llm_tags": [
+        "query:agentic-rag:composite"
+      ],
+      "matched_query_tag": "query:agentic-rag:composite",
+      "matched_query_text": "Papers central to Agentic RAG与RAG推理相关论文, especially work that connects or combines: autonomous agent systems combined with retrieval augmented generation; methods for retrieval augmented generation in language models; reasoning capabilities in retrieval augmented generation frameworks; iterative multi-step retrieval processes for complex question answering; knowledge retrieval techniques for enhancing language model reasoning; agentic retrieval augmented generation; agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval; pure RAG methods for improving language model generation with external knowledge; reasoning in retrieval augmented generation multi step and self reflection approaches.",
+      "matched_requirement_id": "req-composite-agentic-rag",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.14494v1",
+      "source": "arxiv",
+      "title": "SAGA: Schema-Aware Grounding for Agentic Text-to-SPARQL Generation",
+      "abstract": "Complex knowledge base question answering (KBQA) is commonly approached through either information retrieval over a question-specific subgraph or semantic parsing into an executable logical form. We study the latter paradigm. Recent large language model agents make semantic parsing interactive: they alternate between reasoning, querying the knowledge base, and extending a partial SPARQL query. This interleaving reduces reliance on one-shot generation, but makes the quality of \\emph{KB grounding} depend on what the interaction tools expose. Existing agents retrieve or prune candidate properties mainly through lexical relevance and instance-level observations, without systematically conditioning on entity types, property domains and ranges, or the expected answer type. We call this failure mode \\emph{type-blind grounding}. It enlarges the grounding search space and often produces plausible-looking but semantically incompatible triple patterns that execute to empty results. We propose SAGA (\\underline{S}chema-\\underline{A}ware \\underline{G}rounding for \\underline{A}gentic Text-to-SPARQL Generation), a training-free framework that turns property exploration into a schema-constrained grounding operation. SAGA maintains a persistent bidirectional type state, filters known-incompatible property candidates at construction time, presents the remaining graph patterns in a compact schema-annotated format, and handles missing schema information permissively through empirical and trace-local evidence. Across nine benchmark settings over Wikidata and Freebase, SAGA achieves the highest F1 on all nine settings and the highest exact-match accuracy on eight, while reducing empty-result queries across all reported Wikidata settings.",
+      "authors": [
+        "Yiming Zhang",
+        "Koji Tsuda"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IR",
+        "cs.LG"
+      ],
+      "published": "2026-07-16T02:17:21+00:00",
+      "link": "https://arxiv.org/pdf/2607.14494v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "interactive semantic parsing agent that alternates reasoning, KB querying, and SPARQL extension",
+      "llm_evidence_cn": "交互式语义解析agent，交替进行推理、知识库查询和SPARQL扩展",
+      "llm_evidence": "交互式语义解析agent，交替进行推理、知识库查询和SPARQL扩展",
+      "canonical_evidence": "交互式语义解析agent，交替进行推理、知识库查询和SPARQL扩展",
+      "llm_tldr_en": "SAGA enhances agentic text-to-SPARQL by grounding entity types and property schemas, improving iterative KBQA through schema-aware tools.",
+      "llm_tldr_cn": "该文针对基于LLM agent的交互式语义解析中知识库谓词检索引擎缺乏模式约束的问题，提出SAGA方法。它在agent迭代生成SPARQL查询时，引入实体类型、属性域与范围等模式感知进行谓词筛选与扩展，从而提高复杂KBQA的准确性。实验表明，模式感知的grounding有效减少了错误候选，提升了最终查询质量。该工作将结构化模式信息融入agentic检索流程，增强了推理可靠性和可解释性。",
+      "llm_tldr": "该文针对基于LLM agent的交互式语义解析中知识库谓词检索引擎缺乏模式约束的问题，提出SAGA方法。它在agent迭代生成SPARQL查询时，引入实体类型、属性域与范围等模式感知进行谓词筛选与扩展，从而提高复杂KBQA的准确性。实验表明，模式感知的grounding有效减少了错误候选，提升了最终查询质量。该工作将结构化模式信息融入agentic检索流程，增强了推理可靠性和可解释性。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.10151v1",
+      "source": "arxiv",
+      "title": "MC-RAG System: A Structure-Driven RAG System for Multi-Constraint Queries",
+      "abstract": "Retrieval-Augmented Generation (RAG) systems are widely adopted in question answering, yet they often fail to satisfy complex multi-constraint queries, leading to constraint violations, factual inconsistencies, or hallucinations. We present Structure-Driven RAG System for Multi-Constraint Queries(MC-RAG), a structure-driven RAG system that reformulates retrieval as a subgraph matching problem over a knowledge graph. By integrating semantic and structural embeddings with path-level indexing, MC-RAG performs interpretable, structure-aware, and constraint-consistent retrieval and generation. During the demonstration, participants can input medical or encyclopedic multi-constraint queries, visualize how the system parses constraints, performs structural matching, and generates answers, thereby experiencing an end-to-end, interactive, and explainable RAG pipeline. A demo video is available at https://youtu.be/J8kahzmAnu0.",
+      "authors": [
+        "Xiao Zhang",
+        "Yang Wan",
+        "Yi Li",
+        "Miao Xie",
+        "Chunli Lv"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-07-11T06:20:38+00:00",
+      "link": "https://arxiv.org/pdf/2607.10151v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Structure-driven RAG system using subgraph matching for multi-constraint QA.",
+      "llm_evidence_cn": "结构驱动的RAG系统，利用子图匹配实现多约束查询问答。",
+      "llm_evidence": "结构驱动的RAG系统，利用子图匹配实现多约束查询问答。",
+      "canonical_evidence": "结构驱动的RAG系统，利用子图匹配实现多约束查询问答。",
+      "llm_tldr_en": "MC-RAG reformulates retrieval as subgraph matching over a knowledge graph, achieving structure-aware, constraint-consistent RAG for complex multi-constraint queries.",
+      "llm_tldr_cn": "针对RAG在处理多约束查询时常出现约束违反和事实不一致问题，提出MC-RAG系统，将检索重新表述为知识图谱上的子图匹配。通过语义与结构嵌入及路径级索引，实现可解释的结构感知检索与生成。在医疗和百科全书多约束查询演示中，展示了约束解析、结构检索与答案生成全过程，为纯RAG方法提升复杂查询一致性提供了结构化方案。",
+      "llm_tldr": "针对RAG在处理多约束查询时常出现约束违反和事实不一致问题，提出MC-RAG系统，将检索重新表述为知识图谱上的子图匹配。通过语义与结构嵌入及路径级索引，实现可解释的结构感知检索与生成。在医疗和百科全书多约束查询演示中，展示了约束解析、结构检索与答案生成全过程，为纯RAG方法提升复杂查询一致性提供了结构化方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "pure RAG methods for improving language model generation with external knowledge",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.10316v1",
+      "source": "arxiv",
+      "title": "SVD-RAG: Efficient Tree-Organized Retrieval-Augmented Generation via Singular Value Decomposition",
+      "abstract": "Retrieval-Augmented Generation (RAG) systems enhance large language models by retrieving relevant documents from external knowledge bases. Recent work by Sarthi et al. (2024) introduced RAPTOR, which organizes documents into hierarchical tree structures for efficient retrieval, but requires expensive LLM-based abstractive summarization at each internal node -- making large-scale deployment prohibitively costly.   We present SVD-RAG, the first method to apply Singular Value Decomposition (SVD) on dense sentence embedding matrices for extractive summarization in hierarchical RAG. Unlike classical LSA which operates on sparse TF-IDF matrices, SVD-RAG exploits the rich semantic representations of modern embedding models, identifying the most informative sentences through their energy contribution in the principal components. Our approach is (1) deterministic -- unlike LLM-based summarization, SVD produces identical results for the same input; (2) cost-efficient -- tree construction requires no additional API calls beyond the initial embedding, reducing token consumption by ~85%; and (3) content-adaptive -- the energy-ratio threshold tau automatically adjusts compression based on content complexity. In a controlled head-to-head comparison using identical corpora, clustering, and beam search, SVD-RAG achieves retrieval quality within 1-5% of RAPTOR with LLM summarization (MRR 0.867 vs. 0.875, Recall@1 0.483 vs. 0.458) while building the tree 317x faster (0.1s vs. 31.7s). On a scaled multi-topic benchmark with 205 chunks and 100 queries across 20 topic variations, SVD-RAG achieves a 4.2x improvement in Recall@1 and 3.1x improvement in MRR over flat embedding retrieval. We provide a detailed cost analysis and parameter sensitivity study. Our implementation is released as an open-source Python package.",
+      "authors": [
+        "Zhihui Sun"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-07-11T13:43:23+00:00",
+      "link": "https://arxiv.org/pdf/2607.10316v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "SVD-RAG uses SVD for efficient extractive summarization in hierarchical RAG, reducing costly LLM calls.",
+      "llm_evidence_cn": "SVD-RAG利用奇异值分解实现层次化RAG的高效抽取式摘要，降低LLM调用成本。",
+      "llm_evidence": "SVD-RAG利用奇异值分解实现层次化RAG的高效抽取式摘要，降低LLM调用成本。",
+      "canonical_evidence": "SVD-RAG利用奇异值分解实现层次化RAG的高效抽取式摘要，降低LLM调用成本。",
+      "llm_tldr_en": "To reduce the high cost of LLM-based summarization in hierarchical RAG like RAPTOR, SVD-RAG applies singular value decomposition on dense sentence embeddings for extractive summarization, enabling scalable tree-organized retrieval without sacrificing quality.",
+      "llm_tldr_cn": "针对层次化RAG中LLM摘要成本高的问题，SVD-RAG首次将奇异值分解应用于稠密句子嵌入矩阵，实现高效的抽取式摘要以组织文档树，在大幅降低成本的同时保持检索质量，为大规模RAG部署提供了经济高效的解决方案。",
+      "llm_tldr": "针对层次化RAG中LLM摘要成本高的问题，SVD-RAG首次将奇异值分解应用于稠密句子嵌入矩阵，实现高效的抽取式摘要以组织文档树，在大幅降低成本的同时保持检索质量，为大规模RAG部署提供了经济高效的解决方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "pure RAG methods for improving language model generation with external knowledge",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    }
+  ]
+}
