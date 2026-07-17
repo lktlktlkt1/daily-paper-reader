@@ -25,3 +25,62 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: agentic-rag
+      description: Agentic RAG与RAG推理相关论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: agentic retrieval augmented generation
+          keyword_cn: 代理式检索增强生成
+          query: autonomous agent systems combined with retrieval augmented generation
+        - keyword: retrieval augmented generation
+          keyword_cn: 检索增强生成
+          query: methods for retrieval augmented generation in language models
+        - keyword: retrieval augmented generation reasoning
+          keyword_cn: 检索增强生成推理
+          query: reasoning capabilities in retrieval augmented generation frameworks
+        - keyword: multi-step retrieval
+          keyword_cn: 多步检索
+          query: iterative multi-step retrieval processes for complex question answering
+        - keyword: knowledge retrieval
+          keyword_cn: 知识检索
+          query: knowledge retrieval techniques for enhancing language model reasoning
+      intent_queries:
+        - query: agentic retrieval augmented generation
+          query_cn: 代理式检索增强生成
+          enabled: true
+          source: manual
+          note: ''
+        - query: agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval
+          query_cn: 结合LLM代理与动态检索的代理式检索增强生成框架
+          enabled: true
+          source: manual
+          note: ''
+        - query: pure RAG methods for improving language model generation with external knowledge
+          query_cn: 利用外部知识改进语言模型生成的纯RAG方法
+          enabled: true
+          source: manual
+          note: ''
+        - query: reasoning in retrieval augmented generation multi step and self reflection approaches
+          query_cn: 检索增强生成中的多步推理与自反思方法
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-17T04:42:56.059Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
