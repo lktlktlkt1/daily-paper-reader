@@ -1,0 +1,87 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1658,
+      "height": 609,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1657,
+      "height": 431,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1659,
+      "height": 167,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 1360,
+      "height": 224,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 1658,
+      "height": 177,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 708,
+      "height": 237,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 589,
+      "height": 236,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 582,
+      "height": 237,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025.findings-emnlp.472/table-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 806,
+      "height": 159,
+      "label": "Table"
+    }
+  ]
+}

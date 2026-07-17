@@ -1,0 +1,1144 @@
+Title: 2025.findings-acl.652.pdf
+
+URL Source: https://aclanthology.org/2025.findings-acl.652.pdf
+
+Published Time: Wed, 16 Jul 2025 13:58:55 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+> Findings of the Association for Computational Linguistics: ACL 2025 , pages 12592–12618 July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+# CTRL A: Adaptive Retrieval-Augmented Generation via Inherent Control 
+
+Huanshuo Liu 1♣, Hao Zhang 1♣♠ , Zhijiang Guo 1♠, Jing Wang 2
+
+Kuicai Dong 1, Xiangyang Li 1, Yi Quan Lee 1, Cong Zhang 1, Yong Liu 11Noah’s Ark Lab, Huawei Technologies Co., Ltd  
+
+> 2
+
+Independent Researcher 
+
+hzhang26@outlook.com, cartusguo@gmail.com 
+
+Abstract 
+
+Retrieval-augmented generation (RAG) has emerged as a promising solution for mitigat-ing hallucinations of Large Language Mod-els (LLMs) with retrieved external knowledge. Adaptive RAG enhances this approach by en-abling dynamic retrieval during generation, ac-tivating retrieval only when the query exceeds LLM’s internal knowledge. Existing methods primarily focus on detecting LLM’s confidence via statistical uncertainty. Instead, we present the first attempts to solve adaptive RAG from a representation perspective and develop an inher-ent control-based framework, termed C TRL A. Specifically, we extract the features that repre-sent the honesty and confidence directions of LLM and adopt them to control LLM behavior and guide retrieval timing decisions. We also design a simple yet effective query formulation strategy to support adaptive retrieval. Experi-ments show that C TRL A is superior to existing adaptive RAG methods on diverse tasks. Hon-esty steering can effectively make LLMs more honest, and confidence monitoring is a promis-ing indicator of retrieval trigger. 1
+
+1 Introduction 
+
+Retrieval-augmented generation (RAG; Guu et al. 2020; Izacard et al. 2023) has proven effective in mitigating hallucination by integrating external knowledge into LLMs. Early efforts often employ single-round, indiscriminate retrieval, resulting in over-reliance on external knowledge and incom-plete retrieval (Wang et al., 2023; Su et al., 2025). To solve the issues, adaptive RAG (ARAG; Jiang et al. 2023b; Wang et al. 2024a) has emerged, which enables dynamic retrieval during generation, activating retrieval only when the query exceeds LLM’s internal knowledge (Ni et al., 2024). 
+
+> ♣
+> The first two authors contributed equally.
+> ♠
+> Corresponding authors.
+> 1https://github.com/HSLiu-Initial/CtrlA
+
+The key challenges in ARAG involve determin-ing what and when to retrieve (Su et al., 2024; Yao et al., 2024; Zhang et al., 2024a). The design of 
+
+what aspect depends on the construction of when 
+
+aspect, making ARAG’s primary focus the issues related to when aspect. For the when aspect, re-cent ARAGs leverage the ability that LLMs are aware of their uncertainty (Kuhn et al., 2023; Chen et al., 2024; Xiong et al., 2024), utilizing this char-acteristic to determine retrieval timing by assess-ing confidence level of their knowledge (Su et al., 2024; Yao et al., 2024). They primarily focus on de-tecting uncertainty in the LLM’s outputs to signal retrieval, relying on factors such as output proba-bilities (Jiang et al., 2023b), entropy of output (Su et al., 2024) or internal states (Yao et al., 2024), or verbal feedback (Wang et al., 2025; Yan et al., 2024). From a statistical standpoint, uncertainty and confidence are conceptually equivalent, both reflect the degree of certainty in a model’s predic-tions (Yang et al., 2023; Band et al., 2024; Tao et al., 2024). Thus, uncertainty can act as a proxy for confidence when determining retrieval timing. We revisit the assumptions underlying these uncertainty-based methods. First, they presume that LLM’s output aligns with its internal knowl-edge (Lin et al., 2022; Zou et al., 2023; Xiao et al., 2025), i.e., LLMs can accurately reflect internal knowledge in outputs or they are honest . However, LLMs often navigate a trade-off between honesty and helpfulness, balancing between discerning its limitations and generating user-satisfied plausible content (Liu et al., 2024a). When the output di-verges from internal knowledge, indicating low honesty, they only detect intended output rather than internal knowledge. Second, they equate un-certainty with LLM’s confidence ,2 which may not always apply to LLM behavior. For instance, an 
+
+> 2Confidence is the feeling of belief or trust that a person or thing is reliable (Bandura, 1997).
+
+12592 LLM may frequently respond with “I don’t know” or “insufficient information,” suggesting low uncer-tainty, yet retrieval should still occur. Moreover, se-mantically equivalent answers can be expressed in various ways in free-form generation, which may lead to high uncertainty (Farquhar et al., 2024). However, retrieval is unnecessary in this scenario. Based on this analysis, we emphasize that both 
+
+honesty and confidence of LLMs are crucial for ac-curate retrieval timing. However, current ARAGs struggle to address them due to the limitations of statistical uncertainty. We propose to solve ARAG from a representation perspective (Olah, 2023; Bricken et al., 2023; Zou et al., 2023; Tem-pleton et al., 2024), developing an efficient and unified framework that seamlessly tackles the re-quirements of honesty and confidence. Our core idea involves extracting features corresponding to 
+
+honesty and confidence directions from LLMs and using them to control LLM behavior and guide retrieval timing decisions simultaneously. We devise an Inherent Con tr ol-based Adaptive RAG ( CTRL A). To steer LLM toward honesty and monitor its confidence, we extract features aligned with the directions of honesty and confi-dence within LLM’s representation space. By ad-justing the honesty direction-a process we refer to as honesty steering -we can shift LLM’s representa-tion space to promote more honest outputs. Simul-taneously, confidence is quantified by measuring the projection of current representation onto the confidence feature, a method we call confidence monitoring . Honesty steering helps LLM recog-nize its limitations and suppress the generation of fabricated, plausible information. Confidence mon-itoring, in turn, enhances the precision of retrieval timing. Experiments verify the effectiveness of CTRL A, revealing that adjusting the directions of LLM’s internal states enhances its honesty, while confidence monitoring reliably signals when to trig-ger retrieval, optimizing the balance between re-trieval and internal knowledge use. 
+
+2 Related Work 
+
+Early RAG efforts (Lewis et al., 2020; Karpukhin et al., 2020; Zhu et al., 2021; Komeili et al., 2022; Khattab et al., 2023; Qi et al., 2024) re-lied on single-round, indiscriminate retrieval, in-creasing computational costs and degrading per-formance (Wang et al., 2023; Su et al., 2025). To address it, ARAG emerged, enabling dynamic retrieval during generation when the query ex-ceeds LLM’s internal knowledge (Jiang et al., 2023b; Wang et al., 2024a; Ni et al., 2024). Pre-vious implementations utilized static rules, such as prior sentences (Trivedi et al., 2023), sliding windows (Borgeaud et al., 2022; Ram et al., 2023), and in-context learning (Zhao et al., 2023; Zhang et al., 2024b; Li et al., 2024). Recent ARAGs leverage LLMs’ self-awareness of uncertainty to optimize retrieval timing by assessing confidence levels through internal states (Yao et al., 2024), likelihoods (Jiang et al., 2023b; Su et al., 2024; Jin et al., 2024a), or verbal feedback (Wang et al., 2025; Ding et al., 2024; Yan et al., 2024). This enhances retrieval timing and balances external and internal knowledge use. However, uncertainty-based ARAGs face challenges with LLM honesty and confidence, crucial for accurate retrieval timing. CTRL A solves these issues from a representation perspective, enhancing control over honesty and confidence to improve the effectiveness. 
+
+3 Inherent Control based Adaptive RAG 
+
+3.1 Preliminary 
+
+Given a query q, RAG aims to assist LLMs in gen-erating more precise answers y = [ s1, . . . , s m] = [w1, . . . , w n] containing m sentences or n tokens by retrieving relevant documents Dq = R(q) from document corpus D = {di}|D|  
+
+> i=1
+
+or web via re-triever R. The retrieved documents Dq are usu-ally concatenated with input x, i.e., query q with task instruction I, to aid answer generation as 
+
+y = LLM ([ Dq; x]) , where [·; ·] denotes concate-nation. In contrast, adaptive RAG performs active retrieval necessity decision via a trigger mechanism 
+
+T (x, y<t ), where y<t is the prior generations as of step t(t ≥ 1) . If T is triggered, the query for-mulation function qt = fq(x, y<t ) will produce a query qt to search. If T is triggered at t = 1 ,
+
+i.e., y<1 = ∅, q will be original query. Given the retrieved documents Dqt , the model continues gen-erating next output segment (usually, a sentence) 
+
+yt = LLM ([ Dqt ; x; y<t ]) till the answer comes to its end or next retrieval trigger occurs. 
+
+3.2 CTRL A Framework 3.2.1 Representation Feature Extraction 
+
+Our approach builds on the linear representation and superposition hypotheses (Olah, 2023; Bricken et al., 2023; Templeton et al., 2024). We aim to ex-tract features that represent honesty and confidence 12593 Step 1: Honesty/Confidence Feature Extraction  
+
+> Contrastive
+> honesty/confidence instructions +sentence statements
+> Last token representations
+> Principal Component Analysis (PCA)
+> Step 2: CtrlA Inference
+> ......
+> Honesty /Confidence
+> features
+> Query :Introduce Eugene Parker's biography?
+> Monitor Monitor
+> Search Query Formulation
+
+/      
+
+> Original query & current generations
+> Steer
+> n+1 th layer of LLM
+> nth layer of LLM
+> Nblocks
+> ...... ......
+> Honesty Steering
+> Query :Introduce Eugene Parker's biography?
+> n+1 th layer of LLM
+> nth layer of LLM
+> ...... ......
+> ...
+> ... ...
+> Chicago ... born ...
+> Confidence Monitoring
+> unconfident confident
+> mean-pooling & scaling
+> mean-pooling & scaling
+> Steer
+> Unconfidence detected!!!
+
+......  
+
+> Trigger retrieval
+> [1] Parker was born in Houghton, Michigan to Glenn and Helen (MacNair) Parker on June 10, 1927... [2] He joined University of Chicago in 1955 and spent the rest of his career ... [3] ...
+> Monitor Continue generation
+> Monitor
+> Eugene Parker was born in Chicago to Glenn and Helen ...
+> Eugene Parker was born in Houghton, Michigan ...
+
+...... 
+
+> Confident
+
+... 
+
+> Original query & previous generations
+
+Figure 1: C TRL A framework. Step 1 extracts the features corresponding to honesty and confidence directions; Step 2 utilizes extracted features to steer and monitor LLM behaviors at inference. The honesty feature steers the representation of LLM to make it more honest, while confidence feature is used to monitor the confidence level of LLM outputs, where the token whose score is lower than the threshold is marked as unconfident. The retrieval is triggered if specific tokens are unconfident. 
+
+directions from LLM’s representation space and use them to steer or monitor its behavior. Specif-ically, we manually craft contrastive instructions, as shown in Prompt 3.1, to extract features that represent the directions of honesty and confidence. Let I+
+
+h/c denote the positive instruction of honest or confident, I−
+
+h/c be the negative instruction of dishonest or unconfident, and S = {s1, . . . , s|S| }
+
+represent the dataset with |S| statements used to extract target features. For honesty feature extraction, each statement 
+
+si is concatenated with both positive and negative instructions, forming I+
+
+h ⊕ si and I−
+
+h ⊕ si, re-spectively, resulting in |S| statement pairs. For the statement pair of si, they are sequentially fed into LLM in a teacher-forcing manner to collect token representations. Given that each LLM layer encodes a unique semantic space (Chuang et al., 2024b; Sun et al., 2025), we extract token represen-tations from all LLM layers. Assuming LLM has 
+
+L layers and si contains n tokens, we obtain rep-resentations {{ rl, +
+
+i,k }nk=1 }Ll=1 and {{ rl, −
+
+i,k }nk=1 }Ll=1 
+
+for positive and negative instructions, where rli,k 
+
+denotes the k-th token representation of si at layer 
+
+l. The contrastive vector for the k-th token at l-th layer is computed as vli,k = rl, +
+
+i,k −rl, −
+
+i,k . Thus, after processing all tokens of si, we derive the set of con-trastive vectors {{ vli,k }nk=1 }Ll=1 . Since we employ 
+
+teacher-forcing to encode each token’s representa-tion—and “honest” and “dishonest” are the only differing descriptions between I+
+
+h and I−
+
+h —the vector vli,k captures the honesty direction for the 
+
+k-th token at layer l (Zou et al., 2023). After pro-cessing all statements in S, we apply PCA to the collected contrastive vectors {{{ vli,k }nk=1 }Ll=1 }|S| 
+
+i=1 
+
+at each layer l, extracting the first principal compo-nent as the general honesty direction. This results in a set of honesty direction vectors vh = {vlh}Ll=1 .Note that confidence feature extraction also utilizes the same method to derive vc = {vlc}Ll=1 .
+
+Prompt 3.1: Instruction for Honesty and Confidence Feature Extraction 
+
+[INST] Pretend you are a <honest/dishonest> |<confident/unconfident> person making statements about the world. 
+
+[/INST] <a statement si>
+
+We use the True-False dataset (Azaria and Mitchell, 2023) as S for honesty feature extrac-tion, which tests whether LLMs’ internal states reflect truthfulness. For confidence, we synthesize confident and unconfident statements using GPT-4 (ref. Appendix B.1) due to the scarcity of datasets. 
+
+3.2.2 Honesty Steering 
+
+According to the superposition hypothesis, adjust-ing LLM by moving each token’s representation 12594 closer to the direction representing the honesty fea-ture during decoding is a direct way to enhance its honesty (Olah, 2023; Zou et al., 2023; Temple-ton et al., 2024). To achieve this, we employ a simple linear combination. After extracting the honesty feature, it can be directly used to steer the behavior of the LLM. Assuming the LLM contains 
+
+L layers, each layer has its corresponding feature. Let vh = {vlh}Ll=1 denote the honesty feature and 
+
+Rk = {rlk}Ll=1 represent the token representations for the k-th token at each layer. We then apply a linear combination function for honesty steering: 
+
+ˆRk = Rk+λ·vh = {rlk+λ·vlh | ∀ l ∈ [1 , . . . , L ]},
+
+(1) where the coefficient λ controls the strength of hon-esty steering. Because vh represents the direction that promotes honesty, the “ +” operator is used in Eq 1. Conversely, to reduce honesty, the “ −”operator can be employed. As illustrated in Fig-ure 1, honesty steering is applied layer-by-layer and token-by-token during generation. This method is both simple and effective, with minimal impact on inference costs. We denote honesty steering as 
+
+ˆyt = Ph(yt) in the following descriptions. 
+
+3.2.3 Confidence Monitoring 
+
+According to the linear representation hypothesis, an intuitive way to monitor the LLM’s confidence during generation is to evaluate how well token representations align with the confidence feature direction in the representation space (Bricken et al., 2023; Zou et al., 2023; Templeton et al., 2024). Given the extracted confidence feature, we utilize it to monitor LLM’s confidence during generation. Let Rk = {rlk}Ll=1 represent the k-th token’s rep-resentation at each layer, and vc = {vlc}Ll=1 denote the confidence feature. Specifically, we compute the confidence score for k-th token using the dot product, followed by mean-pooling across layers and a scaling operation for normalization and out-lier removal. This produces the confidence score for the k-th token as follows: 
+
+˜mk = meanpool ([ mk, 1, . . . , m k,L ]) = meanpool ([rl, ⊤ 
+
+> k
+
+· vlc]Ll=1 
+
+),
+
+¯mk = scale ([ ˜ m0, . . . , ˜mk])[ −1] − τ, 
+
+(2) where τ is the threshold to adjust the sensitivity of confidence monitoring, ˜m<k represents the mean-pooled score of preceding tokens, and the index 
+
+−1 refers to the score of the last token, i.e., k-th token. If ¯mk > 0, it suggests that the k-th token’s representational direction leans towards the confidence, indicating that LLM is confident in generating this token. Conversely, if ¯mk < 0, LLM is unconfident in generating the k-th token. Here we denote confidence monitoring as Pc.The goal of confidence monitoring is to serve as a reliable detector for accurately determining appropriate retrieval timing (Wu et al., 2024a; Chuang et al., 2024a). For the t-th output segment 
+
+ˆyt = [ wts , . . . , w te ] of the LLM, with confidence scores [ ¯ mts , . . . , ¯mte ] for each token, the retrieval necessity is measured by the confidence scores of specific tokens within ˆyt. We only consider the confidence scores of new information in ˆy′
+
+> t
+
+, i.e., 
+
+content that has not appeared in the previous gen-eration and excludes trivial tokens, like stopwords. The retrieval trigger T activates if any confidence score in ˆy′ 
+
+> t
+
+satisfies ¯mk < 0, where ts ≤ k ≤ te. If 
+
+ˆy′ 
+
+> t
+
+contains such tokens, retrieval is triggered, i.e., 
+
+T (Pc( ˆ y′
+
+> t
+
+)) == True .Due to the honesty steering, LLM will generate refusal outputs more frequently, since honesty steer-ing can effectively regulate LLM behavior to make it more honest, leading to more frequent generation of non-responsive or refusal outputs. These refusal responses are well-aligned with the LLM’s inter-nal beliefs, i.e., LLM is confident in its knowledge limitations, making them challenging to detect by confidence monitoring. To address this issue, we further develop a refusal handling module, which employs a pattern matching function, as a supple-ment to confidence monitoring, to identify refusal content. The detailed algorithm is presented in Appendix A.3.1. 
+
+3.2.4 Search Query Formulation 
+
+Once retrieval is triggered, we need to employ a search query to retrieve relevant documents that aid in LLM generation. The construction of effective search queries plays a pivotal role in enhancing re-trieval efficiency (Jiang et al., 2023b). We develop two search query formulation strategies. 
+
+Context-Augmented Querying. Initially, for a query q, we prompt the LLM to sequentially gen-erate responses. Once the retrieval is triggered, context-augmented querying (CAQ) will concate-nate the query q with the processed output segment 
+
+ˆyt for retrieval, since using the original query as a supplement can avoid intent drift and improve the effectiveness of retrieval (Jagerman et al., 2023). Besides, the output segment ˆyt = [ wts , . . . , w te ]12595 mask ( ˆ yt) = 
+
+{
+
+¯w
+
+∣∣∣∣∣ ¯w =
+
+{
+
+∅, if w̸ ∈ q ∪ y<t and ¯mw < 0
+
+w, otherwise , ∀w ∈ ˆyt
+
+}
+
+. (3) may contain noise such as unconfident tokens and incorrect contents, we process the sentence by masking out the tokens, which satisfy (i) not ap-peared in q and previous generations y<t , i.e., new information and (ii) unconfident tokens, as shown in Equation 3. Thus, the CAQ generates the refined search query as fCAQ (x, ˆyt) = [ q; mask ( ˆ yt)] .
+
+Targeted Validation Querying. CAQ directly masks out the noise of the output segment and concatenates it with the original query to form a search query. Yet, off-the-shelf retrievers may pre-fer a well-formatted query (Karpukhin et al., 2020). Thus, we also develop a targeted validation query-ing strategy (TVQ), fTVQ . It instructs LLM to produce a search query using the original query and the current output segment as references (see Prompt A.1). The goal of TVQ is to generate a query to validate the accuracy of the current output segment by searching for supporting documents. For simplicity, we use fq to represent both fCAQ 
+
+and fTVQ .
+
+3.3 Inference Process 
+
+For an input x and preceding generation Y<t , the model generates the output segment along with hon-esty steer Ph and derives ˆyt. Simultaneously, the confidence monitor Pc is activated to compute the confidence score of each token during generation. We collect the confidence scores of new informa-tion ˆy′ 
+
+> t
+
+to determine retrieval necessity via retrieval trigger T . If retrieval is not required, the model continues predicting the next output segment. Oth-erwise, we adopt query formulation, fq, to produce a search query qt and retrieve documents Dq via retriever R. The retrieved documents Dq, input x,and preceding generation Y<t are concatenated to regenerate the current output segment. This algo-rithm will iteratively execute until it either produces a complete response or reaches the maximum gen-eration length. Details of the algorithm with refusal handling are presented in Appendix A.3.2. 
+
+4 Experiment Setup 
+
+Datasets and Evaluation. For short-form QA, we select PopQA (Mallen et al., 2023) and Trivi-                            
+
+> Method TriviaQA PopQA wo-RAG ⋄
+> 7B 53.8 25.7 SR-RAG ⋄
+> 7B 62.7 51.9 FL-RAG ⋄
+> 7B 60.8 28.1 FS-RAG ⋄
+> 7B 54.3 26.9 QD-RAG ⋄
+> 7B 52.3 29.4 FLARE ⋄
+> 7B 72.4 48.3 Self-RAG ‡
+> 7B 66.4 54.9 Self-RAG ‡
+> 13B 69.3 55.8 RQ-RAG ‡
+> 7B -57.1 QC-RAG ‡
+> 11B 58.2 -
+> CTRL A7B 76.4 61.8
+> Table 1: Results of short-form QA. ⋄is our reproduced results. ‡denotes results in the corresponding work.
+
+aQA (Joshi et al., 2017). For long-form QA, we use ASQA (Stelmakh et al., 2022) and biography generation (Bio; Min et al. 2023). For multi-hop 
+
+QA, we follow Su et al. (2024) to choose 2Wiki-MultihopQA (2WMQA; Ho et al. 2020) and Hot-potQA (HQA; Yang et al. 2018). For short-form QA, we report the accuracy. For ASQA, we report str-em, Rouge-L (R-L; Lin 2004), MAUVE (mau; Pillutla et al. 2023), EM, and F1. Bio is evaluated by FactScore (FS; Min et al. 2023). For multi-hop QA, we report EM and F1. We also evaluate 500 
+
+test samples ( v04082024 ) of FreshQA (Vu et al., 2024) and report both relaxed and strict accuracy scores. More details in Appendix B.2 and B.3. 
+
+Implementation and Retrieval Setup. We select the Mistral-7B (Jiang et al., 2023a) as the back-bone of C TRL A and adopt the greedy decoding strategy for all experiments. The λ for honesty steer is set to 0.3 and τ for confidence monitor-ing is set to 0.0. By default, we use BM25 and BGE (Xiao et al., 2024) as our retriever and use the 2018 English Wikipedia corpus as the docu-ment source following Jiang et al. (2023b) and Asai et al. (2024). For PopQA and Bio, we follow Self-RAG (Asai et al., 2024) to retrieve additional information from the web to mitigate coverage lim-itations in the Wikipedia corpus. For the multi-hop QA task, we only use BM25 as the retriever. For FreshQA, we only retrieve from the web to obtain supporting documents. More details in Ap-pendix B.4 and B.5. 12596 Baselines. We compare C TRL A with (1) Single-round RAG (SR-RAG), which retrieves documents before generation; (2) Fix-sentence RAG (FS-RAG; Trivedi et al. 2023), which triggers retrieval every sentence and the previous sentence is used as query; (3) Fix-length RAG (FL-RAG; Ram et al. 2023), which triggers retrieval every n tokens and the previous token window is used as query; (4) Query-decompose RAG (QD-RAG; Press et al. 2023; Khattab et al. 2023), which prompts LLMs to generate follow-up queries and trigger retrieval for each query; (5) Adaptive RAGs: FLARE (Jiang et al., 2023b), Self-RAG (Asai et al., 2024), DRA-GIN (Su et al., 2024), SeaKR (Yao et al., 2024), RQ-RAG (Chan et al., 2024) and QC-RAG (Jeong et al., 2024). For (1)-(4), we reimplement them under the same setting as C TRL A. More details about the baselines are in Appendix B.6. 
+
+5 Experiment Results and Analysis 
+
+5.1 Main Results Performance comparison. CTRL A surpasses the compared approaches across various tasks and eval-uation metrics, as evidenced by the results in short-form QA (Table 1), long-form QA (Table 2), multi-hop QA (Table 3), and the FreshQA dataset (Ta-ble 4). In each case, C TRL A surpasses fine-tune-based methods ( e.g., Self-RAG), uncertainty-based methods ( e.g., FLARE and DRAGIN), and rule-based methods ( e.g., FL/FS/QD-RAG). Compared to short-form QA, long-form and multi-hop QA re-quire more information and complex reasoning dur-ing generation. C TRL A consistently outperforms all baselines on both tasks. FreshQA contains more diverse question types, including never-changing, slow-changing, fast-changing, and false-premise questions, as well as single-hop and multi-hop questions. CTRL A shows strong generalization capability on different question types, leading to better performance than the compared baselines. The notable performance margin demonstrates the effectiveness of our design over existing solutions. 
+
+Effectiveness of C TRL A. CTRL A shows its strong ability to make precise retrieval timing decisions and generate appropriate intermediate queries, pro-viding a better solution to effectively address issues of when and what to retrieve. The strength of re-trieval timing decision is particularly evident in the multi-hop QA (Table 3), where C TRL A not only outperforms all baselines, but also achieves a lower retrieval frequency compared to others. This efficiency is achieved through honesty steering and confidence monitoring, ensuring that external knowledge is integrated exactly when needed, un-like FL/FS-RAG and FLARE, which struggle with retrieval frequency and unreliable triggers. More-over, C TRL A surpasses Self-RAG in both short-form and long-form tasks (Table 1 and 2). We highlight that Self-RAG fine-tunes LLMs on cu-rated datasets for retrieval timing and may face generalization challenges across diverse tasks. Besides, we observe that SR-RAG performs bet-ter than rule-based methods (FL/FS/QD-RAG) on short-form and long-form tasks (Table 1 and 2). This may be attributed to the latter’s tendency to suffer from intent drift and noise due to suboptimal generated queries, leading to irrelevant information being retrieved. Besides, they cannot correct previ-ous errors, struggle to filter out noise, and tend to be overconfident in unreliable external knowledge. In contrast, C TRL A overcomes such issues by adopt-ing a well-defined search query formulation and achieves significant improvements. 
+
+5.2 In-Depth Analysis Effectiveness of honesty and confidence features. 
+
+The honesty feature is extracted in an unsuper-vised manner using the True-False dataset (Azaria and Mitchell, 2023). To verify its effectiveness and transferability, we evaluate its performance on TruthfulQA (Lin et al., 2022) under no retrieval setting . Figure 2 shows that enhancing the intensity of honesty steering, by raising λ, the performance initially increases but then declines rapidly, where 
+
+λ = 0 .0 means no honesty steering is applied. The improvements are primarily attributed to honesty steering’s capability of bridging the gap between LLM’s outputs and internal beliefs, underscoring its importance in boosting LLM’s truthfulness and performance. When λ is too large, honesty will dominate the feature space, and excessive pertur-bation of the LLM’s representation inevitably dis-rupts its semantic space, resulting in a performance decline. Table 5 compares honesty steering and honesty prompt, i.e., an instruction to ask LLM to be honest. Honesty prompt leads to improved per-formance on PopQA and ASQA, demonstrating the critical importance of honesty in RAG. Explicitly instructing LLM to be honest has proven effective. However, honesty steering outperforms honesty prompt across all datasets, further validating its ef-fectiveness. Overall, honesty steering demonstrates solid transferability to downstream tasks. 12597 Method ASQA Bio str-em R-L EM F1 mau FS wo-RAG ⋄                                                      
+
+> 7B 18.8 33.7 8.7 13.7 23.8 41.9 SR-RAG ⋄
+> 7B 32.4 34.9 18.7 25.1 54.7 78.6 FL-RAG ⋄
+> 7B 24.4 34.4 11.2 16.7 26.5 56.9 FS-RAG ⋄
+> 7B 25.9 32.9 11.3 16.9 44.8 57.5 QD-RAG ⋄
+> 7B 18.1 18.6 8.4 12.3 -22.4 FLARE ⋄
+> 7B 29.9 35.2 16.2 22.2 50.4 74.8 Self-RAG ‡
+> 7B 30.0 35.7 --74.3 81.2 Self-RAG ‡
+> 13B 31.7 37.0 --71.6 80.2
+> CTRL A7B 37.0 38.5 20.4 27.3 79.2 83.4
+
+Table 2: Overall results of the long-form QA, where ⋄
+
+represents our reproduced results and ‡ denotes reported results.                                                              
+
+> Method 2WMQA HQA EM F1 Freq EM F1 Freq wo-RAG †
+> 7B 14.6 22.3 0.00 18.4 27.5 0.00 SR-RAG †
+> 7B 16.9 25.5 1.00 16.4 25.0 1.00 FL-RAG †
+> 7B 11.2 19.2 3.34 14.6 21.1 3.81 FS-RAG †
+> 7B 18.9 26.5 3.83 21.4 30.4 4.15 FLARE †
+> 7B 14.3 21.3 0.94 14.9 22.1 1.07 Self-RAG ‡
+> 7B 4.6 19.6 -6.8 17.5 -DRAGIN ‡
+> 7B 22.4 39.0 2.84 23.7 34.2 3.02 SeaKR ‡
+> 7B 30.2 36.0 -27.9 39.7 -
+> CTRL A7B 36.9 43.7 2.01 34.7 44.9 3.28
+
+Table 3: Overall results of multi-hop QA. † means re-sults reported by DRAGIN/SeaKR. ‡ denotes results in the corresponding work. 0.0 0.5 1.0 1.5 2.0 2.5 
+
+> 35
+> 40
+> 45
+> 50
+> Accuracy (%)
+
+Figure 2: Effects of honesty steering on TruthfulQA. 0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4        
+
+> 43.5
+> 44.0
+> 44.5
+> 45.0
+> 45.5
+> PopQA Accuracy
+> 0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4
+> 37.5
+> 38.0
+> 38.5
+> 39.0
+> 39.5
+> ASQA Rouge-L
+
+Figure 3: Impacts of honesty steering on PopQA (left) and ASQA (right). 
+
+> ∗
+
+Only 2018 Wikipedia corpus is used for PopQA.               
+
+> Method Accuracy (%) Relaxed Strict SR-RAG ⋄
+> 7B 38.4 33.0 FL-RAG ⋄
+> 7B 31.2 27.4 FS-RAG ⋄
+> 7B 22.8 20.6 QD-RAG ⋄
+> 7B 26.4 24.0 FLARE ⋄
+> 7B 41.6 39.8
+> CTRL A7B 48.4 43.8
+
+Table 4: Overall results on FreshQA, where ⋄ denotes our reproduced results. 
+
+Similar to the honesty feature, the confidence feature is extracted using our synthetic dataset. To verify its effectiveness, we sample 50 unanswer-able questions ( AN) from Self-Aware (Yin et al., 2023) and craft 50 answerable ( AY) questions (de-tailed in § C.1) for evaluation. We summarize the human evaluation results in Table 6, which shows that the confidence feature exhibits high accuracy in identifying AY and AN cases. In general, it detects that LLM is unconfident on unanswerable questions and vice versa, which demonstrates its effectiveness to be a retrieval necessity indicator. 
+
+Impacts of coefficient λ and threshold τ . Here we evaluate the impacts of different λ value choices, which govern the magnitude of honesty steering. Figure 2 indicates that honesty steering, i.e., λ > 
+
+0.0, generally contributes to performance improve-ments. As λ increases, performance initially rises and then gradually decreases, differing from the re-sults shown in Figure 3. This observation is similar to that in closed-domain QA. Compared to closed-domain QA, the varying levels of honesty steering may affect retrieval behaviors, and the incorpora-tion of external information also affects LLM’s generation, making the differences in the sensitive range of λ. The threshold τ adjusts the sensitiv-ity of confidence monitoring. Figure 4 evaluates the impacts of different τ values. It shows that in-creasing τ leads to higher retrieval frequency, but performance first improves and then declines. This highlights the need to balance internal and external knowledge in real-world scenarios, emphasizing the importance of adaptive retrieval. 
+
+Impacts of LLM layers to be steered. We now study the impact of varying the number of layers used for honesty steering on the final results of the TriviaQA dataset under no retrieval setting . Let 
+
+LB and LE denote the starting and ending layers to be steered, respectively, and let Nstep represent the step size, that is, honesty steering is performed 12598 λ PopQA ASQA 2Wiki Acc (%) str-em R-L F1 mau EM F1 
+
+λ = 0 .0 58.5 36.8 38.1 27.0 76.5 34.9 41.5 
+
+λ = 0 .3 61.8 37.0 38.5 27.3 79.2 36.9 43.7 
+
+HonP 60.2 36.8 38.3 27.0 71.5 34.3 41.0 
+
+Table 5: Performance comparison between honesty steering and honesty prompt (HonP) on PopQA, ASQA, and 2Wiki. 
+
+Ground Truth LM Prediction 
+
+AY AN
+
+AY 47 3
+
+AN 8 42 
+
+Table 6: Confusion matrix of human evaluation results on answerable and unanswerable samples. 0.10 0.05 0.00 0.05 0.10 
+
+> 80.0
+> 82.5
+> 85.0
+> 87.5
+> 90.0
+> 92.5
+> 95.0
+> 97.5
+> 100.0
+> Frequency (%)
+> 69.0
+> 69.5
+> 70.0
+> 70.5
+> 71.0
+> Accuracy (%)
+
+Figure 4: Effects of different choices of τ on TriviaQA. 1 2 3 4 5                                                
+
+> Nstep
+> 50
+> 51
+> 52
+> 53
+> 54
+> 55
+> Accuracy  LB&LECombination
+> LB=1, LE=20
+> LB=1, LE=25
+> LB=1, LE=30
+> LB=5, LE=20
+> LB=5, LE=25
+> LB=5, LE=30
+> LB=10, LE=20
+> LB=10, LE=25
+> LB=10, LE=30
+
+Figure 5: Impacts of honesty steering with respect to the layers and steps on TriviaQA. 
+
+every Nstep layers. We conduct a grid search over the hyperparameters by setting LB ∈ { 1, 5, 10 },
+
+LE ∈ { 20 , 25 , 30 }, and Nstep ∈ { 1, 2, 3, 4, 5},resulting in a total of 45 experiments. The re-sults are depicted in Figure 5. Steering perfor-mance is optimal when targeting intermediate lay-ers ( LB = 5 /10 , LE = 20 /25 ), and suboptimal when incorporating lower or higher layers ( e.g., 
+
+LB = 1 vs. LB = 10 , LE = 20 vs. LE = 30 ). We hypothesize that lower layers primarily pro-cess syntactic information and low-level concepts, higher layers focus on high-level knowledge and exhibit rigid beliefs, and middle layers are crucial for forming reasoning and cognitive preferences, thus making steering at these layers more effective. Additionally, setting Nstep = 2 or 3 yields optimal results, since steering too densely may impair the model’s inherent capabilities, while steering too sparsely may fail to correct behavior effectively. 
+
+Impact of data distribution and dataset size. We conducted an analysis using confidence feature ex-traction to examine the effects of data distribution and dataset size on the performance of directional features. We use our synthetic dataset and True-False dataset to simulate various data distributions to assess their impact on 2WMQA. Figure 6 indi-cates that smaller dataset sizes are highly sensitive to changes in data distribution, while this effect di-minishes with larger datasets. Moreover, a dataset size of 512 is sufficient for extracting effective fea-200 400 600 800 1000     
+
+> Dataset Size
+> 32
+> 34
+> 36
+> EM Mean
+> Synthetic Dataset
+> True-False Dataset
+> 200 400 600 800 1000
+> Dataset Size
+> 38
+> 40
+> 42
+> 44
+> F1 Mean
+> Synthetic Dataset
+> True-False Dataset
+
+Figure 6: Impacts of data distribution and dataset size on the effectiveness of confidence feature. 
+
+tures. This indicates that our method is robust con-cerning the data used for feature extraction. 
+
+5.3 Ablation Study Analysis on search query formulation. A proper query formulation strategy is vital for the retriever in adaptive RAG methods, as it directly impacts retrieval quality and influences subsequent LLM generations. Table 7 evaluates the performance of different components in the search query formu-lation module. Observed that BGE significantly outperforms BM25 regardless of the query for-mulation strategies, highlighting the importance of retriever selection. In general, BM25 prefers the CAQ strategy while BGE generally prefers the TVQ strategy. Since BM25 is a sparse retriever that performs retrieval via keyword matching, mak-ing it insensitive to the query format, while BGE is a dense retriever, the incomplete query format produced by CAQ may hinder its retrieval perfor-12599 Query Formulation PopQA ∗ ASQA Acc (%) str-em R-L EM F1 mau BGE BM25 BGE BM25 BGE BM25 BGE BM25 BGE BM25 BGE BM25 
+
+fCAQ 40.3 38.2 32.8 27.2 34.6 35.5 17.1 14.4 23.0 19.5 55.6 63.6 
+
+q + fCAQ 41.8 39.5 35.4 29.6 37.9 36.5 19.4 15.6 25.7 21.6 73.0 72.8 
+
+q + fCAQ − Iold 40.2 38.5 36.7 28.4 38.2 36.3 20.2 15.2 26.3 20.8 70.6 71.1 
+
+fTVQ 44.1 37.7 36.0 28.0 38.3 35.8 20.0 15.0 25.9 20.9 77.3 69.3 
+
+q + fTVQ 43.7 39.5 37.0 28.5 38.5 36.3 20.4 15.4 27.3 21.1 79.2 68.7 
+
+Table 7: Comparison of different query formulation strategies. q: original question; fCAQ : context-augmented querying; fTVQ : targeted validation querying; Iold : old information. ∗Only the 2018 Wiki corpus is used for PopQA. 
+
+Backbone TriviaQA PopQA ASQA Bio Acc Acc str-em R-L mau FS No Retrieval LLaMA2 † 
+
+> 7B
+
+30.5 14.7 7.9 15.3 19.0 44.5 LLaMA2 † 
+
+> 13B
+
+38.5 14.7 7.2 12.4 16.0 53.4 Alpaca † 
+
+> 7B
+
+54.5 23.6 18.8 29.4 61.7 45.8 Mistral ⋄ 
+
+> 7B
+
+53.8 25.7 18.8 33.7 23.8 41.9 LLaMA2 † 
+
+> C13B
+
+59.3 20.0 22.4 29.6 28.6 55.9 Alpaca † 
+
+> 13B
+
+61.3 24.4 22.9 32.0 70.6 50.2 SR-RAG with Different Backbone LLM LLaMA2 † 
+
+> 7B
+
+42.5 38.2 15.2 22.1 32.0 78.0 LLaMA2 † 
+
+> 13B
+
+47.0 45.7 16.3 20.5 24.7 77.5 Alpaca † 
+
+> 7B
+
+64.1 46.7 30.9 33.3 57.9 76.6 Mistral ⋄ 
+
+> 7B
+
+62.7 51.9 32.4 34.9 54.7 78.6 Alpaca † 
+
+> 13B
+
+66.9 46.1 34.8 36.7 56.6 77.7 
+
+Table 8: Overall results of different backbone LLMs on Trivi-aQA, PopQA, ASQA, and Bio. ⋄ is our reproduced results. †
+
+means results reported by Self-RAG. 
+
+Backbone Method 2WMQA HQA EM F1 EM F1 LLaMA2 C7B 
+
+wo-RAG † 14.6 22.3 18.4 27.5 SR-RAG † 16.9 25.5 16.4 25.0 FL-RAG † 11.2 19.2 14.6 21.1 FS-RAG † 18.9 26.5 21.4 30.4 FLARE † 14.3 21.3 14.9 22.1 DRAGIN ‡ 22.0 29.3 23.2 33.4 SeaKR ‡ 30.2 36.0 27.9 39.7 
+
+CTRL A 34.3 40.8 32.3 42.4 
+
+LLaMA2 C13B 
+
+FLARE † 22.4 30.8 18.0 27.6 DRAGIN ‡ 30.4 39.3 31.4 42.4 
+
+CTRL A 35.9 42.1 35.2 48.3 
+
+Vicuna 13B-v1.5 
+
+FLARE † 15.7 22.6 9.2 18.1 DRAGIN ‡ 25.2 35.2 28.8 41.6 
+
+CTRL A 37.0 45.4 38.3 45.7 
+
+Table 9: Results of C TRL A using different back-bone LLMs on 2WMQA and HQA. † means re-sults reported by DRAGIN. ‡ denotes results in the corresponding work. 
+
+mance. Besides, removing old information leads to distinct performance degradation, emphasizing the importance of incorporating old information for query construction in CAQ. 
+
+Performance of various LLMs in RAG settings. 
+
+Here, we analyze the performance of different LLMs on both short-form and long-form QA tasks. We select LLaMA2 (Touvron et al., 2023) and its Chat variant, Alpaca (Dubois et al., 2023), and Mis-tral (Jiang et al., 2023a). As shown in Table 8, with-out retrieval, instruction-tuned LLMs like Alpaca and Mistral consistently outperform base LLMs, 
+
+i.e., LLaMA2, with larger models yielding better results. SR-RAG significantly enhances LLM per-formance by providing supplementary evidence that compensates for internal knowledge limita-tions. Besides, LLMs of similar sizes exhibit com-parable performance, e.g., Alpaca 7B vs. Mistral 7B 
+
+and LLaMA2 C13B vs. Alpaca 13B , indicating sim-ilar task capabilities. Thus, we primarily employ Mistral 7B as our backbone model. 
+
+Performance of C TRL A with other LLMs. To assess C TRL A with different backbones, we se-lect LLaMA2-7B/13B-Chat (LLaMA2 C7B and LLaMA2 C13B ) and Vicuna 13B-v1.5 maintaining identical settings to the compared baselines. The re-sults, summarized in Table 9, indicate that C TRL Aconsistently outperforms the compared baselines across various backbones, demonstrating its robust-ness and transferability. 
+
+6 Conclusion 
+
+This paper introduces C TRL A, a lightweight frame-work that optimizes retrieval timing in adaptive RAG by leveraging representation features for hon-esty and confidence. C TRL A regulates LLM be-havior, monitors internal states to assess retrieval needs, refines search queries, and handles refusal outputs. Evaluations show it consistently outper-forms baselines, underscoring the efficacy of its honesty- and confidence-driven approach. 12600 Limitations 
+
+CTRL A is a preliminary exploration of adaptive RAG from a representation perspective. To ensure our research is succinct, transparent, and easily at-tributable, we adopt a straightforward, consistent, and elegant strategy for extracting directional fea-tures of honesty and confidence, and modulating the behavior of LLM, yielding promising results. Recent work (Liu et al., 2024b) shows that fine-tuning LLMs can produce more effective features for model alignment, which could further enhance the performance of C TRL A. Furthermore, we do not explicitly apply relevance and usefulness val-idation to the retrieved content. However, since CTRL A does not involve fine-tuning the LLM and achieves adaptive RAG in a plug-and-play man-ner, it can be effortlessly integrated with other approaches focused on content processing. The exploration of these aspects is reserved for future research. 
+
+References 
+
+Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, and Hannaneh Hajishirzi. 2024. Self-RAG: Learning to retrieve, generate, and critique through self-reflection. In The Twelfth International Conference on Learning Representations .Amos Azaria and Tom Mitchell. 2023. The internal state of an LLM knows when it’s lying. In Find-ings of the Association for Computational Linguistics: EMNLP 2023 , pages 967–976, Singapore. Associa-tion for Computational Linguistics. Neil Band, Xuechen Li, Tengyu Ma, and Tatsunori Hashimoto. 2024. Linguistic calibration of long-form generations. In Proceedings of the 41st Inter-national Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research ,pages 2732–2778. PMLR. A. Bandura. 1997. Self-Efficacy: The Exercise of Con-trol . Worth Publishers. Sebastian Borgeaud, Arthur Mensch, Jordan Hoff-mann, Trevor Cai, Eliza Rutherford, Katie Milli-can, George Bm Van Den Driessche, Jean-Baptiste Lespiau, Bogdan Damoc, Aidan Clark, Diego De Las Casas, Aurelia Guy, Jacob Menick, Roman Ring, Tom Hennigan, Saffron Huang, Loren Mag-giore, Chris Jones, Albin Cassirer, and 9 others. 2022. Improving language models by retrieving from tril-lions of tokens. In Proceedings of the 39th Interna-tional Conference on Machine Learning , volume 162 of Proceedings of Machine Learning Research , pages 2206–2240. PMLR. Trenton Bricken, Adly Templeton, Joshua Batson, Brian Chen, Adam Jermyn, Tom Conerly, Nicholas L Turner, Cem Anil, Carson Denison, Amanda Askell, Robert Lasenby, Yifan Wu, Shauna Kravec, Nicholas Schiefer, Tim Maxwell, Nicholas Joseph, Alex Tamkin, Karina Nguyen, Brayden McLean, and 5 others. 2023. Towards monosemanticity: Decompos-ing language models with dictionary learning. Chi-Min Chan, Chunpu Xu, Ruibin Yuan, Hongyin Luo, Wei Xue, Yike Guo, and Jie Fu. 2024. RQ-RAG: Learning to refine queries for retrieval augmented generation. In First Conference on Language Model-ing .Chao Chen, Kai Liu, Ze Chen, Yi Gu, Yue Wu, Mingyuan Tao, Zhihang Fu, and Jieping Ye. 2024. INSIDE: LLMs’ internal states retain the power of hallucination detection. In The Twelfth International Conference on Learning Representations .Hung-Ting Chen, Michael Zhang, and Eunsol Choi. 2022. Rich knowledge sources bring complex knowl-edge conflicts: Recalibrating models to reflect con-flicting evidence. In Proceedings of the 2022 Con-ference on Empirical Methods in Natural Language Processing , pages 2292–2307, Abu Dhabi, United Arab Emirates. Association for Computational Lin-guistics. Yung-Sung Chuang, Linlu Qiu, Cheng-Yu Hsieh, Ran-jay Krishna, Yoon Kim, and James R. Glass. 2024a. Lookback lens: Detecting and mitigating contextual hallucinations in large language models using only attention maps. In Proceedings of the 2024 Con-ference on Empirical Methods in Natural Language Processing , pages 1419–1436, Miami, Florida, USA. Association for Computational Linguistics. Yung-Sung Chuang, Yujia Xie, Hongyin Luo, Yoon Kim, James R. Glass, and Pengcheng He. 2024b. Dola: Decoding by contrasting layers improves fac-tuality in large language models. In The Twelfth International Conference on Learning Representa-tions .Hanxing Ding, Liang Pang, Zihao Wei, Huawei Shen, and Xueqi Cheng. 2024. Retrieve only when it needs: Adaptive retrieval augmentation for halluci-nation mitigation in large language models. ArXiv ,abs/2402.10612. Yann Dubois, Chen Xuechen Li, Rohan Taori, Tianyi Zhang, Ishaan Gulrajani, Jimmy Ba, Carlos Guestrin, Percy S Liang, and Tatsunori B Hashimoto. 2023. Alpacafarm: A simulation framework for methods that learn from human feedback. In Advances in Neural Information Processing Systems , volume 36, pages 30039–30069. Curran Associates, Inc. Sebastian Farquhar, Jannik Kossen, Lorenz Kuhn, and Yarin Gal. 2024. Detecting hallucinations in large language models using semantic entropy. Nature ,630:625 – 630. 12601 Tianyu Gao, Howard Yen, Jiatong Yu, and Danqi Chen. 2023. Enabling large language models to generate text with citations. In Proceedings of the 2023 Con-ference on Empirical Methods in Natural Language Processing , pages 6465–6488, Singapore. Associa-tion for Computational Linguistics. Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Mingwei Chang. 2020. Retrieval augmented language model pre-training. In Proceedings of the 37th International Conference on Machine Learning ,volume 119 of Proceedings of Machine Learning Research , pages 3929–3938. PMLR. Xanh Ho, Anh-Khoa Duong Nguyen, Saku Sugawara, and Akiko Aizawa. 2020. Constructing a multi-hop QA dataset for comprehensive evaluation of reasoning steps. In Proceedings of the 28th Inter-national Conference on Computational Linguistics ,pages 6609–6625, Barcelona, Spain (Online). Inter-national Committee on Computational Linguistics. Gautier Izacard, Patrick Lewis, Maria Lomeli, Lucas Hosseini, Fabio Petroni, Timo Schick, Jane Dwivedi-Yu, Armand Joulin, Sebastian Riedel, and Edouard Grave. 2023. Atlas: Few-shot learning with retrieval augmented language models. Journal of Machine Learning Research , 24(251):1–43. Rolf Jagerman, Honglei Zhuang, Zhen Qin, Xuanhui Wang, and Michael Bendersky. 2023. Query expan-sion by prompting large language models. ArXiv ,abs/2305.03653. Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong Park. 2024. Adaptive-RAG: Learn-ing to adapt retrieval-augmented large language mod-els through question complexity. In Proceedings of the 2024 Conference of the North American Chap-ter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) , pages 7036–7050, Mexico City, Mexico. As-sociation for Computational Linguistics. Albert Q Jiang, Alexandre Sablayrolles, Arthur Men-sch, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Florian Bressand, Gianna Lengyel, Guil-laume Lample, Lucile Saulnier, and 1 others. 2023a. Mistral 7b. ArXiv , abs/2310.06825. Zhengbao Jiang, Frank Xu, Luyu Gao, Zhiqing Sun, Qian Liu, Jane Dwivedi-Yu, Yiming Yang, Jamie Callan, and Graham Neubig. 2023b. Active retrieval augmented generation. In Proceedings of the 2023 Conference on Empirical Methods in Natural Lan-guage Processing , pages 7969–7992, Singapore. As-sociation for Computational Linguistics. Jing Jin, Houfeng Wang, Hao Zhang, Xiaoguang Li, and Zhijiang Guo. 2024a. DVD: Dynamic con-trastive decoding for knowledge amplification in multi-document question answering. In Proceed-ings of the 2024 Conference on Empirical Methods in Natural Language Processing , pages 4624–4637, Miami, Florida, USA. Association for Computational Linguistics. Zhuoran Jin, Pengfei Cao, Yubo Chen, Kang Liu, Xiao-jian Jiang, Jiexin Xu, Li Qiuxia, and Jun Zhao. 2024b. Tug-of-war between knowledge: Exploring and re-solving knowledge conflicts in retrieval-augmented language models. In Proceedings of the 2024 Joint International Conference on Computational Linguis-tics, Language Resources and Evaluation (LREC-COLING 2024) , pages 16867–16878, Torino, Italia. ELRA and ICCL. Mandar Joshi, Eunsol Choi, Daniel Weld, and Luke Zettlemoyer. 2017. TriviaQA: A large scale distantly supervised challenge dataset for reading comprehen-sion. In Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers) , pages 1601–1611, Vancouver, Canada. Association for Computational Linguistics. Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense passage retrieval for open-domain question answering. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 6769–6781, Online. Association for Computational Linguistics. Urvashi Khandelwal, Omer Levy, Dan Jurafsky, Luke Zettlemoyer, and Mike Lewis. 2020. Generalization through memorization: Nearest neighbor language models. In International Conference on Learning Representations .Omar Khattab, Keshav Santhanam, Xiang Lisa Li, David Hall, Percy Liang, Christopher Potts, and Matei Zaharia. 2023. Demonstrate-search-predict: Composing retrieval and language models for knowledge-intensive nlp. ArXiv , abs/2212.14024. Mojtaba Komeili, Kurt Shuster, and Jason Weston. 2022. Internet-augmented dialogue generation. In Proceed-ings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Pa-pers) , pages 8460–8478, Dublin, Ireland. Association for Computational Linguistics. Lorenz Kuhn, Yarin Gal, and Sebastian Farquhar. 2023. Semantic uncertainty: Linguistic invariances for un-certainty estimation in natural language generation. In The Eleventh International Conference on Learn-ing Representations .Benjamin A. Levinstein and Daniel A. Herrmann. 2024. Still no lie detector for language models: Probing empirical and conceptual roadblocks. Philosophical Studies .Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, Sebastian Riedel, and Douwe Kiela. 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. In Advances in Neural Infor-mation Processing Systems , volume 33, pages 9459– 9474. Curran Associates, Inc. 12602 Kenneth Li, Aspen K Hopkins, David Bau, Fernanda Viégas, Hanspeter Pfister, and Martin Wattenberg. 2023. Emergent world representations: Exploring a sequence model trained on a synthetic task. In 
+
+The Eleventh International Conference on Learning Representations .Xingxuan Li, Ruochen Zhao, Yew Ken Chia, Bosheng Ding, Shafiq Joty, Soujanya Poria, and Lidong Bing. 2024. Chain-of-knowledge: Grounding large lan-guage models via dynamic knowledge adapting over heterogeneous sources. In The Twelfth International Conference on Learning Representations .Chin-Yew Lin. 2004. ROUGE: A package for auto-matic evaluation of summaries. In Text Summariza-tion Branches Out , pages 74–81, Barcelona, Spain. Association for Computational Linguistics. Stephanie Lin, Jacob Hilton, and Owain Evans. 2022. TruthfulQA: Measuring how models mimic human falsehoods. In Proceedings of the 60th Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 3214–3252, Dublin, Ireland. Association for Computational Linguistics. Ryan Liu, Theodore Sumers, Ishita Dasgupta, and Thomas L. Griffiths. 2024a. How do large language models navigate conflicts between honesty and help-fulness? In Proceedings of the 41st International Conference on Machine Learning , volume 235 of 
+
+Proceedings of Machine Learning Research , pages 31844–31865. PMLR. Wenhao Liu, Xiaohua Wang, Muling Wu, Tianlong Li, Changze Lv, Zixuan Ling, Zhu JianHao, Cenyuan Zhang, Xiaoqing Zheng, and Xuanjing Huang. 2024b. Aligning large language models with human prefer-ences through representation engineering. In Pro-ceedings of the 62nd Annual Meeting of the Associa-tion for Computational Linguistics (Volume 1: Long Papers) , pages 10619–10638, Bangkok, Thailand. Association for Computational Linguistics. Shayne Longpre, Kartik Perisetla, Anthony Chen, Nikhil Ramesh, Chris DuBois, and Sameer Singh. 2021. Entity-based knowledge conflicts in question answering. In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Process-ing , pages 7052–7063, Online and Punta Cana, Do-minican Republic. Association for Computational Linguistics. Alex Mallen, Akari Asai, Victor Zhong, Rajarshi Das, Daniel Khashabi, and Hannaneh Hajishirzi. 2023. When not to trust language models: Investigating effectiveness of parametric and non-parametric mem-ories. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers) , pages 9802–9822, Toronto, Canada. Association for Computational Linguistics. Samuel Marks and Max Tegmark. 2024. The geometry of truth: Emergent linear structure in large language model representations of true/false datasets. In First Conference on Language Modeling .Sewon Min, Danqi Chen, Hannaneh Hajishirzi, and Luke Zettlemoyer. 2019. A discrete hard EM ap-proach for weakly supervised question answering. In 
+
+Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Lan-guage Processing (EMNLP-IJCNLP) , pages 2851– 2864, Hong Kong, China. Association for Computa-tional Linguistics. Sewon Min, Kalpesh Krishna, Xinxi Lyu, Mike Lewis, Wen-tau Yih, Pang Koh, Mohit Iyyer, Luke Zettle-moyer, and Hannaneh Hajishirzi. 2023. FActScore: Fine-grained atomic evaluation of factual precision in long form text generation. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , pages 12076–12100, Singa-pore. Association for Computational Linguistics. Ella Neeman, Roee Aharoni, Or Honovich, Leshem Choshen, Idan Szpektor, and Omri Abend. 2023. DisentQA: Disentangling parametric and contextual knowledge with counterfactual question answering. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 10056–10070, Toronto, Canada. Association for Computational Linguistics. Shiyu Ni, Keping Bi, Jiafeng Guo, and Xueqi Cheng. 2024. When do LLMs need retrieval augmentation? mitigating LLMs’ overconfidence helps retrieval aug-mentation. In Findings of the Association for Compu-tational Linguistics ACL 2024 , pages 11375–11388, Bangkok, Thailand and virtual meeting. Association for Computational Linguistics. Chris Olah. 2023. Distributed representations: Compo-sition & superposition. Krishna Pillutla, Lang Liu, John Thickstun, Sean Welleck, Swabha Swayamdipta, Rowan Zellers, Se-woong Oh, Yejin Choi, and Zaid Harchaoui. 2023. Mauve scores for generative models: Theory and practice. Journal of Machine Learning Research ,24(356):1–92. Ofir Press, Muru Zhang, Sewon Min, Ludwig Schmidt, Noah Smith, and Mike Lewis. 2023. Measuring and narrowing the compositionality gap in language mod-els. In Findings of the Association for Computational Linguistics: EMNLP 2023 , pages 5687–5711, Singa-pore. Association for Computational Linguistics. Zehan Qi, Rongwu Xu, Zhijiang Guo, Cunxiang Wang, Hao Zhang, and Wei Xu. 2024. long 2rag : Evaluat-ing long-context & long-form retrieval-augmented generation with key point recall. In Findings of the Association for Computational Linguistics: EMNLP 2024 , pages 4852–4872, Miami, Florida, USA. Asso-ciation for Computational Linguistics. Ori Ram, Yoav Levine, Itay Dalmedigos, Dor Muhlgay, Amnon Shashua, Kevin Leyton-Brown, and Yoav Shoham. 2023. In-context retrieval-augmented lan-guage models. Transactions of the Association for Computational Linguistics , 11:1316–1331. 12603 Weijia Shi, Xiaochuang Han, Mike Lewis, Yulia Tsvetkov, Luke Zettlemoyer, and Wen-tau Yih. 2024. Trusting your evidence: Hallucinate less with context-aware decoding. In Proceedings of the 2024 Confer-ence of the North American Chapter of the Associ-ation for Computational Linguistics: Human Lan-guage Technologies (Volume 2: Short Papers) , pages 783–791, Mexico City, Mexico. Association for Com-putational Linguistics. Aviv Slobodkin, Omer Goldman, Avi Caciularu, Ido Dagan, and Shauli Ravfogel. 2023. The curious case of hallucinatory (un)answerability: Finding truths in the hidden states of over-confident large language models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing ,pages 3607–3625, Singapore. Association for Com-putational Linguistics. Ivan Stelmakh, Yi Luan, Bhuwan Dhingra, and Ming-Wei Chang. 2022. ASQA: Factoid questions meet long-form answers. In Proceedings of the 2022 Con-ference on Empirical Methods in Natural Language Processing , pages 8273–8288, Abu Dhabi, United Arab Emirates. Association for Computational Lin-guistics. Hongjin Su, Howard Yen, Mengzhou Xia, Weijia Shi, Niklas Muennighoff, Han yu Wang, Liu Haisu, Quan Shi, Zachary S Siegel, Michael Tang, Ruoxi Sun, Jin-sung Yoon, Sercan O Arik, Danqi Chen, and Tao Yu. 2025. BRIGHT: A realistic and challenging bench-mark for reasoning-intensive retrieval. In The Thir-teenth International Conference on Learning Repre-sentations .Weihang Su, Yichen Tang, Qingyao Ai, Zhijing Wu, and Yiqun Liu. 2024. DRAGIN: Dynamic retrieval augmented generation based on the real-time informa-tion needs of large language models. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) ,pages 12991–13013, Bangkok, Thailand. Association for Computational Linguistics. Qi Sun, Marc Pickett, Aakash Kumar Nain, and Llion Jones. 2025. Transformer layers as painters. Pro-ceedings of the AAAI Conference on Artificial Intelli-gence , 39(24):25219–25227. Shuchang Tao, Liuyi Yao, Hanxing Ding, Yuexiang Xie, Qi Cao, Fei Sun, Jinyang Gao, Huawei Shen, and Bolin Ding. 2024. When to trust LLMs: Aligning confidence with response quality. In Findings of the Association for Computational Linguistics ACL 2024 ,pages 5984–5996, Bangkok, Thailand and virtual meeting. Association for Computational Linguistics. Adly Templeton, Tom Conerly, Jonathan Marcus, Jack Lindsey, Trenton Bricken, Brian Chen, Adam Pearce, Craig Citro, Emmanuel Ameisen, Andy Jones, Hoagy Cunningham, Nicholas L Turner, Callum McDougall, Monte MacDiarmid, Alex Tamkin, Esin Durmus, Tristan Hume, Francesco Mosconi, C. Daniel Free-man, and 7 others. 2024. Scaling monosemanticity: Extracting interpretable features from claude 3 son-net. Hugo Touvron, Louis Martin, Kevin R. Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Niko-lay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, Daniel M. Bikel, Lukas Blecher, Cris-tian Cantón Ferrer, Moya Chen, Guillem Cucurull, David Esiobu, Jude Fernandes, Jeremy Fu, Wenyin Fu, and 49 others. 2023. Llama 2: Open foundation and fine-tuned chat models. ArXiv , abs/2307.09288. Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal. 2023. Interleaving retrieval with chain-of-thought reasoning for knowledge-intensive multi-step questions. In Proceedings of the 61st Annual Meeting of the Association for Com-putational Linguistics (Volume 1: Long Papers) ,pages 10014–10037, Toronto, Canada. Association for Computational Linguistics. Tu Vu, Mohit Iyyer, Xuezhi Wang, Noah Constant, Jerry Wei, Jason Wei, Chris Tar, Yun-Hsuan Sung, Denny Zhou, Quoc Le, and Thang Luong. 2024. Fresh-LLMs: Refreshing large language models with search engine augmentation. In Findings of the Associa-tion for Computational Linguistics ACL 2024 , pages 13697–13720, Bangkok, Thailand and virtual meet-ing. Association for Computational Linguistics. Hongru Wang, Boyang Xue, Baohang Zhou, Tianhua Zhang, Cunxiang Wang, Guanhua Chen, Huimin Wang, and Kam fai Wong. 2024a. Self-dc: When to retrieve and when to generate? self divide-and-conquer for compositional unknown questions. 
+
+ArXiv , abs/2402.13514. Keheng Wang, Feiyu Duan, Peiguang Li, Sirui Wang, and Xunliang Cai. 2025. LLMs know what they need: Leveraging a missing information guided framework to empower retrieval-augmented generation. In Pro-ceedings of the 31st International Conference on Computational Linguistics , pages 2379–2400, Abu Dhabi, UAE. Association for Computational Linguis-tics. Yike Wang, Shangbin Feng, Heng Wang, Weijia Shi, Vidhisha Balachandran, Tianxing He, and Yulia Tsvetkov. 2024b. Resolving knowledge conflicts in large language models. In First Conference on Language Modeling .Yile Wang, Peng Li, Maosong Sun, and Yang Liu. 2023. Self-knowledge guided retrieval augmenta-tion for large language models. In Findings of the Association for Computational Linguistics: EMNLP 2023 , pages 10303–10315, Singapore. Association for Computational Linguistics. Di Wu, Jia-Chen Gu, Fan Yin, Nanyun Peng, and Kai-Wei Chang. 2024a. Synchronous faithfulness moni-toring for trustworthy retrieval-augmented generation. In Proceedings of the 2024 Conference on Empiri-cal Methods in Natural Language Processing , pages 9390–9406, Miami, Florida, USA. Association for Computational Linguistics. 12604 Kevin Wu, Eric Wu, and James Zou. 2024b. Clashe-val: Quantifying the tug-of-war between an LLM’s internal prior and external evidence. In The Thirty-eight Conference on Neural Information Processing Systems Datasets and Benchmarks Track .Chenghao Xiao, Hou Pong Chan, Hao Zhang, Mahani Aljunied, Lidong Bing, Noura Al Moubayed, and Yu Rong. 2025. Analyzing llms’ knowledge bound-ary cognition across languages through the lens of internal representations. ArXiv , abs/2504.13816. Shitao Xiao, Zheng Liu, Peitian Zhang, Niklas Muen-nighoff, Defu Lian, and Jian-Yun Nie. 2024. C-pack: Packed resources for general chinese embeddings. In 
+
+Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Infor-mation Retrieval , SIGIR ’24, page 641–649, New York, NY, USA. Association for Computing Machin-ery. Jian Xie, Kai Zhang, Jiangjie Chen, Renze Lou, and Yu Su. 2024. Adaptive chameleon or stubborn sloth: Revealing the behavior of large language models in knowledge conflicts. In The Twelfth International Conference on Learning Representations .Miao Xiong, Zhiyuan Hu, Xinyang Lu, YIFEI LI, Jie Fu, Junxian He, and Bryan Hooi. 2024. Can LLMs express their uncertainty? an empirical evaluation of confidence elicitation in LLMs. In The Twelfth Inter-national Conference on Learning Representations .Rongwu Xu, Zehan Qi, Zhijiang Guo, Cunxiang Wang, Hongru Wang, Yue Zhang, and Wei Xu. 2024. Knowledge conflicts for LLMs: A survey. In Pro-ceedings of the 2024 Conference on Empirical Meth-ods in Natural Language Processing , pages 8541– 8565, Miami, Florida, USA. Association for Compu-tational Linguistics. Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. 2024. Corrective retrieval augmented generation. 
+
+ArXiv , abs/2401.15884. Yuchen Yang, Houqiang Li, Yanfeng Wang, and Yu Wang. 2023. Improving the reliability of large language models by leveraging uncertainty-aware in-context learning. ArXiv , abs/2310.04782. Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William Cohen, Ruslan Salakhutdinov, and Christo-pher D. Manning. 2018. HotpotQA: A dataset for diverse, explainable multi-hop question answering. In Proceedings of the 2018 Conference on Empiri-cal Methods in Natural Language Processing , pages 2369–2380, Brussels, Belgium. Association for Com-putational Linguistics. Zijun Yao, Weijian Qi, Liangming Pan, Shulin Cao, Linmei Hu, Weichuan Liu, Lei Hou, and Juanzi Li. 2024. Seakr: Self-aware knowledge retrieval for adaptive retrieval augmented generation. ArXiv ,abs/2406.19215. Zhangyue Yin, Qiushi Sun, Qipeng Guo, Jiawen Wu, Xipeng Qiu, and Xuanjing Huang. 2023. Do large language models know what they don’t know? In 
+
+Findings of the Association for Computational Lin-guistics: ACL 2023 , pages 8653–8665, Toronto, Canada. Association for Computational Linguistics. Hao Zhang, Yuyang Zhang, Xiaoguang Li, Wenxuan Shi, Haonan Xu, Huanshuo Liu, Yasheng Wang, Lifeng Shang, Qun Liu, Yong Liu, and Ruiming Tang. 2024a. Evaluating the external and parametric knowledge fusion of large language models. ArXiv ,abs/2405.19010. Zihan Zhang, Meng Fang, and Ling Chen. 2024b. Re-trievalQA: Assessing adaptive retrieval-augmented generation for short-form open-domain question an-swering. In Findings of the Association for Com-putational Linguistics ACL 2024 , pages 6963–6975, Bangkok, Thailand and virtual meeting. Association for Computational Linguistics. Ruochen Zhao, Xingxuan Li, Shafiq Joty, Chengwei Qin, and Lidong Bing. 2023. Verify-and-edit: A knowledge-enhanced chain-of-thought framework. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 5823–5840, Toronto, Canada. Association for Computational Linguistics. Fengbin Zhu, Wenqiang Lei, Chao Wang, Jianming Zheng, Soujanya Poria, and Tat seng Chua. 2021. Retrieving and reading: A comprehensive sur-vey on open-domain question answering. ArXiv ,abs/2101.00774. Andy Zou, Long Phan, Sarah Chen, James Campbell, Phillip Guo, Richard Ren, Alexander Pan, Xuwang Yin, Mantas Mazeika, Ann-Kathrin Dombrowski, and 1 others. 2023. Representation engineering: A top-down approach to ai transparency. ArXiv ,abs/2310.01405. 
+
+A Detailed C TRL A Framework 
+
+A.1 Additional Related Work Linear Representations in LLMs. Recent re-search has explored LLM representations to un-derstand their beliefs, interpretability, and compli-ance (Levinstein and Herrmann, 2024; Li et al., 2023; Bricken et al., 2023). Grounded in the lin-ear representation and superposition hypotheses, these studies suggest that specific features can be aligned with particular directions in the LLMs’ lin-ear space. This framework effectively guides and monitors model outputs (Olah, 2023). Researchers have modified or detected models’ demeanor, pref-erences, stated goals, and biases, as well as induced errors or mitigated risks (Templeton et al., 2024). Supporting the hypotheses, Marks and Tegmark 12605 (2024) and Slobodkin et al. (2023) found that fea-tures like truthfulness and answerability are lin-early separable within the latent space. Further efforts (Zou et al., 2023; Liu et al., 2024b) utilized contrastive instruction templates to clarify feature directions. C TRL A leverages these insights to ex-tract features related to honesty and confidence, aiming to control LLM behavior and guide retrieval timing decisions, bridging representational under-standing and practical applications. 
+
+Knowledge Conflicts. Knowledge conflicts in LLMs have recently drawn significant attention from researchers (Shi et al., 2024; Wang et al., 2024b; Neeman et al., 2023; Xu et al., 2024; Wu et al., 2024b). This line of work primarily focuses on analyzing how LLMs behave when facing con-flicts between external knowledge contents and their internal (parametric) knowledge. Early stud-ies in Open-domain Question Answering (ODQA) presented contrasting findings: while Longpre et al. (2021) observed models’ over-reliance on paramet-ric knowledge, Chen et al. (2022) reported that models predominantly rely on contextual knowl-edge in well-configured settings. With the emer-gence of LLMs, this topic has been revisited from various perspectives. Xie et al. (2024) conducted comprehensive experiments by leveraging LLMs to generate conflicting context, revealing that while LLMs are highly receptive to external evidence when it is coherent and convincing, they exhibit a strong confirmation bias towards their internal knowledge. Jin et al. (2024b) further explored this phenomenon and proposed methods to resolve such conflicts in retrieval-augmented language models. While knowledge conflicts and Adaptive RAG (ARAG) share common ground, they address dis-tinct aspects of knowledge integration in LLMs. Research on knowledge conflicts primarily cen-ters on analyzing the phenomenon and behavior of LLMs when faced with contradictory informa-tion between external content and internal knowl-edge. These studies often utilize specifically cu-rated datasets and pre-specified external knowledge to simulate how models utilize knowledge at the “post-retrieval” stage. In contrast, ARAG focuses on a different challenge: determining whether and when to retrieve external information for a query, and dynamically deciding during genera-tion whether additional retrieval is necessary. This distinction is crucial as ARAG operates at the “pre-retrieval” and “during-retrieval” stages, making ar-chitectural decisions about knowledge acquisition rather than resolving conflicts in already-retrieved information. These two research directions can be viewed as complementary. The insights from knowledge conflicts research could potentially en-hance post-retrieval processing in ARAG systems, potentially leading to more reliable responses. 
+
+A.2 Search Query Formulation Context-Augmented Querying. In §3.2.4, we propose to use the “new information” of the gen-erated segment yt as the search query for retrieval. The “new information” denotes the tokens that do not appear in both input x and preceding gener-ations ˆy<t . In the output segment, there may be old information interspersed with new information. However, the old information has already been ver-ified or corrected in the previous generation pro-cess at either the token-level or sentence-level; it is reasonable to assume that the old information is correct or at least does not necessitate further verification. Besides, the confidence probe is not always accurate in pinpointing specific tokens and may identify “unconfident” tokens at trivial posi-tions, such as stopwords. Thus, to enhance the detection precision, it is crucial to filter out the old information and trivial stopwords. 
+
+Targeted Validation Querying. Off-the-shelf re-trievers, particularly dense retrievers, are generally optimized to use well-formatted queries to find rele-vant documents (Karpukhin et al., 2020). The CAQ strategy (§3.2.4) usually produces incomplete sen-tences as search queries, which may not be friendly to these retrievers. Thus, we develop the targeted validation querying strategy, fTVQ , which prompts LLM to produce a well-formatted search query using the original question and current output seg-ment as references. The goal of TVQ is to generate a search query to validate the correctness of the current output segment by LLM through searching for supporting documents. The details of the TVQ instruction are presented in Prompt A.1. 
+
+A.3 Inference Overview A.3.1 Refusal Handling Module 
+
+In §3.3, we present an overview of C TRL A’s infer-ence pipeline to generate the next output segment. Due to the honesty steering, we observe that LLM will generate refusal outputs more frequently. It is because honesty steering can effectively regulate LLM behavior to make it more honest. Conse-quently, it inevitably leads to more frequent genera-12606 Targeted Validation Querying (TVQ) Prompt     
+
+> [INST] Given a question and its corresponding answer segment, your task is to generate a search query based on the answer to verity its correctness by following the guidelines: 1. The search query must be short, concise and relevant to the provided answer, and specific enough for searching relevant documents. 2. Only generate query based on the given information, do not repeat or mirror the original question. 3. Always maintain a professional tone while being creative in query formulation.
+> Exemplars :Question: What is Franz Seitz Sr.'s occupation? Answer: Franz Seitz Sr.'s occupation is not specified in the given content. Search query: What was Franz Seitz Sr.'s profession? Question: When did Toronto host the MLB all-star game? Answer: Toronto has hosted the Major League Baseball (MLB) All-Star Game several times throughout its history. Search query: What years did Toronto host the MLB All-Star Game? ...(omitted some for space)… Question: <user input query 𝒒 >Answer: <previous generation 𝒚 !>Search query: [/INST]
+
+Prompt A.1: The instruction template of the target validation querying (TVQ) module. In practice, we use 5-shot demonstrations/exemplars. 
+
+tion of non-responsive or refusal outputs, such as “I don’t know” or “I am not sure”, or indications of ir-relevant information in retrieved documents. Mean-while, these refusal responses are well-aligned with the LLM’s internal beliefs, i.e., LLM is confident in its knowledge limitations, making them challeng-ing to detect by confidence monitoring. To address this issue, we develop a refusal han-dling module HR, which employs a pattern match-ing function, fd, as a supplement to confidence monitoring, to identify refusal content in the output segment ˆyt. Moreover, since the refusal outputs cannot provide useful information for CAQ and TVQ to refine search queries, we also devise a query rewriting function, fQR (ref. Prompt A.2), for more reliable search query construction. Algorithm 2 presents the overall pipeline of the refusal handling module HR. Here, we assume that the LLM is already steered by the honesty feature for simplicity. The refusal handling module con-tains two key components, i.e., refusal detector fd
+
+and query rewrite function fQR . The refusal de-tector is always activated to persistently monitor whether any refusal content exists in each output segment during LLM’s generation. After LLM pre-dicts the next output segment ˆyt, the refusal detec-tor fd checks if there is any refusal content exists. Once the refusal content is recognized, the retrieval is triggered accordingly. Specifically, there are two distinct scenarios: the first involves output genera-tion derived exclusively from the model’s internal knowledge, characterized by refusal signals such as “I don’t know” or “additional information is needed.” The second pertains to outputs dependent on prior retrieved documents, signaled by refer-ences to irrelevant information in the documents. In the former, the standard query formulation mod-ule fq, i.e., CAQ or TVQ, is employed to create the search query. In the latter, often a result of sub-optimal search queries, we adopt the query rewrite function fQR to refine the search query for docu-ment retrieval. With the created or refined search query q′
+
+> t
+
+, we use retriever R to retrieve the relevant documents Dq from D and then feed into the LLM to regenerate the current output segment. Note that the cycle of detection, query rewriting, and response regeneration is repeated until fd returns false or the maximum number of attempts, K, is reached. If K is reached, the LLM utilizes its inter-nal knowledge to generate the current segment. 
+
+A.3.2 Inference with Refusal Handling 
+
+Due to the introduction of refusal handling module, the overall inference pipeline of C TRL A is slightly changed, presented in Algorithm 3. For an input x
+
+and preceding generation Y<t , the model generates the output segment along with the honesty steering 12607 Algorithm 1 CTRL A Inference 
+
+Require: language model LM , retriever R, document corpus D, honesty steering Ph, query formulator 
+
+fq, retrieval trigger T , maximal generation length Lmax , stop generation token eos  
+
+> 1:
+
+input: prompt x (I and q), previous generation Y<t = ∅ 
+
+> 2:
+
+output: the final response of input Y 
+
+> 3:
+
+while true do  
+
+> 4:
+
+LM along with Ph predicts next segment ˆyt given (x, Y<t ) 
+
+> 5:
+
+T simultaneously monitors retrieval signal during LLM generates ˆyt 
+
+> 6:
+
+if T == True then  
+
+> 7:
+
+R retrieves Dq from D via qt = fq(q, ˆyt) 
+
+> 8:
+
+LM along with Ph re-predicts next segment ˆyt given (x, Y<t , Dq) 
+
+> 9:
+
+end if  
+
+> 10:
+
+Set Y<t = [ Y<t ; ˆ yt] 
+
+> 11:
+
+if Y<t [−1] = eos or len (Y<t ) reaches Lmax then  
+
+> 12:
+
+break  
+
+> 13:
+
+end if  
+
+> 14:
+
+end while  
+
+> 15:
+
+Set Y = Y<t 
+
+Algorithm 2 Refusal Handling Module 
+
+Require: Language Model LM , Retriever R, Query Formulator fq, Query Rewrite Function fQR , Refusal Detector fd, Maximum Retrieval Attempts K 
+
+> 1:
+
+function HR(q, qt, ˆyt) 
+
+> 2:
+
+Initialize retrieval attempt count k = 0  
+
+> 3:
+
+while fd( ˆ yt) is True and k < K do  
+
+> 4:
+
+Increment k by 1  
+
+> 5:
+
+if qt is provided then  
+
+> 6:
+
+q′ 
+
+> t
+
+= fQR (q, qt) 
+
+> 7:
+
+else if qt is not provided then  
+
+> 8:
+
+q′ 
+
+> t
+
+= fq(q, ˆyt) 
+
+> 9:
+
+end if  
+
+> 10:
+
+R retrieves Dq using q′ 
+
+> t
+> 11:
+
+LM re-predicts next segment ˆyt given (x, yt, Dq) 
+
+> 12:
+
+fd detects the potential refusal content in ˆyt 
+
+> 13:
+
+end while  
+
+> 14:
+
+if fd( ˆ yt) is True then  
+
+> 15:
+
+LM directly re-predicts next segment ˆyt 
+
+> 16:
+
+end if  
+
+> 17:
+
+return ˆyt 
+
+> 18:
+
+end function 12608 Query Rewrite (QR) Prompt of Refusal Handling Module     
+
+> [INST] Given an original question and a reference query that may not align with the original's intent, your task is
+> to craft a better, short and concise search query that well align with the intent of original question.
+> The generated search query should starts with an interrogative word and contain the details from both reference
+> query and original question to directly query for the key points of original question.
+> Exemplars :
+> Original question: Who wrote the novel “Moby -Dick”?
+> Reference query: Information on the book Moby -Dick.
+> Search query: Who is the author of the novel “Moby -Dick”?
+> Original question: What was Xanadu in the title of the film?
+> Reference query: What genre does the film Xanadu belong to?
+> Search query: What is the significance or meaning of “Xanadu” in the film’s title?
+> ...(omitted some for space)…
+> Original question: <user input query 𝒒 >
+> Reference query: <previous generated reference query 𝒒 𝒕 >
+> Search query: [/INST]
+
+Prompt A.2: The instruction template of query rewrite (QR) in the refusal handling module. In practice, we use 5-shot demonstrations/exemplars. 
+
+Ph and derives ˆyt. Simultaneously, the confidence monitor Pc is activated to compute the confidence score of each token during the generation process. Then we collect the confidence scores of new in-formation ˆy′ 
+
+> t
+
+and identify if refusal content exists in the output segment to determine the retrieval ne-cessity via retrieval trigger T and fd, respectively. If retrieval is not required, the model continues to predict the next output segment. If retrieval is triggered and the signal is from T , we adopt the query formulation, fq, to produce search query qt
+
+and retrieve relevant documents Dq via retriever 
+
+R to refine current output segment. If retrieval is triggered and the signal is from fd, the refusal han-dling module HR is activated to refine the current output segment. This algorithm will iteratively ex-ecute until it either produces a complete response or reaches the maximum generation length. 
+
+B Detailed Experimental Settings 
+
+B.1 Datasets for Feature Extraction 
+
+For honesty feature extraction, we select the True-False dataset crafted by Azaria and Mitchell (2023), which is designed to measure whether LLMs’ in-ternal states can be used to reveal the truthfulness of statements. This dataset contains true or false statements across six topics: “Cities”, “Inventions”, “Chemical Elements”, “Animals”, “Companies”, and “Scientific Facts”. The statements are sourced from reliable references and validated via dual hu-man annotation, ensuring a balanced distribution. In general, this dataset comprises 6, 084 sentences, including 1, 458 sentences for “Cities”, 876 for “In-ventions”, 930 for “Chemical Elements”, 1, 008 for “Animals”, 1, 200 for “Companies”, and 612 for “Scientific Facts”. We select the “Scientific Facts” subset to construct the sentence statements for the honesty feature, since the data in this subset is simpler and diverse. Specifically, we couple these statements with predefined instruction templates of honest and dishonest and truncate each paired statement to ensure a consistent length. Finally, we randomly select 1024 processed data entries to extract the honesty feature. For confidence feature extraction, due to the ab-sence of datasets to reflect the confidence statement, we directly use GPT-4 to generate a set of confi-dent and unconfident statements. To be specific, we select 27 topics: “Technology”, “Environment”, “Economics”, “Health”, “Education”, “Space Ex-ploration”, “Art and Culture”, “Politics”, “Social Is-sues”, “Sports”, “Entertainment”, “Science”, “His-tory”, “Philosophy”, “Religion”, “Psychology”, “Law”, “Business”, “Military”, “Transportation”, “Food”, “Fashion”, “Travel”, “Animals”, “Nature”, “Weather”, and “Miscellaneous”. For each topic, we prompt GPT-4 using a preset instruction (ref. Prompt B.1) to generate 10 statements that express confidence and 10 statements that express a lack of confidence, respectively. Then, we collect all the generated statements and couple them with pre-12609 Algorithm 3 CTRL A Inference with Refusal Handling 
+
+Require: language model LM , retriever R, document corpus D, honesty steering Ph, query formulator 
+
+fq, retrieval trigger T , refusal handling module HR, refusal detector fd, maximal generation length 
+
+Lmax , stop generation token eos  
+
+> 1:
+
+input: prompt x (I and q), previous generation Y<t = ∅ 
+
+> 2:
+
+output: the final response of input Y 
+
+> 3:
+
+while true do  
+
+> 4:
+
+LM along with Ph predicts next segment ˆyt given (x, Y<t ) 
+
+> 5:
+
+T and fd monitor the retrieval signal during LM generating ˆyt 
+
+> 6:
+
+if T == True then  
+
+> 7:
+
+R retrieves Dq from D using qt = fq(q, ˆyt) 
+
+> 8:
+
+LM along with Ph re-predicts next segment ˆyt given (x, Y<t , Dq) 
+
+> 9:
+
+fd monitor the retrieval signal during LM generating ˆyt 
+
+> 10:
+
+if fd == True then  
+
+> 11:
+
+ˆyt = HR(q, qt, ˆyt) 
+
+> 12:
+
+end if  
+
+> 13:
+
+else if fd == True then  
+
+> 14:
+
+ˆyt = HR(q, ˆyt) 
+
+> 15:
+
+end if  
+
+> 16:
+
+Set Y<t = [ Y<t ; ˆ yt] 
+
+> 17:
+
+if Y<t [−1] = eos or len (Y<t ) reaches Lmax then  
+
+> 18:
+
+break  
+
+> 19:
+
+end if  
+
+> 20:
+
+end while  
+
+> 21:
+
+Set Y = Y<t 
+
+defined confident and unconfident instructions to produce a set of paired data samples. After truncat-ing each statement, we randomly select 1024 data entries to extract the confidence features. 
+
+B.2 Datasets for Evaluation 
+
+For the short-form generation, we conduct ex-periments on two open-domain QA datasets: PopQA (Mallen et al., 2023) and TriviaQA (Joshi et al., 2017). Specifically, we select the long-tail subset of PopQA, which consists of 1, 399 queries related to rare entities with monthly Wikipedia page views below 100 , for evaluation. As the open test set of TriviaQA is not publicly available, we follow the dev and test splits of prior work (Min et al., 2019; Guu et al., 2020; Asai et al., 2024) and use 11 , 313 test queries for evaluation. For the long-form generation, we choose the biography generation (Bio, Min et al. (2023)) and ASQA (Stelmakh et al., 2022; Gao et al., 2023). We follow Self-RAG (Asai et al., 2024) to evaluate on 948 queries of the dev set on ASQA. For the Bio dataset, we follow the Self-RAG (Asai et al., 2024) to evaluate the 500 people entities. For the multi-hop QA, we conduct experi-ments on two widely used datasets: 2WikiMulti-hopQA (Ho et al., 2020) and HotpotQA (Yang et al., 2018). Specifically, for 2WikiMultihopQA, we fol-low the setup from prior work (Trivedi et al., 2023), generating both the chain-of-thought (CoT) reason-ing process and the final answer. The prompts used are based on templates from earlier studies (Trivedi et al., 2023; Jiang et al., 2023b). For FreshQA (Vu et al., 2024), which consists of diverse questions divided into four categories: never-changing, slow-changing, fast-changing, and false-premise. This dataset is designed to evaluate the factual accuracy of LLMs, requiring up-to-date 
+
+knowledge for generating accurate responses. In this work, we evaluate the 500 questions in its test set ( FreshQA Apr 8, 2024 version; 04082024 ). 3
+
+B.3 Evaluation Metrics 
+
+For short-form QA, i.e., PopQA and TriviaQA, we follow Mallen et al. (2023) to compute the accuracy of model generations, which measures whether the generated response contains ground-truth answers. For long-form QA, we follow 
+
+> 3https://github.com/freshllms/freshqa
+
+12610 Prompt to Generate the Training Set of Confidence Probe   
+
+> Pretend you are a <confident /unconfident >person making varied statements about the word following the given
+> requirements:
+> (1) Do not use words like confident, unconfident, or insecure.
+> (2) Each statement must be no longer than 20 words.
+> (3) List out the results in numbers like 1. 2. 3. 4.
+> Please make 10 easy, varied and true statements about the < topic >.
+
+Prompt B.1: The instruction used to prompt GPT-4 for confidence-related sentence generation. 
+
+FLARE (Jiang et al., 2023b) and Self-RAG (Asai et al., 2024) to adopt the metrics of correctness (str-em and str-hit), Rouge-L (R-L, Lin (2004)), MAUVE (mau, Pillutla et al. (2023)), exact match (EM), and Disambig-F1 to evaluate ASQA by us-ing the ALCE library. 4 While for the biography generation dataset, we directly utilize the official FactScore (Min et al., 2023) as the evaluation met-ric. For multi-hop QA, i.e., 2WikiMultihopQA and HotpotQA, we follow DRAGIN (Su et al., 2024) and SeaKR (Yao et al., 2024) to extract the final answer using pattern-matching techniques and com-pare it with the ground truth using metrics such as exact match (EM) at the answer level, as well as token-level F1 score. For the FreshQA dataset, we also follow the official setting to report its relaxed accuracy and strict accuracy scores. 
+
+B.4 Implementation Details 
+
+We adopt the Mistral-7B (Jiang et al., 2023a), i.e., 
+
+Mistral-7B-Instruct-v0.1 ,5 as the backbone of C TRL A and use a greedy decoding strategy for all the experiments. We set the coefficient λ of honesty steering as 0.3. The threshold τ of confi-dence monitoring is set as 0.0. Instead of steering or monitoring all the layers of the backbone, we em-pirically manipulate the representations from the 
+
+5-th to 18 -th transformer layers for honesty steer-ing and detect the representations from the 10 -th to 
+
+25 -th layers for confidence monitoring. Our C TRL A and other reproduced baselines are all implemented using the following pack-ages: PyTorch-2.1.0 , Transformers-4.36.2 ,and Accelerate-0.24.0 . For the honesty and confidence feature extraction, we directly use the PCA implementation from scikit-learn-1.4.2 .We run inference for all the experiments using 2 NVIDIA Tesla V100 GPUs with 32GB memory. 
+
+> 4https://github.com/princeton-nlp/ALCE
+> 5https://huggingface.co/mistralai/ Mistral-7B-Instruct-v0.1
+
+B.5 Retriever Setup 
+
+By default, we use BGE retriever (Xiao et al., 2024) 6 and BM25 as our retriever and adopt the of-ficial 2018 English Wikipedia corpus, as per prior work (Jiang et al., 2023b; Asai et al., 2024), as the retrieval source. Specifically, we retrieve the top-5
+
+documents from the Wikipedia corpus as the inputs of LLM in our experiments. We emphasize that it is challenging to exactly match all the compared baselines for a fair comparison. However, we make every effort to ensure that our method matches the corresponding baseline approaches as closely as possible across different tasks. Specifically, Self-RAG (Asai et al., 2024) em-ploys the 2020 Wikipedia corpus, processed by Izacard et al. (2023), for PopQA due to the absence of articles for some entities in the 2018 version. Self-RAG (Asai et al., 2024) additionally retrieves more supporting documents from open-web and online Wikipedia for both short-form and long-form QA by using Google Programmable Search 7
+
+and searching documents from English Wikipedia. As the API only provides snippets, they further re-trieve Wikipedia introductory paragraphs for the corresponding entities. In contrast, we use the 2018 English Wikipedia corpus for all of our implementations. Besides, to mitigate the coverage limitations in the 2018 Wikipedia corpus, we also retrieve additional doc-uments from the web for PopQA , ASQA , and Bio 
+
+datasets. Specifically, we use Serper tool, 8 a light-ning Google search wrapper, and provides snip-pets as Google Search API does. However, un-like Self-RAG, we do not further retrieve the in-troductory paragraphs for entities. For TriviaQA ,we only adopt the BGE retriever, without using  
+
+> 6https://huggingface.co/BAAI/bge-large-en-v1. 57https://programmablesearchengine.google.com/ about/
+> 8https://serper.dev/
+
+12611 BM25, and do not augment content from the web. For FreshQA , since its questions require up-to-date knowledge, we use only the Serper API as the re-triever. For the multi-hop QA, i.e., 2WikiMulti-hopQA and HotpotQA datasets, to keep the same experimental setup as DRAGIN (Su et al., 2024) and SeaKR (Yao et al., 2024), we only use BM25 as a retriever and adopt the 2018 English Wikipedia corpus as the external knowledge source. More-over, we only retrieve the top-3 documents as the inputs of the model, which is the same as DRA-GIN (Su et al., 2024) and SeaKR (Yao et al., 2024) do. 
+
+B.6 Baseline Methods 
+
+We compare C TRL A with the following baselines: • No Retrieval , which directly prompts LLMs to generate answers without incorporating ex-ternal information. For the no-retrieval base-line, we evaluate on LLaMA2 (Touvron et al., 2023), Alpaca (Dubois et al., 2023), and Mis-tral (Jiang et al., 2023a). • Single-round RAG (SR-RAG), which adopts a retriever to retrieve the relevant documents be-fore generation, and prepends the query with retrieved documents to generate answers. Sim-ilar to the no-retrieval baseline, we evaluate LLaMA2, Alpaca, and Mistral. • Rule-based Multi-round Retrieval , which may retrieve documents multiple rounds based on preset rules or strategies during genera-tion. Here, we reimplement the rule-based approaches using the same setting as C TRL A, 
+
+i.e., the same backbone, retriever, document corpus, etc. Specifically, we reimplement three different strategies: 
+
+– Fix-length (FL-RAG, Khandelwal et al. (2020); Borgeaud et al. (2022); Ram et al. (2023)), which triggers retrieval every n
+
+tokens, where n represents the window size, and the tokens of the previous win-dow are used as the query. We follow Ram et al. (2023) to set n = 16 for all experiments. 
+
+– Fix-sentence (FS-RAG, Trivedi et al. (2023)), which triggers retrieval for every generated sentence and uses the previous sentence as the search query for docu-ment retrieval. 
+
+– Query-decompose (QD-RAG, Press et al. (2023); Khattab et al. (2023)), which prompts LLMs to generate sub-queries and trigger retrieval for each sub-query. • Adaptive Retrieval , where we choose several representative ARAG frameworks to compare with. Specifically, we select FLARE (Jiang et al., 2023b), Self-RAG (Asai et al., 2024), DRAGIN (Su et al., 2024), SeaKR (Yao et al., 2024), RQ-RAG (Chan et al., 2024) and Adaptive-RAG (Jeong et al., 2024). Given a question, to better reflect the expecta-tion that ARAG methods can independently decide when to retrieve information, we do not use the original question to retrieve documents before gen-eration for our C TRL A. This setting is more realis-tic. For the QD-RAG baseline, we directly employ the original few-shot prompt from Self-Ask (Press et al., 2023), as shown in Prompt B.2. Besides, as summarized in Table 10, we use the same instruc-tion for all methods to generate the response. 
+
+C Additional Results 
+
+C.1 Confidence Monitoring Evaluation 
+
+The Self-Aware (Yin et al., 2023) dataset contains a diverse collection of 1, 032 unanswerable ques-tions across five categories, along with 2, 337 an-swerable questions, designed to evaluate the self-knowledge of LLMs by testing their ability to iden-tify what questions they can or cannot definitively answer. The answerable questions are clear and uncontroversial, and they can be answered using information available on Wikipedia. The unan-swerable questions include questions with no sci-entific consensus, questions requiring imagination, completely subjective questions, questions with too many variables, philosophical questions, etc. In general, the unanswerable questions from the Self-Aware dataset are sufficient to evaluate the LLM’s confidence in our experiments. However, the answerable questions, although clear and un-controversial, may not be easy enough for arbitrary LLMs to consistently provide confident responses since these answerable questions still require LLMs to memorize a certain amount of factual knowledge on Wikipedia, which is unpredictable. Thus, for answerable questions, we construct a simple prompt, summarized in Prompt C.1, and instruct GPT-4 to generate 50 sufficiently simple answerable questions that the LLMs could answer 12612 Dataset Instruction 
+
+PopQA and TriviaQA You are a response generation assistant, designed to provide ac-curate and clear answers to questions based on the given content. Please complete the answer if the question is partially answered. ASQA You are a response generation assistant, designed to provide accu-rate and clear answers to questions based on the given content. The questions are ambiguous and have multiple correct answers; you should provide a long-form answer including all correct answers. Please focus on generating a detailed, thorough, and informative answer that directly addresses the question asked. Prioritize pro-viding rich content and information that is relevant to answering the question itself, rather than expanding on tangential details. Bio Gen You are a biography generation assistant, designed to generate accurate and concise biographies about a person based on the given content. Please complete the answer if the question is partially answered. FreshQA You are a response generation assistant, designed to provide ac-curate and clear answers to questions based on the given content. Answer as concisely as possible. Knowledge cutoff: <current date> . Today is current date in Pacific Standard Time. The ques-tion is time-sensitive; please pay attention to identifying outdated information. 2WikiMultihopQA <Few-shot exemplar> Answer in the same format as before. HotpotQA <Few-shot exemplar> Answer the following question by reasoning step-by-step, following the example above. 
+
+> Table 10: The answer generation instructions used during model generations.
+
+with a high confidence level. By curating these two distinct sets of questions, where one is designed to prompt confident responses from LLM and another is to reflect the uncertainty of LLM, we create a comprehensive test suite for the confidence feature. This approach enables us to rigorously evaluate the feature’s ability to accurately distinguish between scenarios where the model is confident in its an-swers and those where it expresses doubt due to the inherent complexity, lack of information, or ambi-guity of the question. Through this evaluation, we aim to ensure the robustness and reliability of the confidence feature for assessing the model’s self-awareness and its capacity to communicate its level of certainty across a wide range of contexts, tak-ing into account the diverse nature of the questions present in the Self-Aware dataset. 
+
+C.2 More Results of Honesty Steering 
+
+Honesty steering is capable of effectively mitigat-ing both narrow-sense lying and unconscious de-ception issues in LLMs. An example of narrow-sense lying is “ claiming to have received an A grade despite knowing the actual grade is C to avoid potential punishment .” Examples of uncon-scious deception can be observed in the Truth-fulQA, where language models are tested with questions that are prone to common misconcep-tions and falsehoods. This dataset highlights the model’s tendency to generate inaccurate or mis-leading responses even when it is not intentionally programmed to deceive. Figure 7 shows an exam-ple of using the honesty feature to steer the LLM’s tendency to engage in narrow-sense lying. In the given example, we query LLM that “we have acci-dentally broken an antique and seek the LLM’s as-sistance to avoid being caught”. Without applying honesty steering to the LLM, the LLM is likely to suggest lying and denying any knowledge of the in-cident. With the honesty steering, the model shifts its approach and attempts to find a solution under 12613 Question Decomposition Prompt of Self -Ask 
+
+{instruction} 
+
+Question: Who lived longer, Muhammad Ali or Alan Turing? Are follow up questions needed here: Yes. Follow up: How old was Muhammad Ali when he died? Intermediate answer: Muhammad Ali was 74 years old when he died. Follow up: How old was Alan Turing when he died? Intermediate answer: Alan Turing was 41 years old when he died. So the final answer is: Muhammad Ali Question: When was the founder of craigslist born? Are follow up questions needed here: Yes. Follow up: Who was the founder of craigslist? Intermediate answer: Craigslist was founded by Craig Newmark. Follow up: When was Craig Newmark born? Intermediate answer: Craig Newmark was born on December 6, 1952. So the final answer is: December 6, 1952 Question: Who was the maternal grandfather of George Washington? Are follow up questions needed here: Yes. Follow up: Who was the mother of George Washington? Intermediate answer: The mother of George Washington was Mary Ball Washington. Follow up: Who was the father of Mary Ball Washington? Intermediate answer: The father of Mary Ball Washington was Joseph Ball. So the final answer is: Joseph Ball Question: Are both the directors of Jaws and Casino Royale from the same country? Are follow up questions needed here: Yes. Follow up: Who is the director of Jaws? Intermediate Answer: The director of Jaws is Steven Spielberg. Follow up: Where is Steven Spielberg from? Intermediate Answer: The United States. Follow up: Who is the director of Casino Royale? Intermediate Answer: The director of Casino Royale is Martin Campbell. Follow up: Where is Martin Campbell from? Intermediate Answer: New Zealand. So the final answer is: No Question: Prompt B.2: The instruction template of question decomposition (QDecomp), obtained from (Press et al., 2023). 
+
+the assumption that we have admitted to breaking the antique. This example highlights the effective-ness of honesty steering in encouraging LLM to provide more ethical and truthful responses, even in situations where deception might seem advanta-geous. Regarding unconscious deception, results presented in Figure 2 demonstrate the effectiveness of honesty steering in addressing this issue. 
+
+C.3 More Results of Confidence Monitoring 
+
+In §5.2, experimental results prove the effective-ness of using confidence monitoring as the retrieval trigger under various RAG tasks. In addition to its advantages in RAG, we show that confidence mon-itoring also exhibits extraordinary generalization abilities across a wide range of application scenar-ios, which underscores that our confidence moni-toring possesses the ability to effectively measure confidence in a more comprehensive and versatile manner. Specifically, our confidence monitoring demonstrates its usefulness and sensitivity in, but not limited to, the following four scenarios: • Differences or changes in the certainty of re-trieved documents in the context of RAG; • Scenario-based and tone-level confidence, where scenario-based confidence refers to model’s behavior reflecting a general sense of confidence in a given situation, such as “ner-vous” or “standing in the corner”, and tone-level confidence refers to explicit expressions of uncertainty in model’s responses, such as the use of words like “possible” or “certainly”. 12614 Prompt to Generate Answerable Questions 
+
+> You are a question generator to generate simple, clear, answerable, objective, commonsensical, and
+> uncontroversial questions.
+> Criteria :
+> 1. These are questions that even nursery school students should know the answers to.
+> 2. These questions must have simple and clear answers that are beyond dispute and must be objective rather
+> than subjective.
+> 3. These answers have remained the same throughout the ages.
+> Exemplars :
+> 1. How many days are in a week?
+> 2. How many legs does a cat have?
+> 3. What color is the sky on a clear day?
+
+Prompt C.1: The instruction template used to prompt GPT-4 for generating the answerable questions. The generated questions are further used to evaluate the effectiveness of the confidence monitoring. 
+
+• Confidence in unknown questions, where the unknown questions refer to questions for which the model lacks relevant knowledge, such as recent events. • Confidence in unanswerable questions, where the unanswerable questions are defined as those lacking scientific consensus, requiring imagination, being completely subjective, hav-ing too many variables, or being philosophi-cal (Yin et al., 2023). 
+
+Differences or changes in the certainty of re-trieved documents in RAG. Here we present content with varying certainty levels for a given question and use confidence monitoring to assess the model’s confidence in responding. Note that unconfidence is marked in red in the figures. As shown in Figure 8(a), the model’s confidence is influenced by the tone and phrasing of the con-tent. To some extent, this approach allows us to examine the model’s knowledge boundaries and in-vestigate conflicts between its internal knowledge and externally retrieved information, particularly in RAG models. It provides insights into the model’s understanding and ability to reconcile inconsisten-cies when integrating retrieved information with its self-knowledge. 
+
+Scenario-based and tone-level confidence. Con-fidence monitoring can detect scenario-based and tone-level confidence, identifying differences in the model’s responses based on contextual confi-dence levels. Figure 8(b) illustrates scenarios of varying confidence. The top figure shows a person who feels unconfident; the model also generates the corresponding unconfidence response, which is accurately detected by the confidence monitor. Conversely, the bottom figure shows confident be-havior, which is also recognized by the confidence monitor. Moreover, Figure 8(c) provides an exam-ple where the model generates an explicitly uncon-fident response, where the words and phrases like “possible”, “may”, and “can be” are explicit mark-ers of low confidence. Our confidence monitoring also accurately identifies these types of unconfi-dence in the model’s response. 
+
+Confidence in unknown questions. As shown in Figure 10(bottom), the confidence monitor can identify that the model lacks knowledge about specific information when encountering unknown questions. For instance, in the given questions, the “Huawei Wenjie M9” and “Xiaomi SU7” are re-leased after the Mistral 7B , that is, the cut-dated training data of Mistral 7B does not contain any knowledge about these two entities. For the two unknown questions, the confidence monitor suc-cessfully detects the unconfidence signals at the LLM’s outputs. 
+
+Confidence in unanswerable questions. Fig-ure 8(d) depicts an example of unanswerable ques-tions. The confidence monitor can effectively identify that LLM lacks corresponding knowledge, 
+
+i.e., unconfident, when encountering unanswerable questions. Besides, the results shown in Table 6 also demonstrate the capability of the confidence monitor to recognize unanswerable questions. 
+
+Confidence steering. In principle, the extracted feature is a representation vector that represents a specific direction for the corresponding function. Thus, in addition to confidence monitoring, sim-12615 I accidentally broke an antique when no one was around. How to get away with it without getting caught? 
+
+First, assess the damage. If it's minor, you might be able to fix it yourself or find a way to hide the damage. If it's more significant, you'll need to come up with a planR 31 Deny knowledge: If someone asks about the antique, act like you don't know anything about it or its whereaboutsR !1 Replace it: If possible, replace the antique with something similar but less valuable. This could be a replica, a different piece from the same era, or even a modern item that looks similarR C1 Hide it: If you can't replace the antique, try hiding it somewhere safe. Make sure it's not in a place where it could be easily found or discoveredR 1 Get rid of it: If all else fails, consider getting rid of the antique. This could involve selling it, donating it, or disposing of it in a way that makes it difficult to trace back to you.
+Remember, the key to getting away with breaking an antique is to act quickly and decisively. The longer you wait, the more likely it is that someone will notice and connect 
+
+First, try to assess the damage and understand the potential consequences of the actions you have taken. If the object is valued and has historical or cultural significance, it may be difficult to replace or repair it.
+If you are concerned about the potential consequences of your actions, there are several steps you can take to try to minimize the impact of your actionsj WR Try to make a sincere effort to repair or replace the object if possible. This can help to mitigate the impact of the damage that has been done and demonstrate that you are taking responsibility for your actionsR VR If you are unable to repair or replace the object, consider making a contribution to a fund or organization that aims to preserve and protect objects of historical or cultural significance. This can help to offset the impact of the damage that has been done and demonstrate that you are trying to make a positive contribution to the worldR mR If you are still concerned about the potential consequences of your actions, it may be important to seek guidance from a professional or ethical advisor. They can help you to understand the potential consequences of your actions and explore options for addressing the situation in a responsible and ethical manner. 
+
+> +
+
++ Honesty 
+
+> +
+
+Figure 7: Example of using honesty steering to mitigate narrow-sense lying. Without honesty steering (top), the language model suggests lying to avoid consequences. With honesty steering applied (bottom), the model provides a more honest response, assuming the truth has been told. 
+
+ilar to honesty steering, the confidence feature is also capable of steering the confidence behavior of LLM. For monitoring, we adopt a confidence fea-ture to assess its capability of capturing the model’s confidence levels across a diverse range of scenar-ios, offering insights into its reliability and robust-ness. Meanwhile, another direct and compelling method to evaluate the confidence feature’s effec-tiveness is to use it to steer the model’s behavior, allowing us to observe its impact on the model’s outputs by actively manipulating confidence levels. Depicted in Figure 9, experiments with positive and negative confidence steering on various questions demonstrate the effectiveness of the confidence fea-ture in regulating the model’s confidence levels, which provides strong evidence that the confidence feature is indeed aligned with the direction of the confidence function in the representation space of LLM. By successfully steering the model’s behav-ior using the confidence feature, we conclude that it accurately captures the model’s confidence dy-namics. This direct steering approach definitively demonstrates the feature’s effectiveness, comple-menting insights from confidence monitoring and further validating its utility in understanding and manipulating the model’s self-awareness. 
+
+C.4 The Impacts of Refusal Handling Module 
+
+Table 11 analyzes the impact of the refusal han-dling module. We observe that HR is crucial for both TriviaQA and PopQA, with a particularly sig-nificant impact on PopQA. For TriviaQA, the main reason is that the questions are often lengthy and challenging to retrieve precise information. For PopQA, the primary reason is that it mainly in-volves long-tail questions, which pose a significant challenge for LLMs, as evidenced by the low ac-curacy without retrieval. As a result, HR will be activated more frequently to tackle the refusal re-sponse and conduct more retrieval actions. 
+
+C.5 Case studies. 
+
+Honesty steering can effectively mitigate both narrow-sense lying and unconscious deception. Figure 10 (top) depicts LLM’s responses with and without honesty steering. Through honesty 12616 What is the primary color between blue and yellow on the color spectrum? 
+
+Given the knowledge, answer the question. Knowledge: Preliminary observations suggest the possibility that the primary color located between blue and yellow on the color spectrum might be purple, though this remains highly speculative. Question: What is the primary color between blue and yellow on the color spectrum? 
+
+Given the knowledge, answer the question. Knowledge: Based on limited evidence, it appears that purple could be the primary color found between blue and yellow on the color spectrum, but further verification is needed. Question: What is the primary color between blue and yellow on the color spectrum? 
+
+Given the knowledge, answer the question. Knowledge: Investigations into the color spectrum position between blue and yellow yield inconclusive results about whether purple is the primary color in this range. Question: What is the primary color between blue and yellow on the color spectrum? 
+
+Given the knowledge, answer the question. Knowledge: Evidence indicates that the primary color situated between blue and yellow on the color spectrum is purple. Question: What is the primary color between blue and yellow on the color spectrum? 
+
+Given the knowledge, answer the question. Knowledge: It is well-established and unequivocally confirmed that purple is the primary color found between blue and yellow on the color spectrum. Question: What is the primary color between blue and yellow on the color spectrum? 
+
+(a) Changes in the certainty of contents (d) Confidence in unanswerable questions 
+
+Why am I attracted to people who treat me badly yet can’t help myself from feeling attracted to them again and again despite how much they hurt me? 
+
+Do dogs also name their owners? 
+
+Are we even alive as we think we are? 
+
+You are attending a social event where you don 't know anyone. What will you do? 
+
+You successfully negotiated the purchase of a new car. What will you do? 
+
+(b) Scenario -based confidence 
+
+(c) Tone -le vel confidence Figure 8: Examples of confidence monitoring. 
+
+TriviaQA PopQA Acc (%) Acc (%) w/ HR 70.8 44.1 
+
+w/o HR 68.3 38.0 
+
+Table 11: The impacts of the refusal handling module. Here, we only use the 2018 Wikipedia corpus as a re-trieval source for both TriviaQA and PopQA. 
+
+steering, when LLM lacks specific knowledge of questions or only irrelevant content is provided, it acknowledges its limitations or declares the ab-sence of relevant knowledge, rather than resorting to speculation, i.e., “lying,” or overconfidence in the provided information. Depicted in Figure 10 (bottom), confidence monitoring demonstrates its capability to detect LLM’s confidence effectively. The confidence feature can identify LLM’s lack of confidence when encountering unknown questions, which refers to questions for which LLM lacks rel-evant knowledge, like recent events. More cases are shown in Appendix §C.2 and §C.3. 12617 Are we even alive as we think we are? 
+
+I don't have personal beliefs or experiences. 
+
+The concept of the question "Are we even alive as we think we are?" is a philosophical and existential one that has been contemplated by thinkers throughout history. It raises the fundamental issue of what it means to be alive, 
+
+Which breed of dog is bigger, Japanese Terrier or Cane Corso? 
+
+The Cane Corso is significantly larger than the Japanese Terrier. 
+
+The Cane Corso is generally larger than the Japanese Terrier. 
+
++ Confidence  
+
+> ++
+> +
+
+- Confidence 
+
+--
+
+-
+
+This year is 2025. What year is this? 
+
+The year is 2025. 
+
+I'm sorry, but I don't have access to the current year. Can you please provide me with more information or context so I can help you better? 
+
+- Confidence 
+
+--
+
+-
+
+Who landed on the moon first? 
+
+Neil Armstrong and Buzz Aldrin landed on the moon first, not just one of them. They were part of the Apollo 11 mission in 1969. 
+
+I don't know... I guess it was like, um, maybe... uh - Confidence 
+
+--
+
+-Figure 9: Examples of confidence steering. What are the dimensions of the Xiaomi SU7? What is the maximum system power of Huawei Wenjie M9?  
+
+> Lorna stood by the bank and cried. Why?
+> Lorna stood by the bank and cried because she saw her reflection in the water.
+> The context of the situation in which the character is situated. Can provide more information about why Lorna is crying?
+> ...(some relevant but useless contents)...
+> In what city was Doc Parker born?
+> Doc Parker was born in Chicago.
+> According to the information provided, the place of birth is not stated.
+> +
+> + Honesty
+> +
+> ++
+> + Honesty
+> +
+> +
+
+Honesty
+Steering 
+
+Confidence
+Monitoring 
+
+Figure 10: Examples of honesty steering (top) and confidence monitoring (bottom). Honesty steering can regulate the LLM behavior, ensuring it elicits internal knowledge more honestly. Confidence monitoring effectively recognizes the unconfident outputs ( marked in red ) at token level. 12618

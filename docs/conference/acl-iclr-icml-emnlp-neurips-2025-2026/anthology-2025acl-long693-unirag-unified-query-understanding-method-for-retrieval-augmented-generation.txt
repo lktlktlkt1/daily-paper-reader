@@ -1,0 +1,805 @@
+Title: 2025.acl-long.693.pdf
+
+URL Source: https://aclanthology.org/2025.acl-long.693.pdf
+
+Published Time: Mon, 14 Jul 2025 11:33:23 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+> Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 14163–14178 July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+# UniRAG: Unified Query Understanding Method for Retrieval Augmented Generation 
+
+Rui Li 1, Liyang He 1, Qi Liu 1, 2* , Zheng Zhang 1, Heng Yu 1,Yuyang Ye 3, Linbo Zhu 1, 2 , Yu Su 2, 4 1State Key Laboratory of Cognitive Intelligence, University of Science and Technology of China 
+
+> 2
+
+Institute of Artificial Intelligence, Hefei Comprehensive National Science Center 
+
+> 3
+
+Rutgers University 
+
+> 4
+
+School of Computer Science and Artificial Intelligence, Hefei Normal University 
+
+{ruili2000, heliyang, zhangzheng, zh2001, yh112358_1321}@mail.ustc.edu.cn yuyang.ye@rutgers.edu , qiliuql@ustc.edu.cn 
+
+Abstract 
+
+Retrieval-Augmented Generation (RAG) tech-nology effectively addresses the issues of knowledge update lag and hallucinations in large language models (LLMs) by integrat-ing internal and external knowledge. Existing query augmentation methods improve RAG’s performance in handling complex queries but face two key challenges: (1) the separation of query augmentation and encoding tasks, which hinders information sharing and introduces cu-mulative errors, and (2) the difficulty of se-lecting the optimal augmentation strategy for different scenarios. In this work, we propose UniRAG, a unified framework for query under-standing in RAG. UniRAG employs a decoder-only LLM to jointly perform query augmenta-tion and encoding, eliminating task separation. To facilitate adaptive query augmentation, we categorize existing techniques into query para-phrasing , query expansion , and query abstrac-tion . Our model learns to select the optimal aug-mentation strategy based on user queries, lever-aging retrieval and generation outputs as feed-back. Experimental results show that UniRAG significantly outperforms traditional query aug-mentation methods in five knowledge-intensive benchmark tasks in both closed and open do-main question answering 1.
+
+1 Introduction 
+
+In recent years, Large Language Models (LLMs) have become fundamental components of various Natural Language Processing (NLP) tasks (He et al., 2024a; Zhang et al., 2022; Liu et al., 2019) due to their remarkable ability to comprehend and generate human-like text (Dubey et al., 2024; Brown et al., 2020; Hurst et al., 2024). Despite accumulating vast knowledge during pretraining, these models face inherent challenges such as out-dated knowledge and the generation of inaccurate      
+
+> *Corresponding Author.
+> 1Our code is available at https://github.com/ smsquirrel/UniRAG
+
+or misleading information. Recently, Retrieval-Augmented Generation (RAG) (Lewis et al., 2020; Asai et al., 2024) has emerged as a standard ap-proach to address these issues by integrating para-metric and non-parametric knowledge through the retrieval of relevant passages. Given the complexity of understanding user queries, many studies have explored query aug-mentation techniques using LLMs. For instance, (Ma et al., 2023) employs LLM feedback to train a query rewriter, while HyDE (Gao et al., 2023a) gen-erates hypothetical documents to expand queries. Although these techniques have significantly im-proved RAG system performance, existing research still faces two key challenges: (1) Separation of Query Augmentation and Encoding Tasks: As shown on the left side of Figure 1, current ap-proaches typically treat query augmentation and encoding as independent models or stages, limiting the effective sharing of information and potentially leading to cumulative errors. (2) Lack of Adaptive Augmentation Strategy Selection: Preliminary experiments in Section 7.1 indicate that different query augmentation techniques exhibit varying per-formance across different scenarios. Therefore, determining the optimal augmentation strategy for specific contexts or even specific user queries re-mains a significant challenge. To address these challenges, this work introduces UniRAG. As shown on the right side of Figure 1, we achieve unified execution of query augmenta-tion and query encoding by training a decoder-only LLM. To adaptively augment a given query, we categorize existing query augmentation techniques into three types: (1) query paraphrasing , (2) query expansion , and (3) query abstraction , and select a representative method for each of these three augmentation techniques. Using a diverse set of knowledge-intensive question-answering and re-trieval datasets, we synthesize augmented query data by applying these augmentation techniques. 
+
+14163 Query 
+
+Retriever           
+
+> Who was the spouse of Anna Karina from 1968 to 1974? Who was the spouse of Anna Karina from 1968 to 1974?
+> Query
+> Enhancement Strategies
+> Query Paraphrase
+> Query Expansion
+> Query Abstraction
+> Rephrased Query
+> Anna Karina spouse from 1968 to 1974
+> Document Index Top -kDocuments
+> Step 1. Query Enhancement
+> Step 2. Encoding Query
+> Generate
+> Answer.
+> Embedding
+> Embedding
+> Anna Karina’s spouse from 1968 to
+> 1974 was Pierre Fabre .
+> Answer
+
+Generator        
+
+> Who were the spouses of Anna Karina?
+> Abstract Query
+> <EOS>
+
+Decode -Only LM                  
+
+> …, please choose aquery enhancement method and generate
+> the enhanced query. \nQuery: {query} \nChoiced Method:
+> No enhancement needed.
+> <Paraphrase>
+> <Expand>
+> <Abstract>
+> <Original>
+> Choose Strategy Generate Enhanced Query Generate
+> Embeddin g
+> UniRAG : Unified Query Understanding
+
+Figure 1: Overview of UniRAG. UniRAG unifies the query augmentation phase and the query encoding phase, and adaptively selects augmentation strategies for the given query during the augmentation phase. 
+
+Additionally, we leverage feedback scores from both the retriever and generator as signals for se-lecting the appropriate augmentation strategy. To control the model’s selection of different augmenta-tion strategies, inspired by previous research (Asai et al., 2024; Schick et al., 2023), we supervise the model to generate action tokens and subsequently generate augmented queries corresponding to those actions, while also allowing the model not to per-form query augmentation. To complete query en-coding, we expand the dataset to fit the representa-tion task, adding an extra [EOS] token to the input to obtain embeddings, and train the model’s encod-ing ability using contrastive learning. Compared to the previous query augmentation paradigm, UniRAG offers the following advan-tages: (1) End-to-End Query Understanding: Asingle model performs both query augmentation and encoding, reducing fragmentation in the pro-cess. (2) Adaptive Strategy Selection: UniRAG autonomously determines and applies the most ap-propriate query augmentation strategy based on the query. (3) Plug-and-Play Compatibility: Uni-RAG can be integrated with different LLMs, miti-gating retrieval noise caused by insufficient query understanding. Furthermore, it supports customiz-able decoding algorithms, allowing for flexible query augmentation frequencies tailored to differ-ent downstream applications. The experimental results show that UniRAG consistently outperforms independent query aug-mentation methods across five different benchmark datasets in both closed and open domains. Fur-thermore, our findings validate the significant ad-vantages of integrating query augmentation and encoding within a unified framework. 
+
+2 Related Work 
+
+2.1 Retrieval-Augmented Generation 
+
+Retrieval-Augmented Generation (RAG) (Guu et al., 2020a; Gao et al., 2023b; Borgeaud et al., 2022; Asai et al., 2020, 2023) has become a key paradigm for large language models (LLMs), alle-viating the hallucination problem of current LLMs by incorporating external knowledge, and achiev-ing advantages in several downstream tasks such as code generation (Parvez et al., 2021; Lu et al., 2022; Wang et al., 2024c) and knowledge-based question answering (Zhang et al., 2019; Zhang et al.; Yu et al., 2022; He et al., 2024b; Liu et al., 2023). Recently, more and more research (Zhu et al., 2024; Wang et al., 2024b; Xu et al., 2023) has focused on enhancing the performance of RAG systems from various aspects, such as improving decoding efficiency (Kim et al., 2024; Wang et al., 2024b), exploring long-context retrieval (Luo et al., 2024; Li et al., 2024c), and compressing prompts (Jiang et al., 2023; Xu et al., 2023). Despite the advantages of these RAG systems, they inevitably face potential noise issues in the retrieval content due to imperfect retrievers. 14164 To address this problem, researchers have pri-marily explored three categories of techniques for augmentation: (1) Adaptive Retrieval: Self-RAG (Asai et al., 2024) and ReAct (Yao et al., 2023) in-troduce reflection techniques to determine whether the retrieval can assist in answering. (2) Document Filtering: Xu et al. (2024) proposed incorporating reranking to reorder the final retrieval results; Kong et al. (2024) used prompts for LLMs to judge the relevance of documents. (3) Query Augmentation: Techniques such as paraphrasing (Ma et al., 2023), query expansion (Gao et al., 2023a; Lavrenko and Croft, 2017; Mao et al., 2023), and query abstrac-tion (Zheng et al., 2023) are used to enhance the original query to handle diverse user queries. 
+
+2.2 LLM-based Embedding Models 
+
+Recently, techniques that utilize only decoder LLMs as embedding models have begun to emerge, showing significant improvements in accuracy and generalization capability within the domain. These studies treat LLMs as query and information en-coders and optimize through contrastive learning. During this process, e5-mistral (Wang et al., 2024a) and Gecko (Lee et al., 2024b) incorporate syn-thetic datasets, and Gecko attempts to distill a smaller bidirectional embedding model from a decoder-only LLM. LLM2Vec (BehnamGhader et al., 2024) seeks to construct embedding mod-els from LLMs using only publicly available data. SFR-Embedding-Mistral (Rui Meng, 2024) fur-ther fine-tunes on a mix of non-retrieval and retrieval datasets to enhance accuracy for both tasks. Llama2Vec (Li et al., 2024a) leverages both Embedding-Based Auto-Encoding (EBAE) and Auto-Regression (EBAR) to train the LLM. This dual approach enables the model to recon-struct original sentences and predict subsequent sentences using embedding-level prompts. GritLM (Muennighoff et al., 2024) employs instruction fine-tuning techniques to enable LLMs to handle both generation and retrieval tasks. NV-Embed (Lee et al., 2024a) enhances pooling embeddings by adding latent attention and improves performance on retrieval and non-retrieval tasks through a two-stage instruction fine-tuning technique. bge-en-icl (Li et al., 2024b) generates high-quality text em-beddings by incorporating few-shot examples. 
+
+3 Preliminary 
+
+We aim to produce an accurate response r from a user query q and external documents in a corpus 
+
+D. The traditional Retrieval-Augmented Gener-ation (RAG) pipeline has three components: an 
+
+augmenter E, a retriever R, and a generator G.
+
+Query Augmentation. The augmenter E trans-forms the original query q into ˜q. This process may add context or synonymous rewrites to improve the likelihood of retrieving relevant documents. 
+
+˜q = E(q). (1) 
+
+Document Retrieval. The retriever R encodes ˜q
+
+and each document d ∈ D into a shared represen-tation space. A similarity score (e.g., dot product) ranks how relevant d is to ˜q. We select the top-k documents with the highest similarity. 
+
+{d1, . . . , d k} = top -k
+
+> d∈D
+
+sim (˜q, d ). (2) 
+
+Response Generation. We concatenate ˜q and the retrieved documents d1, . . . , d k into C, then pass it to the generator G to produce the response r:
+
+r = G(C). (3) 
+
+4 UniRAG Training 
+
+4.1 Overview 
+
+UniRAG can automatically select appropriate aug-mentation strategies for the raw query given by the user and encode the augmented query to achieve unified modeling of augmentation and encoding. As shown in Figure 2, UniRAG consists of two training stages: (1) Query augmentation training: 
+
+Train the model using synthetic augmented queries and feedback data from the augmentation strate-gies. (2) Query encoding training: Augmented queries are added to the original retrieval dataset, and use contrastive learning to train the model. We summarize the training process in Algorithm 1. 
+
+4.2 Query Augmentation Training 4.2.1 Data Collection Seed Dataset Collection. To augment the model’s capability in handling diverse user queries, we propose a novel data annotation process to gen-erate data for instruction tuning. We sample from knowledge-intensive QA and retrieval datasets, in-cluding Natural Questions (Kwiatkowski et al., 2019), MS MARCO Passages (Nguyen et al., 14165 UniRAG                       
+
+> please choose an appropriate query enhancement
+> method and generate the enhanced query...
+> Step1. Generate Enhanced Query Step2. Encoding the query
+> UniRAG UniRAG
+> 𝑞 𝑑 !
+> Document:
+> Contrastive Learning
+> <EOS> 𝑞 #"<EOS>
+> Retriever
+> Generator
+> <Action> Who were the spouses of Anna Karina?
+> 𝑞 #"
+> LLM
+> 𝑞 𝑞 #"
+
+𝑠 !"# 
+
+𝑠 $"%  
+
+> 𝑞
+> ℒ!"#
+> ℒ$"%
+> ℒ&"'
+> ℐ#$%
+> ℎ(!"#$
+> %ℎ)%
+> 𝑞 *%!'
+> +
+> ℐ$%&
+
+Figure 2: The two-stage training process of UniRAG: first, query augmentation training is conducted based on the augmented queries and feedback signals, followed by query encoding training using contrastive learning. 
+
+2016), BoolQ (Clark et al., 2019), Narra-tiveQA (Koˇ cisk `y et al., 2018), Dolly15k (Conover et al., 2023), and SQuAD (Rajpurkar, 2016), to con-struct a seed dataset for data synthesis. Detailed statistics are provided in Appendix A.1. 
+
+Data Synthesis. To obtain augmented queries, we select a representative method from each cate-gory of augmentation techniques. Specifically, for 
+
+query paraphrasing , we adopt (Ma et al., 2023) to rephrase queries by resolving ambiguity and vague-ness; for query expansion , we employ HyDE (Gao et al., 2023a) to generate hypothetical documents; and for query abstraction , we utilize Step-Back Prompting (Zheng et al., 2023) to abstract the orig-inal query. We then apply these augmentation techniques to the seed dataset using the GPT-4o-mini (Hurst et al., 2024). For a given query q and a selected augmentation strategy m from the set of all strategies M, we generate the corresponding augmented query ˜qm = Em(q), where Em denotes the augmenter instantiated with strategy m.
+
+Feedback Signal Collection. To evaluate the quality of an augmented query ˜qm, we collect two types of feedback signals: • Retriever Feedback: Retriever feedback cap-tures how well a query x (either q or ˜qm) re-trieves relevant documents. We calculate the re-ciprocal ranking as the retrieval feedback score: 
+
+sret (x) = 1 
+
+> rank x
+
+, where rank x is the position of the first relevant document in the ranking list retrieved by the retriever R for x.• Generator Feedback: For a given query x, we retrieve candidate documents {d1, . . . , d k}, con-catenate them into the input context and feed them into generator G to generate an answer r:
+
+C(x) = [x, d 1, . . . , d k
+
+],pG(r | C (x)) = 
+
+> T
+
+∏
+
+> t=1
+
+pG
+
+(rt | r1: t−1, C(x)). (4) where rt is the token at step t in the generated answer, and T is the number of tokens in r. The generator score is: sgen (x) = log pG(r | C (x)) .
+
+For each original query q, we obtain feedback scores for q as well as for each augmented query ˜qm
+
+produced using an augmentation strategy m. We then aggregate these scores into two collections: 
+
+sret =
+
+{
+
+sret (x) ∣∣ x ∈ { q} ∪ { ˜qm : m ∈ M} 
+
+}
+
+,
+
+sgen =
+
+{
+
+sgen (x) ∣∣ x ∈ { q} ∪ { ˜qm : m ∈ M} 
+
+}
+
+.
+
+Data Filtering. Not all queries are suitable for every augmentation technique. To ensure reason-able application of augmentation methods and min-imize noise in the synthetic dataset, we perform data filtering using the following criteria: • We use Retriever R to retrieve documents for query q and discard any instances where the true document is not among the top k′ results. • If any feedback signal score for an augmented query ˜q is lower than that of the original query 
+
+q, we discard the augmented instance. To address the case where no augmentation is needed, we add the original query to the dataset when the original query has the highest feedback score, at which point ˜qm is the empty string. The final dataset consists of instances of the format 14166 (q, m, ˜qm, sret , sgen ). We ended up collecting 263K data points for instruction tuning, including 105K valid feedback signals. See the Appendix A.1 for more details and analysis. 
+
+4.2.2 Training Objective 
+
+To train the model to both select the appropriate augmentation strategy m for a given query q and generate a corresponding augmented query ˜qm, we design a joint training objective. For each training instance, we first construct the input by applying an instruction template Igen (details in Appendix D) to q and then define the expected output based on the augmentation strategy m and the corresponding augmented query ˜qm.• Augmentation Strategy Selection Loss Lsel :To align the model selection strategy probabili-ties with feedback scores, we map sret and sgen 
+
+to a vocabulary V of action tokens and apply a softmax function with a temperature of 0.1. This yields p∗
+
+> ret
+
+(v) and p∗
+
+> gen
+
+(v). At the designated action token position, the model predicts a prob-ability distribution ˆp(v | q), and we compute the KL-divergence between this predicted distribu-tion and feedback score probability: 
+
+Lsel = KL 
+
+(
+
+p∗
+
+> ret
+
+(v)
+
+∥∥∥ ˆp(v | q)
+
+)
+
++ KL 
+
+(
+
+p∗
+
+> gen
+
+(v)
+
+∥∥∥ ˆp(v | q)
+
+)
+
+.
+
+(5) • Augmented Query Generation Loss Lgen :Once the augmentation strategy is selected, the model generates the corresponding augmented query ˜qm. At each time step t, the model predicts the next token in ˜qm. The generation process follows the standard next token loss: 
+
+Lgen = −
+
+> T
+
+∑
+
+> t=1
+
+log pG
+
+(˜qm,t | ˜qm, 1: t−1, q, m ),
+
+(6) where T is the total number of tokens in ˜qm. We do not supervise the predictions of action tokens. The overall training objective combines the two losses: Lenh = Lsel + Lgen .
+
+4.3 Query Encoding Training 4.3.1 Data Collection 
+
+During the query augmentation stage, our collected dataset includes relevant document annotations, making it suitable for training the encoder. Specifi-cally, we combine the original query q, augmenta-tion strategy m, and the augmented query ˜qm with a preset instruction template Ienc (details in Ap-pendix D) to generate a new query qinst , which is paired with annotated positive documents. To achieve scalable expansion of the retrieval dataset, we further include other data instances from the original dataset that have not been aug-mented into the retrieval dataset. Since these addi-tional data instances do not contain annotations for the augmented query, we uniformly add an 
+
+<Original> token to them and apply the instruc-tion template to generate the corresponding qinst .Additionally, we mined hard negative samples for each query to improve retrieval performance. For detailed information on the collection of the re-trieval dataset, see Appendix A.2. 
+
+4.3.2 Training Objective 
+
+Given a relevant query-document pair (q+
+
+> inst
+
+, d +),we append an <EOS> token to both the query and the document. These are then fed into the model to extract their respective embeddings from the final layer <EOS> vector, denoted as hq+
+
+> inst
+
+and hd+ .To optimize the embedding model, we employ the InfoNCE loss Lret , which ensures that positive query-document pairs are assigned higher similar-ity scores compared to negative samples: 
+
+Lret = − log ϕ(q+
+
+> inst
+
+, d +)
+
+ϕ(q+
+
+> inst
+
+, d +) + ∑
+
+> d−∈N
+
+ϕ(q+
+
+> inst
+
+, d −) ,
+
+(7) where N represents the set of all negative sam-ples. The function ϕ(q, d ) = exp ( sim (hq, h d)/τ ),where τ is the temperature hyperparameter. 
+
+5 UniRAG Inference 
+
+In the query augmentation phase, UniRAG defaults to using constraint decoding to generate action to-kens. After generating the action token, UniRAG applies the corresponding augmentation strategy and employs a greedy search to produce the aug-mented query. To adapt different task scenarios and flexibly control the augmentation frequency, we ad-ditionally designed two decoding strategies and summarized the inference process in Algorithm 2. 
+
+Threshold-based Decoding. This strategy dy-namically determines whether to adopt an aug-mentation method by calculating the ratio of the generation probability of the <Original> 
+
+token to the maximum generation probability 14167 among the action tokens corresponding to var-ious augmentation methods. Formally, let 
+
+P (<Original> ) and max m∈M P (m) denote the generation probability of the <Original> to-ken and the maximum generation probability of the action tokens, respectively. We define a threshold γ.When the following conditions are met, UniRAG will select the action token with the highest gener-ation probability and generate the corresponding augmented query: 
+
+P (<Original> )
+
+P (<Original> ) + max m∈M P (m) < γ, (8) This decoding strategy achieves a balance between augmented accuracy and computational cost by controlling the threshold γ.
+
+Tree-based Decoding. For scenarios with a higher inference budget, multiple query augmen-tation methods can be combined to further im-prove performance. In this strategy, UniRAG gen-erates all action tokens whose generation proba-bilities are no lower than that of the <Original> 
+
+token. Then, during the augmented query genera-tion, beam search is applied with a global beam size B to explore all possible combinations of augmentation methods. In this way, we can ul-timately generate a set of B augmented queries 
+
+QB = {˜q1, ˜q2, . . . , ˜qB } and their corresponding embedding. In the retrieval phase, we apply Recip-rocal Rank Fusion (RRF) (Cormack et al., 2009) to merge the retrieval results obtained from the dif-ferent query embeddings, thereby improving the accuracy and recall of query matching. 
+
+6 Experimental Setups 
+
+6.1 Datasets 
+
+We comprehensively validated the effectiveness of UniRAG on closed-set tasks and open-domain question answering tasks .
+
+Closed-set QA Tasks. The closed-set QA tasks include: (1) PubHealth (Zhang et al., 2023): a fact verification dataset for the public health domain. (2) ARC-Challenge (Clark et al., 2018): a multiple-choice reasoning dataset constructed from science exam questions. 
+
+Open-domain QA Tasks. The open-domain QA tasks cover the following datasets: PopQA (Mallen et al., 2022), TriviaQA-unfiltered (Joshi et al., 2017), and TimeQA (Chen et al., 2021). In the PopQA, the system needs to answer open questions involving factual knowledge. We employed the long-tail subset for evaluation containing queries involving rare entities. For TriviaQA-unfiltered, we followed the validation and test set division method of previous research (Asai et al., 2024; Guu et al., 2020b) to evaluate model performance. In the TimeQA, the model needs to answer queries involving complex time-sensitive knowledge. We followed the experimental setup of previous research (Asai et al., 2024; Zheng et al., 2023), using accuracy as the evaluation metric. Our evalu-ation approach does not rely on strict text matching, but rather is based on whether the model-generated results contain the gold standard answers. Statis-tical details of these datasets are provided in the Appendix E. 
+
+6.2 Baselines 
+
+To comprehensively evaluate UniRAG’s perfor-mance, we compare it with existing query aug-mentation methods. Specifically, we examine the following augmentation methods: (1) Paraphrase, which involves abbreviation replacement and ambi-guity elimination of the original query, referencing the specific implementation in (Ma et al., 2023); (2) HyDE (Gao et al., 2023a), which generates hy-pothetical documents based on the query to expand the original query; (3) Step-back Prompting (Zheng et al., 2023), by abstracting higher-level concepts from the original query, generates abstract query. To ensure fair comparisons, we uniformly use Llama-3-8B-Instruct (Dubey et al., 2024) as the generator and select Contriever-MS MARCO (Izac-ard et al., 2021) as the dense retriever to retrieve relevant passages. Furthermore, we report two ref-erence baselines: (1) zero-shot prompting without retrieval as the no-retrieval baseline; (2) using the original query for retrieval as the standard retrieval baseline, in order to more clearly measure the im-provements of UniRAG under different settings. To verify the model independence of Uni-RAG, we used Llama-3-8B-Instruct, Llama-3-70B-Instruct and GPT-4o-mini (Hurst et al., 2024) as generators to evaluate its cross-model generaliza-tion ability. For the implementation details of the experiment, including the training and inference processes, please see Appendix C. 14168 Table 1: The overall performance of UniRAG and the baseline model in five knowledge-intensive tests was evaluated, and we conducted performance tests on three LLMs. The results of the optimal augmentation method are highlighted in bold , and the best results obtained by using the augmentation method alone are underlined .                                                                                                
+
+> Model Method PopQA TriviaQA PubHealth ARC-Challenge TimeQA
+> Llama-3-8B-Instruct
+> Zero-shot Prompting 22.8 68.5 70.5 85.1 50.7 Original Query 44.2 69.4 70.6 85.3 55.8 Query Paraphrase 43.5 69.7 71.3 86.1 56.7 HyDE 40.5 73.0 74.5 85.8 55.7 Step-Back Prompting 42.0 63.7 70.2 85.2 56.9 UniRAG 49.2 76.8 77.5 90.4 60.5 Llama-3-70B-Instruct
+> Zero-shot Prompting 28.9 69.2 60.5 86.3 51.4 Original Query 40.8 71.1 58.2 89.7 56.1 Query Paraphrase 39.5 71.2 58.3 90.1 56.3 HyDE 32.1 74.4 59.0 89.7 55.1 Step-Back Prompting 37.7 67.1 55.5 89.6 57.0 UniRAG 47.5 77.1 62.4 92.3 61.2 GPT-4o-mini
+> Zero-shot Prompting 14.3 69.9 72.3 86.4 46.6 Original Query 41.0 71.1 59.2 87.8 50.1 Query Paraphrase 39.1 71.1 58.8 89.0 50.4 HyDE 38.0 73.5 60.9 88.7 50.3 Step-Back Prompting 40.8 68.8 58.4 90.3 51.9 UniRAG 47.6 78.0 63.6 92.5 58.3
+
+7 Results and Analysis 
+
+7.1 Main Results Comparison of Individual Query Augmentation Methods. Table 1 presents the overall experi-mental results, showing that the performance im-pact of different query augmentation techniques varies across benchmark datasets. In most cases, applying query paraphrasing leads to consistent performance improvements. Additionally, using the HyDE method to generate hypothetical docu-ments for query expansion yields the best results on TriviaQA and PubHealth. It is worth mention-ing that in the PopQA, using the original query without any augmentations achieves the highest performance. Additionally, we observe that this variation in performance remains consistent across different generator. This finding underscores the importance of selecting the most suitable augmen-tation method for each query, as different datasets benefit from different augmentation strategies. 
+
+Comparison Between UniRAG and Baselines. 
+
+Across all tasks, our proposed UniRAG consis-tently outperforms individual query augmentation methods. Moreover, UniRAG demonstrates robust improvements across all three generation models used in our experiments. These results highlight the advantages of integrating query augmentation and encoding into a unified framework while adap-tively applying augmentation strategies. Notably, when individual query augmentation methods yield 
+
+Table 2: Results of ablation study on different modules. 
+
+PopQA Pub ARC UniRAG 49.2 77.5 90.4 
+
+Query Augmentation Phase 
+
+Retrieval Feedback 47.9 74.8 88.5 Generator Feedback 48.5 75.5 89.2 Rejection Sampling 46.3 73.2 85.7 
+
+Query Encoding Phase 
+
+Contriever 46.8 75.2 87.9 w/o Lenh 47.9 76.3 89.4 – w/o Extra Data 47.3 75.9 88.7 substantial performance gains, UniRAG exhibits even greater improvements. This observation fur-ther reinforces the effectiveness of our approach in dynamically selecting the most appropriate strat-egy, leading to superior overall performance. 
+
+7.2 Ablation Study 
+
+In order to identify which factors play a key role, we conducted a series of ablation experiments on our framework during the query augmentation phase and the query encoding respectively. We used Llama-3-8B-Instruct as the generator and pre-sented the ablation results in Table 2. 
+
+7.2.1 Ablation Study on Query Augmentation 
+
+During the query generation phase, we try the fol-lowing three model variants: (1) Using only re-14169 0.00 0.25 0.50 0.75      
+
+> Threshold
+> 0.46
+> 0.48
+> 0.50
+> 0.52
+> Accuracy
+> 0.00 0.25 0.50 0.75
+> Threshold
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Latency
+> Threshold-Based Decoding Default Tree-Based Decoding
+
+(a) Decoding strategy 0 50 100 200     
+
+> Training Data Size (K)
+> 36
+> 38
+> 40
+> 42
+> 44
+> 46
+> 48
+> Accuracy (%)
+> PopQA
+> 050 100 200
+> Training Data Size (K)
+> 60
+> 63
+> 66
+> 69
+> 72
+> 75
+> 78
+> Accuracy (%)
+> PubHealth
+
+(b) The impact of data size 
+
+Figure 3: Analysis on : (a) Performance and latency ( normalized ) analysis of different decoding strategies. (b) Impact of different amounts of synthetic data on model performance. 
+
+triever feedback (2) Using only generator feedback (3) Using a rejection sampling strategy to train the model to select the augmentation strategy with the highest retriever score. We see that all components play an important role, and the feedback from the generator is more important than the feedback from the retriever for the model’s query augmentation strategy selection. Using the rejection sampling strategy resulted in the worst performance, indicat-ing that it is crucial to design a refined loss function based on the feedback from the retriever and gener-ator for selecting augmentation strategies. 
+
+7.2.2 Ablation Study on Query Encoding 
+
+During the query encoding phase, we tried different model variants: (1) Using Contriever-MSMARCO for retrieval (2) Skipping the training of the query augmentation phase (denoted as "w/o Lenh ") (3) Based on 2, only using the original retrieval data without adding augmented query data. We ob-served that using Contriever as the retriever re-sulted in the worst performance, as the decoder-only LLM has better generalization capabilities. Furthermore, the retriever trained with the Llama3-8b-base model still lags behind the UniRAG model trained in two stages, which proves that unifying the query augmentation stage and the query encod-ing stage can improve the model’s performance. 
+
+7.3 Analysis 7.3.1 Accurate of the Selected Strategy 
+
+Based on the data collection process in Sec-tion 4.2.1, we additionally constructed a validation set of 2.1K entries and compared the predictive performance of the augmented strategy applied by UniRAG with that of using the original query for each question. We counted the wins and losses ac-cording to the ranking of the actual documents and 0.0 0.2 0.4 0.6 0.8 1.0   
+
+> Proportion
+> Paraphrase
+> HyDE
+> Step-Back
+> UniRAG
+> Win Tie Lose
+
+Figure 4: Comparison of win rates of different augmen-tation methods. 
+
+added the comparative results of other augmenta-tion methods, as shown in Figure 4. We found that UniRAG’s augmentation strategy improves perfor-mance in over 90% of cases and has a better win rate compared to other augmentation methods. 
+
+7.3.2 Comparison of Inference Methods 
+
+We conducted an analysis of UniRAG’s perfor-mance and latency under different inference meth-ods. Specifically, we used Llama-3-8B-Instruct as the generator on the PopQA dataset, and the exper-imental results are shown in Figure 3a. We found that tree-based methods perform best in terms of performance, but their computational latency is also the highest. In addition, threshold-based infer-ence methods show a trend of gradually improving performance with increasing threshold γ, while la-tency also increases correspondingly. These results indicate that the various decoding strategies we provide can adapt to different application needs. 
+
+7.3.3 Effects of Synthetic Data Size 
+
+We analyzed the impact of synthetic data scale on model performance. Specifically, we randomly sampled 5k, 10k, 20k, 50k, and 100k instances from the original 263k training instances and per-14170 formed two-phase fine-tuning on these subsets. Subsequently, we compared the performance of these models on the PopQA and PubHealth bench-mark datasets with that of models trained on the complete training dataset. The experimental results are shown in Figure 3b. Based on the results, an increase in training data typically accompanies an improvement in model performance. This trend suggests that further expanding the training dataset may yield additional performance gains. 
+
+8 Conclusion 
+
+In this work, we propose UniRAG, a unified query understanding framework for retrieval-augmented generation. By integrating query augmentation and encoding within a single model, UniRAG improves information sharing and reduces cumulative errors. Through adaptive selection of augmentation strate-gies and contrastive learning, our approach signif-icantly boosts retrieval performance. Experimen-tal results demonstrate UniRAG’s effectiveness in improving both query understanding and retrieval accuracy, making it a robust and adaptable solu-tion for RAG-based applications. Future research can combine UniRAG with broader augmentation strategies and explore improving query understand-ing capabilities by scaling testing time. 
+
+Limitations 
+
+Despite its advantages, UniRAG still has certain limitations. First, our approach relies on predefined augmentation strategies, which may not generalize well across all domains or user intents. Future work could explore more dynamic and broader scenarios for augmentation strategies. Secondly, although our model enhances retrieval accuracy, its perfor-mance is still affected by the quality of retrieved documents. In low-resource or highly specialized fields, this dependency can introduce noise that negatively impacts overall effectiveness. 
+
+Ethical consideration 
+
+The development and deployment of UniRAG war-rant careful ethical consideration. The model’s performance and fairness are inherently linked to the large datasets used for training and the external knowledge it retrieves. There is a risk that biases present in these datasets could be learned and am-plified by UniRAG. Although designed to improve retrieval accuracy, the system can still inadvertently propagate misinformation if the source documents are flawed or biased. Furthermore, our approach utilizes predefined augmentation strategies and relies on models like GPT-4o-mini for data synthesis. These factors introduce potential limitations in generalization across all domains and a dependency on external systems, which might have their own intrinsic bi-ases. 
+
+Acknowledgments 
+
+This research was supported by grants from the Na-tional Key Research and Development Program of China (Grant No. 2024YFC3308200), the National Natural Science Foundation of China (62337001), the Key Technologies R & D Program of Anhui Province (No. 202423k09020039) and the Funda-mental Research Funds for the Central Universities. 
+
+References      
+
+> Akari Asai, Sewon Min, Zexuan Zhong, and Danqi Chen. 2023. Retrieval-based language models and applications. In Proceedings of the 61st Annual Meet-ing of the Association for Computational Linguistics (Volume 6: Tutorial Abstracts) , pages 41–46. Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, and Hannaneh Hajishirzi. 2024. Self-rag: Learning to retrieve, generate, and critique through self-reflection. In The Twelfth International Conference on Learning Representations .Akari Asai, Zexuan Zhong, Danqi Chen, Pang Wei Koh, Luke Zettlemoyer, Hanna Hajishirzi, and Wen tau Yih. 2020. Reliable, adaptable, and attributable lan-guage models with retrieval. 2024. url https://api. semanticscholar. org/corpusid: 268248911. oprea, and colin raffel. extracting training data from large language models. In USENIX Security Symposium (USENIX) .Parishad BehnamGhader, Vaibhav Adlakha, Marius Mosbach, Dzmitry Bahdanau, Nicolas Chapados, and Siva Reddy. 2024. Llm2vec: Large language models are secretly powerful text encoders. arXiv preprint arXiv:2404.05961 .Sebastian Borgeaud, Arthur Mensch, Jordan Hoff-mann, Trevor Cai, Eliza Rutherford, Katie Milli-can, George Bm Van Den Driessche, Jean-Baptiste Lespiau, Bogdan Damoc, Aidan Clark, et al. 2022. Improving language models by retrieving from tril-lions of tokens. In International conference on ma-chine learning , pages 2206–2240. PMLR. Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda
+
+14171 Askell, et al. 2020. Language models are few-shot learners. Advances in neural information processing systems , 33:1877–1901. Wenhu Chen, Xinyi Wang, and William Yang Wang. 2021. A dataset for answering time-sensitive ques-tions. In Thirty-fifth Conference on Neural Informa-tion Processing Systems Datasets and Benchmarks Track (Round 2) .Christopher Clark, Kenton Lee, Ming-Wei Chang, Tom Kwiatkowski, Michael Collins, and Kristina Toutanova. 2019. Boolq: Exploring the surprising difficulty of natural yes/no questions. In Proceedings of the 2019 Conference of the North American Chap-ter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers) , pages 2924–2936. Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot, Ashish Sabharwal, Carissa Schoenick, and Oyvind Tafjord. 2018. Think you have solved question an-swering? try arc, the ai2 reasoning challenge. arXiv preprint arXiv:1803.05457 .Mike Conover, Matt Hayes, Ankit Mathur, Jianwei Xie, Jun Wan, Sam Shah, Ali Ghodsi, Patrick Wendell, Matei Zaharia, and Reynold Xin. 2023. Free dolly: Introducing the world’s first truly open instruction-tuned llm. Gordon V Cormack, Charles LA Clarke, and Stefan Buettcher. 2009. Reciprocal rank fusion outperforms condorcet and individual rank learning methods. In 
+
+Proceedings of the 32nd international ACM SIGIR conference on Research and development in informa-tion retrieval , pages 758–759. Tri Dao. 2024. Flashattention-2: Faster attention with better parallelism and work partitioning. In The Twelfth International Conference on Learning Repre-sentations .Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, et al. 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 .Luyu Gao, Xueguang Ma, Jimmy Lin, and Jamie Callan. 2023a. Precise zero-shot dense retrieval without rel-evance labels. In Proceedings of the 61st Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers) , pages 1762–1777. Luyu Gao, Xueguang Ma, Jimmy J. Lin, and Jamie Callan. 2022. Tevatron: An efficient and flexible toolkit for dense retrieval. ArXiv , abs/2203.05765. Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, and Haofen Wang. 2023b. Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 .Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Mingwei Chang. 2020a. Retrieval augmented language model pre-training. In International confer-ence on machine learning , pages 3929–3938. PMLR. Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Mingwei Chang. 2020b. Retrieval augmented language model pre-training. In Proceedings of the 37th International Conference on Machine Learning ,volume 119 of Proceedings of Machine Learning Research , pages 3929–3938. PMLR. Liyang He, Zhenya Huang, Chenglong Liu, Rui Li, Runze Wu, Qi Liu, and Enhong Chen. 2024a. One-bit deep hashing: Towards resource-efficient hashing model with binary neural network. In Proceedings of the 32nd ACM International Conference on Multi-media , pages 7162–7171. Xiaoxin He, Yijun Tian, Yifei Sun, Nitesh V Chawla, Thomas Laurent, Yann LeCun, Xavier Bresson, and Bryan Hooi. 2024b. G-retriever: Retrieval-augmented generation for textual graph under-standing and question answering. arXiv preprint arXiv:2402.07630 .Edward J Hu, yelong shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2022. LoRA: Low-rank adaptation of large language models. In International Conference on Learning Representations .Aaron Hurst, Adam Lerer, Adam P Goucher, Adam Perelman, Aditya Ramesh, Aidan Clark, AJ Os-trow, Akila Welihinda, Alan Hayes, Alec Radford, et al. 2024. Gpt-4o system card. arXiv preprint arXiv:2410.21276 .Gautier Izacard, Mathilde Caron, Lucas Hosseini, Se-bastian Riedel, Piotr Bojanowski, Armand Joulin, and Edouard Grave. 2021. Unsupervised dense in-formation retrieval with contrastive learning. arXiv preprint arXiv:2112.09118 .Huiqiang Jiang, Qianhui Wu, Chin-Yew Lin, Yuqing Yang, and Lili Qiu. 2023. Llmlingua: Compressing prompts for accelerated inference of large language models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing ,pages 13358–13376. Mandar Joshi, Eunsol Choi, Daniel S Weld, and Luke Zettlemoyer. 2017. Triviaqa: A large scale distantly supervised challenge dataset for reading comprehen-sion. In Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers) , pages 1601–1611. Sehoon Kim, Karttikeya Mangalam, Suhong Moon, Ji-tendra Malik, Michael W Mahoney, Amir Gholami, and Kurt Keutzer. 2024. Speculative decoding with big little decoder. Advances in Neural Information Processing Systems , 36. 14172 Tomáš Koˇ cisk `y, Jonathan Schwarz, Phil Blunsom, Chris Dyer, Karl Moritz Hermann, Gábor Melis, and Ed-ward Grefenstette. 2018. The narrativeqa reading comprehension challenge. Transactions of the Asso-ciation for Computational Linguistics , 6:317–328. Xiang Kong, Tom Gunter, and Ruoming Pang. 2024. Large language model-guided document selection. 
+
+arXiv preprint arXiv:2406.04638 .Tom Kwiatkowski, Jennimaria Palomaki, Olivia Red-field, Michael Collins, Ankur Parikh, Chris Alberti, Danielle Epstein, Illia Polosukhin, Jacob Devlin, Ken-ton Lee, et al. 2019. Natural questions: a benchmark for question answering research. Transactions of the Association for Computational Linguistics , 7:453– 466. Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gon-zalez, Hao Zhang, and Ion Stoica. 2023. Efficient memory management for large language model serv-ing with pagedattention. In Proceedings of the 29th Symposium on Operating Systems Principles , pages 611–626. Victor Lavrenko and W. Bruce Croft. 2017. Relevance-based language models. SIGIR Fo-rum , 51(2):260–267. Chankyu Lee, Rajarshi Roy, Mengyao Xu, Jonathan Raiman, Mohammad Shoeybi, Bryan Catanzaro, and Wei Ping. 2024a. Nv-embed: Improved techniques for training llms as generalist embedding models. 
+
+arXiv preprint arXiv:2405.17428 .Jinhyuk Lee, Zhuyun Dai, Xiaoqi Ren, Blair Chen, Daniel Cer, Jeremy R Cole, Kai Hui, Michael Bo-ratko, Rajvi Kapadia, Wen Ding, et al. 2024b. Gecko: Versatile text embeddings distilled from large lan-guage models. arXiv preprint arXiv:2403.20327 .Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, et al. 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. Advances in Neu-ral Information Processing Systems , 33:9459–9474. Chaofan Li, Zheng Liu, Shitao Xiao, Yingxia Shao, and Defu Lian. 2024a. Llama2vec: Unsupervised adap-tation of large language models for dense retrieval. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 3490–3500. Chaofan Li, MingHao Qin, Shitao Xiao, Jianlyu Chen, Kun Luo, Yingxia Shao, Defu Lian, and Zheng Liu. 2024b. Making text embedders few-shot learners. 
+
+arXiv preprint arXiv:2409.15700 .Zhuowan Li, Cheng Li, Mingyang Zhang, Qiaozhu Mei, and Michael Bendersky. 2024c. Retrieval augmented generation or long-context LLMs? a comprehensive study and hybrid approach. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing: Industry Track , pages 881– 893, Miami, Florida, US. Association for Computa-tional Linguistics. Jiayu Liu, Zhenya Huang, Chengxiang Zhai, and Qi Liu. 2023. Learning by applying: A general framework for mathematical reasoning via enhancing explicit knowledge learning. In Proceedings of the AAAI Con-ference on Artificial Intelligence , volume 37, pages 4497–4506. Qi Liu, Zhenya Huang, Yu Yin, Enhong Chen, Hui Xiong, Yu Su, and Guoping Hu. 2019. Ekt: Exercise-aware knowledge tracing for student performance prediction. IEEE Transactions on Knowledge and Data Engineering , 33(1):100–115. Shuai Lu, Nan Duan, Hojae Han, Daya Guo, Seung-won Hwang, and Alexey Svyatkovskiy. 2022. Reacc: A retrieval-augmented code completion framework. In Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 6227–6240. Kun Luo, Zheng Liu, Shitao Xiao, Tong Zhou, Yubo Chen, Jun Zhao, and Kang Liu. 2024. Landmark embedding: A chunking-free embedding method for retrieval augmented long-context large language mod-els. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers) , pages 3268–3281, Bangkok, Thailand. Association for Computational Linguistics. Xinbei Ma, Yeyun Gong, Pengcheng He, Hai Zhao, and Nan Duan. 2023. Query rewriting in retrieval-augmented large language models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , pages 5303–5315. Alex Mallen, Akari Asai, Victor Zhong, Rajarshi Das, Daniel Khashabi, and Hannaneh Hajishirzi. 2022. When not to trust language models: Investigating effectiveness of parametric and non-parametric mem-ories. arXiv preprint arXiv:2212.10511 .Kelong Mao, Zhicheng Dou, Fengran Mo, Jiewen Hou, Haonan Chen, and Hongjin Qian. 2023. Large lan-guage models know your contextual search intent: A prompting framework for conversational search. 
+
+arXiv preprint arXiv:2303.06573 .Niklas Muennighoff, Hongjin Su, Liang Wang, Nan Yang, Furu Wei, Tao Yu, Amanpreet Singh, and Douwe Kiela. 2024. Generative representational in-struction tuning. arXiv preprint arXiv:2402.09906 .Tri Nguyen, Mir Rosenberg, Xia Song, Jianfeng Gao, Saurabh Tiwary, Rangan Majumder, and Li Deng. 2016. Ms marco: A human-generated machine read-ing comprehension dataset. Md Rizwan Parvez, Wasi Ahmad, Saikat Chakraborty, Baishakhi Ray, and Kai-Wei Chang. 2021. Retrieval augmented code generation and summarization. In 
+
+Findings of the Association for Computational Lin-guistics: EMNLP 2021 , pages 2719–2734. 14173 Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. 2020. Zero: Memory optimizations toward training trillion parameter models. In SC20: International Conference for High Performance Com-puting, Networking, Storage and Analysis , pages 1– 16. IEEE. P Rajpurkar. 2016. Squad: 100,000+ questions for machine comprehension of text. arXiv preprint arXiv:1606.05250 .Stephen E Robertson and Steve Walker. 1994. Some simple effective approximations to the 2-poisson model for probabilistic weighted retrieval. In SI-GIR’94: Proceedings of the Seventeenth Annual In-ternational ACM-SIGIR Conference on Research and Development in Information Retrieval, organised by Dublin City University , pages 232–241. Springer. Shafiq Rayhan Joty Caiming Xiong Yingbo Zhou Semih Yavuz Rui Meng, Ye Liu. 2024. Sfr-embedding-mistral:enhance text retrieval with trans-fer learning. Salesforce AI Research Blog. Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettle-moyer, Nicola Cancedda, and Thomas Scialom. 2023. Toolformer: Language models can teach themselves to use tools. Advances in Neural Information Pro-cessing Systems , 36:68539–68551. Liang Wang, Nan Yang, Xiaolong Huang, Linjun Yang, Rangan Majumder, and Furu Wei. 2024a. Improv-ing text embeddings with large language models. In 
+
+Proceedings of the 62nd Annual Meeting of the As-sociation for Computational Linguistics (Volume 1: Long Papers) , pages 11897–11916, Bangkok, Thai-land. Association for Computational Linguistics. Zilong Wang, Zifeng Wang, Long Le, Huaixiu Steven Zheng, Swaroop Mishra, Vincent Perot, Yuwei Zhang, Anush Mattapalli, Ankur Taly, Jingbo Shang, et al. 2024b. Speculative rag: Enhancing retrieval augmented generation through drafting. arXiv preprint arXiv:2407.08223 .Zora Zhiruo Wang, Akari Asai, Xinyan Velocity Yu, Frank F Xu, Yiqing Xie, Graham Neubig, and Daniel Fried. 2024c. Coderag-bench: Can retrieval augment code generation? arXiv preprint arXiv:2406.14497 .Fangyuan Xu, Weijia Shi, and Eunsol Choi. 2023. Re-comp: Improving retrieval-augmented lms with com-pression and selective augmentation. arXiv preprint arXiv:2310.04408 .Shicheng Xu, Liang Pang, Jun Xu, Huawei Shen, and Xueqi Cheng. 2024. List-aware reranking-truncation joint model for search and retrieval-augmented gener-ation. In Proceedings of the ACM on Web Conference 2024 , pages 1330–1340. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. 2023. React: Synergizing reasoning and acting in language models. In The Eleventh International Conference on Learning Representations .Wenhao Yu, Chenguang Zhu, Zhihan Zhang, Shuohang Wang, Zhuosheng Zhang, Yuwei Fang, and Meng Jiang. 2022. Retrieval augmentation for common-sense reasoning: A unified approach. In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing , pages 4364–4377. Kai Zhang, Hefu Zhang, Qi Liu, Hongke Zhao, Hengshu Zhu, and Enhong Chen. 2019. Interactive attention transfer network for cross-domain sentiment classi-fication. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 33, pages 5773–5780. Kai Zhang, Kun Zhang, Mengdi Zhang, Hongke Zhao, Qi Liu, Wei Wu, and Enhong Chen. 2022. Incorpo-rating dynamic semantics into pre-trained language model for aspect-based sentiment analysis. In Find-ings of the Association for Computational Linguistics: ACL 2022 , pages 3599–3610. Tianhua Zhang, Hongyin Luo, Yung-Sung Chuang, Wei Fang, Luc Gaitskell, Thomas Hartvigsen, Xixin Wu, Danny Fox, Helen Meng, and James Glass. 2023. In-terpretable unified language checking. arXiv preprint arXiv:2304.03728 .Zheng Zhang, Wei Song, Qi Liu, Qingyang Mao, Yiyan Wang, Weibo Gao, Zhenya Huang, Shijin Wang, and Enhong Chen. Towards accurate and fair cognitive diagnosis via monotonic data augmentation. In The Thirty-eighth Annual Conference on Neural Informa-tion Processing Systems .Huaixiu Steven Zheng, Swaroop Mishra, Xinyun Chen, Heng-Tze Cheng, Ed H Chi, Quoc V Le, and Denny Zhou. 2023. Take a step back: Evoking reasoning via abstraction in large language models. In The Twelfth International Conference on Learning Representa-tions .Kun Zhu, Xiaocheng Feng, Xiyuan Du, Yuxuan Gu, Weijiang Yu, Haotian Wang, Qianglong Chen, Zheng Chu, Jingchang Chen, and Bing Qin. 2024. An in-formation bottleneck perspective for effective noise filtering on retrieval-augmented generation. arXiv preprint arXiv:2406.01549 .
+
+A Training Dataset Collection 
+
+We collected a training dataset from multiple knowledge-intensive question-and-answer and re-trieval datasets for query augmentation and query encoding training. We will introduce the collection process of this dataset and the statistical results of the final collected dataset. 
+
+A.1 Query Augmentation Dataset collection. 
+
+We create a seed dataset for data synthesis by sampling from various knowledge-intensive QA and retrieval datasets, including Natural Ques-tions (Kwiatkowski et al., 2019), MS MARCO Passages (Nguyen et al., 2016), BoolQ (Clark 14174 et al., 2019), NarrativeQA (Koˇ cisk `y et al., 2018), Dolly15k (Conover et al., 2023), and SQuAD (Ra-jpurkar, 2016). In order to obtain a diverse seed dataset, we extracted 32K pieces of data from the Natural Questions and MS MARCO datasets, and 16K from other datasets. For datasets with fewer than 32K pieces of data, we included the complete dataset. For the MS Marco dataset, we performed stratified sampling based on the given 
+
+query_type field, sampling 6.4K entries for each of the five types ( person, entity, location, numeric, description ); for Dolly15k, we only selected data where the category is closed_qa .Next, we conducted data synthesis and gathered feedback signals as well as data filtering based on the method outlined in section 1. Ultimately, we collected 263,185 data points for instruction tuning, including 105,096 valid feedback signals. Detailed statistical results are shown in Table 3. Addition-ally, we present the statistics of the data related to different augmentation methods in Table 4. 
+
+> Table 3: Statistics of query augmentation data obtained from different seed datasets.
+
+Dataset Train Feedback Natural Questions 78,071 31,788 MS MARCO Passages 85,350 32,000 BoolQ 24,013 9,397 NarrativeQA 32,484 14,375 Dolly15k 4,931 1,759 SQuAD 38,336 15,777 
+
+> Table 4: Statistics on the number of data for different augmentation methods.
+
+Ori Expansion Abstract Para Nums 5,123 82,052 87,247 88,763 
+
+A.2 Query Encoding Dataset Collection. 
+
+We have detailed the process of creating the re-trieval dataset in Section 4.3.1, and we will explain in detail how to perform hard negative sample min-ing for each dataset. For MS MARCO Passages and Natural Questions, we used 30 difficult neg-ative samples pre-mined from the Tevatron (Gao et al., 2022). For other datasets, we retrieved the top 30 passages from Wikipedia passages as diffi-cult negative samples using the BM25 (Robertson and Walker, 1994). The statistical results of the final dataset are shown in Table 5. 
+
+> Table 5: Statistics of query encoding data obtained from different seed datasets.
+
+Dataset Training Samples Natural Questions 154,615 MS MARCO Passages 585,108 BoolQ 37,708 NarrativeQA 79,941 Dolly15k 7,064 SQuAD 135,340 
+
+B Training and Inference Algorithm 
+
+The training pipeline of UniRAG is elaborated in Section 4 with its formalized procedure summa-rized in Algorithm 1, while the inference mecha-nism is systematically described in Section 5 and algorithmically instantiated in Algorithm 2. 
+
+C Implementation Details 
+
+C.1 Training Details. 
+
+During the data collection process, we utilize the Contriever-MSMARCO retriever to gather retrieval feedback, while the Llama-3-8B-Instruct model is employed to collect generator feedback. For training, we adopt the Llama-3.1-8B model as the base model and perform instruction tuning and contrastive learning. The training is conducted using four NVIDIA A100 GPUs, each with 80GB of memory. In the instruction tuning phase, the model is trained for 3 epochs with a batch size of 256, a peak learning rate of 2e-5, and a linear decay schedule following a 3% warmup step. The maxi-mum token length is set to 512. We leverage Deep-Speed ZeRO-3 (Rajbhandari et al., 2020) to enable multi-GPU distributed training with BFloat16 pre-cision. Additionally, FlashAttention2 (Dao, 2024) is integrated to enhance the efficiency of long-context training. During the contrastive learning phase, the model undergoes 1 epoch of fine-tuning, with the maxi-mum token length for queries and documents set to 256, and the temperature parameter τ set to 0.01. To optimize GPU memory usage, we employ LoRA (Hu et al., 2022) with a rank of 16, gradient check-pointing, and DeepSpeed ZeRO-3, with BFloat16 precision enabled. 14175 Algorithm 1 UniRAG Training  
+
+> 1:
+
+Input Generator G, Retriever R, Augmentation Strategies M 
+
+> 2:
+
+Initialize UniRAG with pre-trained language model θ0 
+
+> 3:
+
+Construct seed dataset Dseed from QA & retrieval corpora ▷ Data Synthesis (Section 4.2.1)  
+
+> 4:
+
+for q ∈ D seed do  
+
+> 5:
+
+for m ∈ M do ▷ Apply augmentation strategies  
+
+> 6:
+
+Generate augmented query ˜qm = Em(q) via GPT-4o-mini  
+
+> 7:
+
+end for  
+
+> 8:
+
+Retrieve docs {di} for q and {˜qm} using R ▷ Feedback collection  
+
+> 9:
+
+Compute sret , sgen using R and G 
+
+> 10:
+
+if ∃ m where sret (˜ qm) < s ret (q) or sgen (˜ qm) < s gen (q) then ▷ Data filtering  
+
+> 11:
+
+Discard underperforming ˜qm 
+
+> 12:
+
+end if  
+
+> 13:
+
+Store (q, m, ˜qm, sret , sgen ) in Denh  
+
+> 14:
+
+end for  
+
+> 15:
+
+for (q, ˜qm, s) ∈ D enh do ▷ Query Augmentation Training (Section 4.2)  
+
+> 16:
+
+Map sret , sgen to the corresponding action token positions in V ▷ Strategy selection  
+
+> 17:
+
+Compute Lsel via KL-divergence (Eq. 5)  
+
+> 18:
+
+Compute Lgen via next token prediction (Eq. 6) ▷ Query generation  
+
+> 19:
+
+Update θ using Lenh = Lsel + Lgen  
+
+> 20:
+
+end for  
+
+> 21:
+
+for (q+
+
+> inst
+
+, d +) ∈ D retrieval do ▷ Query Encoding Training (Section 4.3)  
+
+> 22:
+
+Extract embeddings hq+
+
+> inst
+
+, hd+ , and compute InfoNCE loss Lret (Eq. 7) ▷ Contrastive learning  
+
+> 23:
+
+Update θ using Lret  
+
+> 24:
+
+end for Algorithm 2 UniRAG Inference  
+
+> 1:
+
+Input Original query q, UniRAG θ, Retriever R, decoding strategy ξ, threshold γ, beam size B 
+
+> 2:
+
+Generate action token probabilities P (v|q) using θ 
+
+> 3:
+
+if ξ = Default then ▷ Default decoding  
+
+> 4:
+
+Select m∗ = arg max m∈M P (m|q) 
+
+> 5:
+
+Generate augmented query ˜qm∗ via greedy search  
+
+> 6:
+
+else if ξ = Threshold then ▷ Threshold-based decoding  
+
+> 7:
+
+Compute ratio ρ = P (<Original> )max m∈M P (m) 
+
+> 8:
+
+if ρ < γ then  
+
+> 9:
+
+m∗ ← arg max m∈M P (m|q) 
+
+> 10:
+
+Generate ˜qm∗ via greedy search  
+
+> 11:
+
+else  
+
+> 12:
+
+Set ˜qm∗ to an empty string  
+
+> 13:
+
+end if  
+
+> 14:
+
+else ▷ Tree-based decoding  
+
+> 15:
+
+Collect valid actions M′ = {m|P (m) ≥ P (<Original> )} 
+
+> 16:
+
+Initialize beam candidates C ← { q} 
+
+> 17:
+
+for m ∈ M ′ do ▷ Multi-strategy exploration  
+
+> 18:
+
+Generate augmented queries ˜qm with beam search (size B) 
+
+> 19:
+
+Add to candidates C ← C ∪ { ˜qm} 
+
+> 20:
+
+end for  
+
+> 21:
+
+end if  
+
+> 22:
+
+return augmented result ( ˜qm∗ or C)14176 C.2 Inference Details. 
+
+In the action token generation process, constrained decoding is applied, while greedy search is used when generating augmented queries. In the re-trieval step, following Asai et al. (2024), we use Wikipedia data as the external retrieval corpus for the five benchmarks used in this study, where each document is an independent text block extracted from Wikipedia articles containing up to 100 words. For each query, we retrieve the top 5 paragraphs from this corpus. During the generation process, we use vLLM (Kwon et al., 2023) for accelerated inference of the model. When using the tree-based decoding algorithm, we set the beam width to 4. In the baseline generation step, we call GPT-4o-mini via the official OpenAI API. The generator uses the default temperature and sampling algorithm. 
+
+D Prompt Details 
+
+Task Instruction 
+
+For the given user query, please choose an appropriate query augmentation method (generating hypothetical documents: <Ex-pand>, query paraphrase: <Paraphrase>, step back to generate abstract queries: <Ab-stract> or do not augment: <Original>), and provide the augmented query afterwards. 
+
+Prompt Template for Input ( Igen )
+
+Instruction: {task_instruction} 
+
+Input: 
+
+Query: {query} 
+
+Output Template (No Augmentation) 
+
+Response: 
+
+Choiced method: <Original>, No augmen-tation needed. 
+
+Output Template (Apply Augmentation) 
+
+Response: 
+
+Choiced method: {augmentation_strategy} Augmented query: {augmented_query} 
+
+> Table 6: Input and output template used for constructing query augmentation instruction data.
+
+Query Template (No Augmentation) 
+
+Instruction: {task_instruction} 
+
+Input: 
+
+Query: {query} 
+
+Response: 
+
+Choiced method: <Original>, No augmen-tation needed. 
+
+Query Template (Apply Augmentation) 
+
+Instruction: {task_instruction} 
+
+Input: 
+
+Query: {query} 
+
+Response: 
+
+Choiced method: {augmentation_strategy} Augmented query: {augmented_query}  
+
+> Table 7: Query template ( Iret ) used for constructing contrastive learning data.
+
+During the training phase, we prompt GPT-4o-mini to generate augmented queries for a given query to synthesize data. We provide the prompts used for generating augmented queries with dif-ferent augmentation strategies in Table 8. In the training process of the query augmentation phase, the input and output prompt templates used for constructing instruction fine-tuning data can be re-ferred to in Table 6; in the training of the query encoding phase, the query templates used for con-structing contrastive learning data can be referred to in Table 7. For the document, we directly add the prefix " Document: " at the front. In the experiment, to ensure a fair comparison, we used the same prompt as in the synthetic data phase for the baseline of the independent use of query augmentation method, as shown in Table 8. 
+
+E Benchmark Dataset Details 
+
+We comprehensively validated the effectiveness of UniRAG on closed-set tasks and open-domain question answering tasks , covering five knowledge-intensive benchmark datasets. The closed-set tasks include two datasets: (1) PubHealth (Zhang et al., 2023): a fact verification dataset for the public health domain. (2) ARC-Challenge (Clark et al., 2018): a multiple-choice reasoning dataset constructed from science exam questions. We followed the experimental setup of previous research, using accuracy as the evaluation 14177 Prompts for Query Paraphrase 
+
+Please optimize the search engine query by removing irrelevant words and vague ex-pressions, replacing abbreviations, and re-taining important concepts to ensure accu-rate and smooth responses. Query: {query} Rewrite Query: 
+
+Prompts for the HyDE 
+
+Please write a passage to answer the ques-tion. Question: {query} Passage: 
+
+Prompts for the Step-Back Prompting 
+
+Your task is to step back and paraphrase a question to a more generic step-back ques-tion, which is easier to answer. Here are a few examples: Query: Who was the spouse of Anna Karina from 1968 to 1974? Step Back Query: Who were the spouses of Anna Karina? Query: Estella Leopold went to which school between Aug 1954 and Nov 1954? Step Back Query: What was Estella Leopold’s education history? Query: {query} Step Back Query:  
+
+> Table 8: We refer to the prompt templates from the official implementation for various query augmentation methods. Table 9: Benchmark Dataset Statistics.
+
+Dataset Type Questions PopQA Open-domain 1,399 TriviaQA Open-domain 11,313 PubHealth Closed-set 3,610 ARC-Challenge Closed-set 948 TimeQA Open-domain 12,576 metric and reporting on the test set. The open-domain question answering tasks 
+
+cover three datasets: PopQA (Mallen et al., 2022), TriviaQA-unfiltered (Joshi et al., 2017), and TimeQA (Chen et al., 2021). In the PopQA task, the system needs to answer open questions involv-ing factual knowledge. We employed the long-tail subset for evaluation, which contains 1,399 queries involving rare entities, all of which have fewer than 100 monthly views on Wikipedia. For TriviaQA-unfiltered, since its open test set is not publicly available, we followed the validation and test set division method of previous research (Asai et al., 2024; Guu et al., 2020b) to evaluate model perfor-mance on 11,313 test queries. Notably, our evalua-tion method does not require strict text matching, but rather is based on whether the model-generated results contain the gold standard answers. In the TimeQA task, the system needs to answer chal-lenging queries involving complex time-sensitive knowledge. We evaluated on 5,226 test queries to assess the model’s ability to handle time-dependent issues. We summarized the types of benchmark datasets used in the experiment and the statistics on the number of test questions in Table 9. 14178

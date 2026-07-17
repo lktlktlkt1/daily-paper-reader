@@ -1,0 +1,78 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 838,
+      "height": 515,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1657,
+      "height": 667,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1393,
+      "height": 701,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 801,
+      "height": 675,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 1638,
+      "height": 1085,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 1088,
+      "height": 673,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 1507,
+      "height": 554,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.1902/fig-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 1653,
+      "height": 2097,
+      "label": "Figure"
+    }
+  ]
+}

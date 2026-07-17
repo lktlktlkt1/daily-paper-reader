@@ -1,0 +1,114 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 789,
+      "height": 483,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 789,
+      "height": 438,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 784,
+      "height": 785,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 787,
+      "height": 445,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 1640,
+      "height": 508,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 784,
+      "height": 344,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 1261,
+      "height": 236,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 622,
+      "height": 266,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 782,
+      "height": 336,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-010.webp",
+      "caption": "",
+      "page": 0,
+      "index": 10,
+      "width": 1566,
+      "height": 1873,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-011.webp",
+      "caption": "",
+      "page": 0,
+      "index": 11,
+      "width": 1638,
+      "height": 2425,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2025-long/anthology-2025.acl-long.1312/table-012.webp",
+      "caption": "",
+      "page": 0,
+      "index": 12,
+      "width": 1634,
+      "height": 2211,
+      "label": "Table"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.78/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 823,
+      "height": 681,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/acl-2026-findings/anthology-2026.findings-acl.78/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1535,
+      "height": 512,
+      "label": "Figure"
+    }
+  ]
+}

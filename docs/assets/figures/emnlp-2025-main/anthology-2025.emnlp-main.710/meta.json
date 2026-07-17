@@ -1,0 +1,105 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 794,
+      "height": 635,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1657,
+      "height": 1183,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 752,
+      "height": 255,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 782,
+      "height": 394,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 777,
+      "height": 390,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 789,
+      "height": 471,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 474,
+      "height": 465,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 802,
+      "height": 160,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 789,
+      "height": 473,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-010.webp",
+      "caption": "",
+      "page": 0,
+      "index": 10,
+      "width": 471,
+      "height": 466,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025.emnlp-main.710/fig-011.webp",
+      "caption": "",
+      "page": 0,
+      "index": 11,
+      "width": 784,
+      "height": 290,
+      "label": "Figure"
+    }
+  ]
+}

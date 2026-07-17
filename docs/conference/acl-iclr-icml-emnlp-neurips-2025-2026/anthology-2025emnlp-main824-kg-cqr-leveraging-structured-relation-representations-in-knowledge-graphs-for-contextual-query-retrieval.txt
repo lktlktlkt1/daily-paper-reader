@@ -1,0 +1,930 @@
+Title: 2025.emnlp-main.824.pdf
+
+URL Source: https://aclanthology.org/2025.emnlp-main.824.pdf
+
+Published Time: Sat, 03 Jan 2026 16:57:42 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 16281–16298 November 4-9, 2025 ©2025 Association for Computational Linguistics KG-CQR: Leveraging Structured Relation Representations in Knowledge Graphs for Contextual Query Retrieval 
+
+Chi Minh Bui 1∗, Ngoc Mai Thieu 1∗, Van Vinh Nguyen 2, Jason J. Jung 3,Khac-Hoai Nam Bui 1†
+
+> 1
+
+Viettel AI, Viettel Group, Vietnam 
+
+> 2
+
+University of Engineering and Technology, Vietnam National University, Hanoi, Vietnam 
+
+> 3
+
+Department of Computer Engineering, Chung-Ang University, Korea 
+
+{minhbc4, maitn4}@viettel.com.vn, vinhvn@vnu.edu.vn, j2jung@gmail.com, nambkh@viettel.com.vn 
+
+Abstract 
+
+The integration of knowledge graphs (KGs) with large language models (LLMs) offers sig-nificant potential to enhance the retrieval stage in retrieval-augmented generation (RAG) sys-tems. In this study, we propose KG-CQR 1,a novel framework for Contextual Query Re-trieval (CQR) that enhances the retrieval phase by enriching complex input queries with con-textual representations derived from a corpus-centric KG. Unlike existing methods that pri-marily address corpus-level context loss, KG-CQR focuses on query enrichment through structured relation representations, extracting and completing relevant KG subgraphs to gen-erate semantically rich query contexts. Com-prising subgraph extraction, completion, and contextual generation modules, KG-CQR op-erates as a model-agnostic pipeline, ensuring scalability across LLMs of varying sizes with-out additional training. Experimental results on the RAGBench and MultiHop-RAG datasets demonstrate that KG-CQR outperforms strong baselines, achieving improvements of up to 4–6% in mAP and approximately 2–3% in Re-call@25. Furthermore, evaluations on challeng-ing RAG tasks such as multi-hop question an-swering show that, by incorporating KG-CQR, the performance outperforms the existing base-line in terms of retrieval effectiveness. 
+
+1 Introduction 
+
+Large Language Models (LLMs) have significantly advanced the field of natural language processing (NLP), particularly in understanding and generat-ing human-like text. However, LLMs still suffer from two critical limitations: a lack of reliable factual knowledge and limited reasoning capabil-ities (Wang et al., 2024b). These limitations are 
+
+> 1
+
+https://github.com/tnmai59/KG-CQR  
+
+> ∗
+
+Equal Contribution  
+
+> †
+
+Corresponding Author Query  
+
+> Sub query Search
+> In-Context
+> Top K
+> Answer
+> (a) Query D ecomposition
+> Query
+> Search
+> Query
+> +
+> Documents
+> Top K
+> Answer
+> (b) Hypothetical Document Generation
+> Answer Generation
+> Answer Generation
+> In-Context
+> Query
+> Search
+> Query
+> +
+> Context
+> Top K
+> Answer
+> (c) Ours: Knowledge Graph-enhanced Contextual Generation
+> KG-CQR
+> Answer Generation
+> In-Context
+> Contextual Generation
+> Query
+> Generation
+> Document
+> Generation
+> k times
+> k times
+> k times
+
+Figure 1: Overview of query expansion approaches for RAG systems: a) query decomposition; b) document generation; c) ours: KG-enhanced contextual generation 
+
+exacerbated when LLMs are applied to domain-specific knowledge retrieval, especially in address-ing queries within vertical domains (Bang et al., 2023). To address these challenges, recent research has explored the integration of knowledge graphs (KGs) into LLMs as a means to provide structured, accurate knowledge sources for enhanced reason-ing (Pan et al., 2024). KGs, which store facts in the form of triples (i.e., head entity, relation, tail en-tity), offer a robust and interpretable representation of knowledge. Consequently, KGs have been in-creasingly incorporated into applications based on LLMs to improve performance across various tasks, such as question answering (Ding et al., 2024), fact verification (Pham et al., 2025a), and recommenda-
+
+16281 tion systems (Abu-Rasheed et al., 2024). In the context of question answering over knowl-edge graphs (KGQA), current approaches can be broadly categorized into two main strategies: (i) us-ing LLMs to convert natural language queries into formal logical queries, which are then executed on KGs to derive answers (Nguyen et al., 2024; Wang et al., 2024a); and (ii) retrieving relevant triples from KGs and presenting them as contextual knowledge for the LLM to generate the final answer (Sarmah et al., 2024; Sun et al., 2024). Similarly, in retrieval-augmented generation (RAG) tasks, exter-nal knowledge sources, in terms of both structured (KGs) and unstructured (vectorized documents), are retrieved and incorporated into the input prompt to support answer generation by LLMs (Li et al., 2024; Edge et al., 2024). Despite these advances, the retrieval process involving KGs remains under-explored in the aforementioned approaches. This study focuses on enhancing the retrieval process for RAG systems by integrating KG tech-nologies to enrich contextual information for com-plex input queries. Specifically, the objective is to tackle a critical challenge in current systems: misalignment between query and document em-beddings (Ma et al., 2023). Accordingly, exist-ing methods often employ LLMs to decompose complex queries (Mao et al., 2024) (Figure 1(a)). Nonetheless, in terms of retrieval performance, this approach frequently underperforms due to insuffi-cient contextual alignment with the corpus. Sub-sequently, Gao et al. (2023) proposed a new ap-proach by generating hypothetical documents to facilitate document-document similarity compar-isons (Figure 1(b)). However, this method heavily relies on underlying LLMs, introducing risks of hallucination. In terms of knowledge-grounded ex-pansion generation, Xia et al. (2025) introduced a knowledge-aware approach that leverages both un-structured data and structured relations. Neverthe-less, their reliance on predefined relation schemas between entities (e.g., title) and documents con-strains the scalability and adaptability. To overcome the aforementioned limitations, we propose KG-CQR (Knowledge Graph for Contex-tual Query Retrieval), a novel framework that lever-ages KG to generate contextual information for input queries (Figure 1(c)). The key idea is to extract a relevant subgraph from the KG to en-rich each query semantically. KG-CQR comprises three main modules: (i) subgraph extraction, which identifies relevant triples; (ii) subgraph comple-tion, which infers missing triples; and (iii) contex-tual generation, which constructs enriched query contexts. These modules utilize a new structured representation of relations, combining textual infor-mation with KG triplets, to address the limitations of traditional entity-based scoring in KG extrac-tion. By retrieving directly relevant data and in-ferring missing knowledge, KG-CQR significantly improves query contextualization. The main con-tributions of this work are as follows: • We propose Contextual Query Retrieval (CQR), a novel paradigm designed to enhance the context of domain-specific queries using a predefined corpus. Our framework, KG-CQR, leverages a corpus-centric knowledge graph to improve both query understanding and re-trieval effectiveness, achieving these improve-ments without the need for additional training. • KG-CQR functions as a model-agnostic pipeline that employs structured relation repre-sentations to generate contextual information, ensuring adaptability and scalability across backbone LLMs with varying parameter sizes. • Extensive experiments on complex bench-mark datasets, specifically designed for multi-step retrieval processes in RAG systems. The results demonstrate the effectiveness of KG-CQR in enhancing retrieval quality. 
+
+2 Literature Review 
+
+2.1 Query Expansion using LLM 
+
+To handle complex queries effectively, query ex-pansion is often essential for improving the perfor-mance of the retrieval process (Azad and Deepak, 2019). Traditional approaches decompose input queries into multi-view representations to enhance retrieval accuracy (Zhang et al., 2022). Recently, with the rapid advancement of LLMs, a promis-ing direction involves query enhancement, either through prompt-based techniques leveraging LLMs (Wang et al., 2023), or by developing trainable frameworks that generate refined queries (Mao et al., 2024). These methods aim to reformulate queries into more effective semantic representa-tions (Chan et al., 2024; Chen et al., 2024). How-ever, they still struggle to bridge the inherent gap between queries and the knowledge corpus within the retrieval embedding space (Liu et al., 2025). Accordingly, to further improve retrieval effective-ness, especially in domain-specific applications, 16282 a deeper exploitation of contextual generation re-mains essential (Li et al., 2025). 
+
+2.2 Contextual Retrieval 
+
+Contextualized retrieval has emerged as an effec-tive strategy for improving retrieval performance, particularly in complex and challenging settings (Morris and Rush, 2024). Recent methods, such as RAPTOR (Sarthi et al., 2024), GraphRAG (Edge et al., 2024), and HippoRAG (Gutierrez et al., 2024), adopt recursive procedures that integrate embedding, clustering, and summarization tech-niques to construct hierarchical document repre-sentations using graph-based structures. Concep-tually, these approaches follow a corpus-centric paradigm, wherein hierarchical structures are lever-aged to enhance contextual retrieval across the orig-inal document corpus. In terms of query expan-sion through contextualization, Gao et al. (2023) proposes HyDE, a novel approach that leverages LLMs to generate hypothetical documents condi-tioned on the input query. Accordingly, the query is first processed by an LLM following specific instructions to produce hypothetical documents, which are then used as pseudo-contexts for retrieval based on document-to-document similarity. How-ever, a key limitation of HyDE lies in its depen-dence on LLM-generated content, where potential inaccuracies or hallucinations can degrade retrieval effectiveness (Zhang et al., 2024; Xia et al., 2025). Moreover, query expansion strategies must account for domain-specific context sensitivity, as the same entities may vary in meaning or relevance across different domains (Bui et al., 2021). Therefore, this study proposes a novel contextual retrieval approach, which focuses on providing contextual information for the input query, based on the struc-tured relation of the corpus-centric KG. 
+
+2.3 LLM-Powered KG Construction 
+
+One of the primary challenges in utilizing knowl-edge graphs (KGs) lies in their construction. Prior work relies on predefined KGs (Xia et al., 2025), which limits the flexibility and scalability of the approach. In order to automatically construct a KG, given a set of unstructured data sources (corpus), knowledge graph construction (KGC) is typically framed as a structured prediction task, where mod-els are trained to approximate target functions asso-ciated with various NLP tasks such as Named En-tity Recognition (NER), Relation Extraction (RE), Entity Linking (EL), and knowledge graph com-pletion (Ye et al., 2022). However, training task-specific discriminative models often results in er-ror propagation and limited adaptability across di-verse tasks. To address these limitations, recent approaches reformulate KGC as a generative prob-lem using sequence-to-sequence (Seq2Seq) models (Lu et al., 2022). Powered by pre-trained mod-els such as T5 (Raffel et al., 2020), the Seq2Seq paradigm has demonstrated strong performance in multi-task training settings for KG construction. More recently, the emergence of LLMs has spurred interest in their application to KGC through zero-shot prompting techniques (Pan et al., 2024; Zhu et al., 2024). Building on this line of work, our study leverages modern open-source LLMs, e.g., LLaMA-3.3-70B, to construct knowledge graphs by parsing and categorizing entities and their rela-tionships directly from unstructured data. 
+
+3 Methodology 
+
+3.1 Preliminary 3.1.1 Structure Relation Representation 
+
+A corpus-centric KG includes a set of triplets (struc-tured relations) TKG , which are defined as follows: 
+
+KG = {EKG , R KG , TKG }TKG = {(u, r, v ), u, v ∈ EKG , r ∈ RKG } (1) where EKG is the set of entities and RKG is the set of relations. Since the KG is not available for most specific domains, we follow the work in GraphRAG (Edge et al., 2024) to construct the corpus-centric KG, which includes three sequen-tial steps: i) Ingesting specific-domain unstruc-tured data; ii) Extracting entities and their relation-ships using an external LLM; iii) Mapping entities through edges (relations) that contain detailed in-formation about their relationships. To further enhance the expressiveness of the KG, we extend each triplet T iKG with a textual triplet representation (TTR). Unlike traditional ap-proaches that rely solely on structured relational properties, our method leverages LLMs to gener-ate rich, natural language representations of each triplet, as defined below: 
+
+T T R (T iKG ) = llm (P rompt ttr , D id, T iKG ) (2) where llm (P rompt ttr , D id, T iKG ) denotes the tex-tual description of the relation, generated by an LLM based on the instruction prompt P rompt ttr ,the corresponding triplet T iKG , and the document 16283 Triplet       
+
+> Document
+> ...
+> KG Construction
+> Textual Triplet Representation (TTS)
+> 'u': Saman Bankman-Fried
+> 'r': FOUNDER
+> '': Alameda Research
+> 'TTR ': Sam Bankman-Fried, the founder of Alameda Research Research, a trading firm, ...
+> Knowledge Graph
+> Structure Relation Representation
+> KG Triplets
+
+Figure 2: Construction of structured relation represen-tations using LLM-based prompting. Detailed prompt templates are provided in Appendix A.5. 
+
+d ∈ D from which the triplet was extracted. An overview of this process is illustrated in Figure 2. In this regard, the structured relation in Equation 1 is reformulated as: 
+
+TKG = {(u, r, v, T T R (u, r, v )) } (3) 
+
+3.1.2 Problem Definition 
+
+The objective of the retrieval process is to extract the most relevant documents for the input query, in which the similarity score (i.e., cosine similarity) can be formulated as follows: 
+
+sim (q, d ) = < vq, vd > (4) The core challenge in this process lies in ensur-ing that the query vector vq (obtained via encoder 
+
+enc q) and the document vector vd (obtained via en-coder enc d) are embedded into a shared semantic space. Traditional retrieval models typically rely on supervised learning frameworks that train encoders using query-document pairs to learn such a shared embedding space (Karpukhin et al., 2020; San-thanam et al., 2022). However, directly optimizing for query-document similarity often results in sub-optimal retrieval performance, particularly when dealing with sparse or domain-specific queries. To address this limitation, we draw inspiration from the approach in (Gao et al., 2023), which shifts focus toward generating contextual embeddings for the query. Notably, instead of encoding the query directly, we enrich it with contextual information derived from the corpus-centric KG. This enriched representation is then embedded in the document space, allowing the similarity computation to align with the document-document similarity paradigm. The revised retrieval formulation is as follows: 
+
+vKG-CQR(q) = enc d(KG-CQR(q) )
+
+sim (q, d ) = < vKG-CQR(q) , vd > (5) Here, KG-CQR(q) denotes the KG-enhanced con-textual information of the input query q.
+
+3.2 KG-CQR 
+
+The overview architecture of KG-CQR is illustrated in Figure 3, which includes three main sequence components, such as subgraph extraction, subgraph completion, and contextual generation. 
+
+3.2.1 Subgraph Extraction 
+
+Given an input query q and a knowledge graph 
+
+KG , the subgraph extraction module first identi-fies a set of relevant triples ˆTKG ( ˆTKG ⊂ T KG ), based on the input query. Traditional subgraph extraction methods typically begin by identifying entities mentioned in the query q and then link-ing them to entities in the KG using entity linking (EL) techniques, such as using LLM prompting or specialized EL tools (Sun et al., 2024). However, these approaches often assume that the KG is com-plete, i.e., all factual triples relevant to the query are present in the graph, which is rarely the case in real-world scenarios (Xu et al., 2024). Furthermore, cur-rent subgraph extraction techniques predominantly rely on assessing semantic similarity at the entity or keyword level (Sun et al., 2024; Luo et al., 2024). Nevertheless, this limited granularity often fails to capture sufficient textual context, thereby reducing extraction performance, particularly when input queries involve ambiguous entities (Pham et al., 2025b; Xia et al., 2025). To address these limita-tions, we leverage textual representations of triples (as defined in Equation 2) to measure similarity with the input query. This approach enables sub-graph extraction at the sentence level, rather than relying solely on the entity level. The subgraph extraction is formalized as follows: 
+
+vir = enc (T T R (T iKG )) ˆTKG = argmax T iKG ∈T KG , k {sim (vq, vir)} (6) where vq is the embedding of the input query, and 
+
+k is a hyperparameter controlling the number of top-matching triples retrieved. Sequentially, inspired by previous work for the subgraph extraction process (Sun et al., 2024), a filtering step is performed using an LLM with a 16284 - The Falun Gong - BANNED_IN - China 
+
+> - Falun Gong - FOUNDED_BY - Li Hongzhi
+> - The Epoch Time - PART_OF - Falun Gong
+
+... 
+
+> - Imf - COMMENTED_ON - China
+> - Falun Gong - MEDITATED_OUTSIDE - Us.Capitol
+
+QUERY : Which country, discussed in articles from both Hacker News and Zee Business, banned Falun Gong following protests in 
+
+its capital city in 1999 and is also experiencing growing economic headwinds in contrast to other emerging markets? 
+
+> - The Falun Gong - BANNED_IN - China
+> - Falun Gong - FOUNDED_BY - Li Hongzhi
+> - The Epoch Time - PART_OF - Falun Gong
+
+... 
+
+> - Falun Gong - MEDITATED_OUTSIDE -Us.Capitol
+> - The Falun Gong - BANNED_IN - China
+> - Falun Gong - FOUNDED_BY - Li Hongzhi
+> - The Epoch Time - PART_OF - Falun Gong
+> - The Epoch Time - FOLLOWER - Li Hongzhi
+
+... 
+
+> - The Epoch Time - CRITICIZED - China
+> - Falun Gong - MEDITATED_OUTSIDE -Us.Capitol
+> visualize
+> ...
+> ...
+> ...
+> ...
+
+KG-CQR 
+
+Knowledge 
+
+Base 
+
+Subgraph Extraction 
+
+Triplet Retrieval  Triplet Selection 
+
+Subgraph Completion Contextual Generation 
+
+Document Retrieved 
+
+> filter out
+> irrelevant
+> triplets
+> generate
+> context
+
+Fusion mechanism 
+
+Query-Relevant Path Addition 
+
+> visualize
+> execute BFS with Beam Search
+
+KG   
+
+> Falun Gong, founded by Li Hongzhi in China,
+> was later banned by the Chinese government.
+> Now operating globally, it maintains a presence
+> through actions like meditations at the U.S.
+> Capitol. The Epoch Times, affiliated with Falun
+> Gong and followed by its members, has taken a
+> strong critical stance against China. Li Hongzhi
+> has also appeared in Western media, including
+> interviews in New York.
+> -... in 2009, Li Hongzhi came to speak to his followers. volunteers who worked at The
+> Epoch Times's office in Manhattan.
+> -... California, hiring mainstream news veterans who are not affiliated with Falun Gong,
+> and revving up an ad-buying blitz...
+> - ... It's powered by Falun Gong, a religious group prosecuted in China, which launched
+> The Epoch Times as a free propaganda newsletter more than two decades ago to
+> oppose the Chinese Communist Party
+
+Subgraph Figure 3: An illustration of KG-CQR for the retrieval process, which includes three main components: Subgraph Extraction, Subgraph Completion, and Contextual Generation 
+
+task-specific prompt to remove irrelevant triples: 
+
+ˆT ′KG = {T iKG ∈ ˆTKG |
+
+llm (P rompt f ilter , q, T iKG ) = T rue } (7) Here, P rompt f ilter denotes the instruction prompt used by the LLM for the final selection. The details of P rompt f ilter are provided in Appendix A.5. 
+
+3.2.2 Subgraph Completion 
+
+The initial subgraph ˆT ′KG is extracted based on semantic similarity, typically resulting in a limited set of triplets that may lack sufficient contextual information. The goal of the subgraph completion function is to enrich this subgraph by incorporating additional triplets from the structure relation of KG (TKG ) that form semantically meaningful paths between entities in ˆT ′KG . Relevance is assessed by aggregating the semantic similarities between the input query and triplet textual representations along these paths. The subgraph completion proceeds through the following steps (Algorithm 1): • Step 1: Extract entities from the initial sub-graph ˆT ′KG .• Step 2: Apply Beam Search, a heuristic-guided variant of Breadth-First Search (BFS), to identify the top-n candidate paths. • Step 3: Filter out paths that contain nodes not present in the initial subgraph ˆT ′KG .• Step 4: Select the top-K highest-scoring unique triplets, with K defaulting to 20. • Step 5: Construct the completed subgraph 
+
+ˆT ′′ KG by merging the initial subgraph ˆT ′KG 
+
+with the selected triplets. Notably, to reduce computational complexity in Step 2, instead of executing the naive BFS traversal, a limited number of nodes are expanded, guided by a heuristic function (BFSBeam). This function computes semantic similarity between the input query and aggregates the relevance scores of the TTRs along each path, which is illustrated in more detail in the Appendix A.3. 
+
+3.2.3 Contextual Generation 
+
+The objective of the retrieval process is to identify the most relevant documents for a given input query by computing similarity scores, typically using co-sine similarity between their vector representations, which is formally defined as: 
+
+KG -CQR (q) = llm (P rompt g, ˆT ′′ KG ) (8) 16285 Algorithm 1 Query-Relevant Path Addition for Subgraph Completion 
+
+Require: TKG , ˆT ′KG , q, top K, max-path L
+
+Ensure: Subgraph ˆT ′′ KG  
+
+> 1:
+
+Ep ← { u, v | { u, r, v, TTR } ∈ ˆT ′KG } 
+
+> 2:
+
+Load Embedding model: enc  
+
+> 3:
+
+vq ← q̸ = ∅?enc (q) : None  
+
+> 4:
+
+Tset ← {{ u, r, v } | { u, r, v, TTR } ∈ ˆT ′KG } 
+
+> 5:
+
+P ← ⋃  
+
+> (ei,e j)∈Ep
+
+BFSBeam (TKG , e i, e j , T set , L ) 
+
+> 6:
+
+if P = ∅ then  
+
+> 7:
+
+return ˆT ′KG  
+
+> 8:
+
+end if  
+
+> 9:
+
+S ← ∅  
+
+> 10:
+
+for p ∈ P do  
+
+> 11:
+
+if {vp ← enc (TTR ) | { u, r, v, TTR } ∈ p}
+
+then  
+
+> 12:
+
+s ← vq̸ = None ?Mean (cos( vp, v q)) : 0 
+
+> 13:
+
+S ← S ∪ { (p, s )} 
+
+> 14:
+
+end if  
+
+> 15:
+
+end for  
+
+> 16:
+
+Sort S by score descending  
+
+> 17:
+
+C ← ∅  
+
+> 18:
+
+for (p, s ) ∈ S until |C| ≥ K do do  
+
+> 19:
+
+if {u, r, v } ∈ p ∧ { u, r, v } /∈ Tset then  
+
+> 20:
+
+C ← C ∪ { u, r, v } 
+
+> 21:
+
+end if  
+
+> 22:
+
+end for  
+
+> 23:
+
+ˆT ′′ KG ← ˆT ′KG ∪ C 
+
+> 24:
+
+return ˆT ′′ KG 
+
+where P rompt g represents the generation instruc-tion prompt, as detailed in Appendix A.5. The enriched subgraph ˆT ′′ KG serves as contextual in-put to the LLM, facilitating the generation of a contextually enriched query representation. This reformulated query can then be encoded within the same embedding space as the corpus documents, enabling effective retrieval. 
+
+3.3 Retrieval Fusion Function 
+
+The input query and its synthetic contextual infor-mation are embedded using a fusion encoder-based approach. This technique enables the retrieval system to go beyond superficial query-document matching by leveraging the interaction between the query and its enriched context, resulting in more accurate and semantically relevant retrieval out-comes (Bruch et al., 2024). In this work, we adopt a weighted-sum fusion mechanism to compute the final query representation, defined as: 
+
+vf use (q) = α · vq + (1 − α) · vKG −CQR (q) (9) This fusion mechanism proves especially effec-tive in complex, multi-turn, or context-sensitive retrieval scenarios, where conventional query en-hancement or decomposition methods often fall short. Consequently, the objective function in Equa-tion 5 can be reformulated as: 
+
+sim (q, d ) = sim (KG-CQR (q), d )=< vf use (q), vd > (10) 
+
+4 Experiment 
+
+4.1 Experimental Setup Baseline : We evaluate our method using three baseline models that encompass diverse document retrieval strategies: (i) BM25 (Robertson and Zaragoza, 2009), a classical sparse retrieval model; (ii) DPR (Karpukhin et al., 2020), a dense retrieval approach based on a dual-encoder architecture that independently encodes queries and passages, opti-mizing their embeddings via contrastive loss; and (iii) BGE (Xiao et al., 2024), which combines dense, sparse, and multi-vector retrieval using a self-knowledge distillation framework. To compre-hensively examine the impact of KG-CQR on re-trieval performance, we further compare KG-CQR with two representative approaches in this research field: Query Expansion (Chen et al., 2024) and HyDE (Gao et al., 2023). 
+
+Benchmark Datasets : We evaluate our method on two recent and widely used benchmark datasets: (i) RAGBench (Friel et al., 2024), which spans five distinct industry-specific domains. We use its test set comprising approximately 11,000 instances for retrieval evaluation; and (ii) Multihop-RAG (Tang and Yang, 2024), which includes a knowl-edge base, a large set of multi-hop queries, cor-responding ground-truth answers, and supporting evidence, totaling 2,556 queries for evaluation. For each dataset, the corresponding KG is constructed in three steps, as outlined in Section 3.1.1, using the LLaMA-3.3-70B model. 
+
+4.2 Main Results 
+
+Table 1 presents the evaluation results of the re-trieval process on both datasets. Retrieval accuracy is evaluated using standard metrics such as mean Average Precision (mAP) and Recall@k, where 
+
+k ∈ { 5, 10 , 25 }. The reported results use α = 0 .716286 RAGBench MultiHop-RAG                                                                                                 
+
+> Model mAP Recall@5 Recall@10 Recall@25 mAP Recall@5 Recall@10 Recall@25 BM25 0.329 0.337 0.399 0.462 0.241 0.261 0.353 0.486 DPR 0.276 0.286 0.348 0.425 0.099 0.125 0.183 0.284 BGE 0.521 0.510 0.589 0.657 0.227 0.251 0.357 0.520 QE + BM25 0.280 0.291 0.349 0.415 0.124 0.135 0.187 0.256 QE + DPR 0.251 0.260 0.317 0.392 0.058 0.069 0.101 0.169 QE + BGE 0.487 0.476 0.553 0.618 0.139 0.147 0.211 0.313 HyDE + DPR 0.286 0.293 0.354 0.426 0.106 0.127 0.188 0.297 HyDE + BGE 0.516 0.507 0.586 0.638 0.232 0.256 0.363 0.524 KG-CQR + BM25 0.398 0.398 0.454 0.514 0.250 0.267 0.372 0.532
+> KG-CQR + DPR 0.316 0.319 0.384 0.462 0.129 0.157 0.224 0.340 KG-CQR + BGE 0.542 0.529 0.610 0.675 0.240 0.261 0.371 0.525
+> Table 1: Retrieval performance on the RAGBench and MultiHop-RAG datasets with LLaMA-3.3-70B as the backbone LLM for contextual generation
+
+(Equation 9), which was found to yield the best performance (the selection of this value is further discussed in Appendix A.2.2). From the results, we draw the following observations: i) Retrieval Performance : KG-CQR significantly improves retrieval performance across various re-trieval backbones. On the RAGBench dataset, KG-CQR + BGE achieves the best performance overall, with an mAP of 0.542 and Recall@25 of 0.675, outperforming both the baseline models and the HyDE-enhanced variants. On the more challeng-ing MultiHop-RAG dataset, KG-CQR + BM25 achieves the highest recall metrics (e.g., Recall@25 = 0.532), demonstrating KG-CQR’s effectiveness compared to traditional methods. ii) Impact of Query Expansion (QE) : Compared with their respective baselines, QE-augmented models generally underperform across both datasets. For instance, QE + BM25 (mAP = 0.280 on RAGBench, 0.124 on MultiHop-RAG) performs notably worse than plain BM25, and similar degra-dations are observed for DPR and BGE backbones. This suggests that naive query expansion often in-troduces noise and semantic drift, which outweighs the potential benefits of richer lexical coverage. In contrast, KG-CQR achieves consistent improve-ments by leveraging structured knowledge for con-textually grounded reformulations instead of un-guided expansions. iii) Contextual Accuracy : The comparatively lower performance of HyDE relative to its base-lines indicates potential limitations in relying ex-tensively on synthetic queries generated by LLMs. Specifically, while HyDE offers a straightforward method for enhancing contextual understanding, its effectiveness is notably sensitive to the contextual reliability of the generated content. This highlights the constraints of inadequately grounded synthetic information in retrieval tasks. iv) Diverse Benchmarks : Although models like BGE perform well on relatively straightfor-ward datasets such as RAGBench, more complex datasets like MultiHop-RAG demand advanced rea-soning capabilities. KG-CQR demonstrates robust-ness in such settings by effectively handling multi-hop reasoning and maintaining strong performance. These results highlight the importance of retrieval frameworks that integrate contextual understanding and structured knowledge to perform consistently across diverse and complex benchmarks. 
+
+4.3 Detailed Analysis 4.3.1 Impact of LLM Backbone 
+
+Table 2 illustrates the retrieval performance of KG-CQR when paired with different sizes of lan-guage models, using BGE as the underlying re-trieval method. Specifically, the LLaMA-3.3-70B model achieves the highest performance across nearly all metrics; however, the performance dif-ferences between the 8B and 70B variants are rel-atively modest, suggesting diminishing returns as model size increases. These findings indicate that while larger models do offer performance advan-tages, KG-CQR remains effective even with rela-tively smaller backbones such as LLaMA-3.2-3B and LLaMA-3.1-8B. This highlights KG-CQR’s practicality for resource-constrained environments, offering a favorable trade-off between retrieval per-16287 RAGBench MultiHop-RAG 
+
+Backbone mAP Recall@5 Recall@10 Recall@25 mAP Recall@5 Recall@10 Recall@25 LLaMA-3.2-3B 0.537 0.524 0.604 0.672 0.230 0.251 0.359 0.520 LLaMA-3.1-8B 0.538 0.526 0.606 0.672 0.235 0.255 0.370 0.522 LLaMA-3.3-70B 0.542 0.529 0.610 0.675 0.240 0.261 0.371 0.525 
+
+Table 2: The performance of KG-CQR across various parameter sizes of the backbone LLMs 
+
+formance and computational cost. 
+
+4.3.2 Ablation Study 
+
+Table 3 presents an ablation study evaluating the contribution of two core components of KG-CQR: the Textual Triplet Representation (TTR) for ex-tracting subgraph and the Subgraph Completion (Sub.Comp.). As shown in the results, removing Method Recall@5 Recall@10 Recall@25 W/O TTR 0.486 0.572 0.641 W/O Sub.Comp. 0.525 0.605 0.671 KG-CQR 0.529 0.610 0.675 
+
+Table 3: Ablation study of KG-CQR components on RAGBench 
+
+TTR (Equation 2) leads to the most pronounced drop in performance (e.g., Recall@25 decreases from 0.675 to 0.641), underscoring the importance of TTR in accurately extracting relevant subgraphs that preserve semantic alignment with the query. This confirms that converting structured KG in-formation into textual form plays a critical role in aligning the knowledge with the retrieval task. Sim-ilarly, omitting the Subgraph Completion module also results in a notable performance degradation, though less severe than removing TTR. This sug-gests that while the initial subgraph extraction is vital, enriching the subgraph context via comple-tion further improves the model’s ability to retrieve relevant documents. 
+
+4.3.3 Multi-Step Retrieval for RAG Task 
+
+We evaluate the effectiveness of KG-CQR in multi-step reasoning RAG tasks by integrating its re-trieval outputs into the IRCoT framework (Trivedi et al., 2023). To assess the generalizability of KG-CQR, experiments were conducted with three LLMs of varying sizes across multiple datasets. The evaluation highlights the role of KG-CQR in enhancing retrieval performance for reasoning-intensive RAG tasks. We randomly sampled 500 Model Retrieval F1 ↑ Iter ↓ Score ↑                                                         
+
+> RAGBench
+> LLaMA-3.2-3B 0.372 3.293 3.122 LLaMA-3.1-8B BM25 0.393 2.748 3.424 LLaMA-3.3-70B 0.431 1.912 3.449 LLaMA-3.2-3B KG-CQR +BM25 0.407 2.714 3.317 LLaMA-3.1-8B 0.410 1.834 3.603 LLaMA-3.3-70B 0.443 1.393 3.826
+> HotpotQA
+> LLaMA-3.2-3B 0.613 2.586 3.828 LLaMA-3.1-8B BM25 0.662 2.591 3.955 LLaMA-3.3-70B 0.663 1.465 4.103 LLaMA-3.2-3B KG-CQR +BM25 0.648 2.450 4.106 LLaMA-3.1-8B 0.673 2.350 4.245 LLaMA-3.3-70B 0.700 1.280 4.278
+> MuSiQue
+> LLaMA-3.2-3B 0.096 3.789 1.929 LLaMA-3.1-8B BM25 0.141 3.52 2.564 LLaMA-3.3-70B 0.374 2.042 3.206 LLaMA-3.2-3B KG-CQR +BM25 0.124 3.245 2.334 LLaMA-3.1-8B 0.223 3.089 2.783 LLaMA-3.3-70B 0.489 2.150 3.778
+
+Table 4: Multi-step reasoning RAG performance across various datasets 
+
+examples from the RAGBench test set and evalu-ated results using F1, GPT-Score ( Score ) (Fu et al., 2024), and the average number of reasoning steps (Iter ). In addition, two widely used multi-hop QA benchmarks, HotpotQA (Yang et al., 2018) and MuSiQue (Trivedi et al., 2022), were included in the evaluation. GPT-Score was computed us-ing GPT-4o through the OpenAI API, based on its performance on the Judge LLM leaderboard 2.As shown in Table 4, several key insights can be drawn: i) KG-CQR substantially improves re-trieval quality across datasets : On RAGBench, KG-CQR + BM25 consistently outperforms BM25, with performance gains across all LLM sizes (e.g., F1 improves from 0.393 to 0.410 on LLaMA-3.1-
+
+> 2https://huggingface.co/spaces/AtlaAI/judge-arena
+
+16288 Figure 4: Retrieval latency 
+
+8B). Similar improvements are observed on Hot-potQA, where KG-CQR yields a significant gain for the largest model (F1 = 0.700 vs. 0.663). The effect is most pronounced on MuSiQue, where KG-CQR + BM25 achieves F1 = 0.489 with LLaMA-3.3-70B compared to 0.374 for BM25, underscor-ing its effectiveness for complex multi-hop reason-ing (results with the BGE retriever are provided in Appendix A.2.1). ii) Contextualized reformu-lations reduce reasoning iterations : KG-CQR consistently decreases the average number of rea-soning steps. For example, on HotpotQA with LLaMA-3.3-70B, the number of steps is reduced from 1.465 to 1.280. This suggests that knowledge-grounded query reformulations provide more ac-curate intermediate evidence, enabling models to converge on answers with fewer redundant reason-ing cycles. iii) Cross-model scalability and ro-bustness : Performance gains are observed across different LLM sizes, highlighting the adaptability of KG-CQR. Notably, the improvements are more pronounced on datasets requiring deeper reasoning (e.g., RAGBench and MuSiQue), indicating that KG-CQR effectively complements LLM reasoning by supplying better-targeted retrieval contexts. 
+
+4.3.4 Retrieval Latency 
+
+Figure 4 compares the relative retrieval latency of the baseline HyDE with three KG-CQR variants: i) KG-CQR w/ Naive-BFS) : use basic BFS al-gorithm for subgraph completion; ii) KG-CQR w/o Sub.Comp. : removes the subgraph comple-tion module entirely; iii) KG-CQR(ours) : utilizes heuristic-guided Beam Search for more efficient subgraph completion. The analysis confirms that the proposed KG-CQR with Beam Search strikes an optimal balance between retrieval efficiency and reasoning capability. While KG-CQR with-out subgraph completion is the fastest, KG-CQR with Beam Search provides a more scalable and se-mantically expressive alternative with only modest additional cost. In contrast, HyDE and naive BFS approaches incur higher latency, making them less favorable for real-time or large-scale applications. 
+
+4.3.5 Complementarity with Other Methods 
+
+While KG-based methods such as GraphRAG (Edge et al., 2024) and HippoRAG (Gutierrez et al., 2024) emphasize corpus-centric expansion, KG-CQR focuses on query-centric reformulation. To assess their complementarity, we integrated KG-CQR with HippoRAG2 (Gutiérrez et al., 2025), as reported in Table 5. The integration yields Retrieval mAP Recall@5 Recall@10 Recall@25 BGE 0.221 0.249 0.304 0.410 KG-CQR +BGE 0.248 0.277 0.343 0.439 
+
+> Table 5: Retrieval performance of KG-CQR integrated with HippoRAG2 on MultiHop-QA dataset
+
+consistent improvements (e.g., mAP +0.027, Re-call@25 +0.029), showing that KG-CQR com-plements corpus-centric approaches by aligning queries more effectively with relevant evidence. The observed improvements suggest that combin-ing query-centric and corpus-centric KG-based techniques yields a more comprehensive retrieval framework, capable of strengthening both contex-tual grounding and coverage in multi-hop QA tasks. 
+
+5 Conclusion 
+
+This study presented KG-CQR, a novel retrieval framework that leverages knowledge graphs to en-hance contextual query retrieval in RAG systems. By combining subgraph extraction and completion with structured relation representations, KG-CQR enriches query semantics and improves alignment with document embeddings. Experiments on RAG-Bench and MultiHop-RAG show consistent gains in retrieval performance, while analyses highlight the critical role of textual triplet representation and subgraph completion. Further evaluations on multi-step reasoning RAG tasks indicate improved accu-racy while reducing redundant reasoning steps. 16289 Limitations 
+
+Although KG-CQR demonstrates promising results, several limitations warrant consideration for future improvements: 
+
+KG Construction Challenges : The construction of the corpus-centric knowledge graph relies heav-ily on external LLMs, such as LLaMA-3.3-70B, for entity and relation extraction. This process is susceptible to errors in named entity recognition (NER), relation extraction (RE), and entity linking (EL), which can propagate through the pipeline and affect the quality of the extracted subgraph. In do-mains with sparse or noisy unstructured data, the resulting KG may lack completeness or accuracy, limiting the effectiveness of KG-CQR. 
+
+Scalability of Subgraph Extraction : The sub-graph extraction process, while effective, can be computationally intensive for large-scale knowl-edge graphs with millions of triples. Sentence-level semantic similarity computation with textual triplet representations (TTRs) increases computa-tional overhead, potentially limiting scalability in real-time retrieval systems or resource-constrained environments. 
+
+Limited Evaluation Scope : The current evalua-tion of KG-CQR is restricted to several benchmark datasets. While these datasets are diverse, they may not fully reflect the range and complexity of real-world retrieval scenarios. To more rigorously assess the generalizability of the proposed frame-work, future work should include evaluations on additional datasets, particularly those that involve cross-lingual settings or highly domain-specific knowledge. 
+
+References 
+
+Hasan Abu-Rasheed, Christian Weber, and Madjid Fathi. 2024. Knowledge graphs as context sources for llm-based explanations of learning recommendations. In IEEE Global Engineering Education Conference, EDUCON 2024, Kos Island, Greece, May 8-11, 2024 ,pages 1–5. IEEE. Hiteshwar Kumar Azad and Akshay Deepak. 2019. Query expansion techniques for information retrieval: A survey. Inf. Process. Manag. , 56(5):1698–1735. Yejin Bang, Samuel Cahyawijaya, Nayeon Lee, Wen-liang Dai, Dan Su, Bryan Wilie, Holy Lovenia, Ziwei Ji, Tiezheng Yu, Willy Chung, Quyet V. Do, Yan Xu, and Pascale Fung. 2023. A multitask, multilin-gual, multimodal evaluation of chatgpt on reasoning, hallucination, and interactivity. In Proceedings of the 13th International Joint Conference on Natural Language Processing and the 3rd Conference of the Asia-Pacific Chapter of the Association for Compu-tational Linguistics, IJCNLP 2023 -Volume 1: Long Papers, Nusa Dua, Bali, November 1 - 4, 2023 , pages 675–718. Association for Computational Linguistics. Sebastian Bruch, Siyu Gai, and Amir Ingber. 2024. An analysis of fusion functions for hybrid retrieval. ACM Trans. Inf. Syst. , 42(1):20:1–20:35. Manh-Ha Bui, Toan Tran, Anh Tran, and Dinh Q. Phung. 2021. Exploiting domain-specific features to en-hance domain generalization. In Advances in Neural Information Processing Systems 34: Annual Confer-ence on Neural Information Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual , pages 21189–21201. Chi-Min Chan, Chunpu Xu, Ruibin Yuan, Hongyin Luo, Wei Xue, Yike Guo, and Jie Fu. 2024. RQ-RAG: learning to refine queries for retrieval augmented generation. CoRR , abs/2404.00610. Xinran Chen, Xuanang Chen, Ben He, Tengfei Wen, and Le Sun. 2024. Analyze, generate and refine: Query expansion with llms for zero-shot open-domain QA. In Findings of the Association for Computational Lin-guistics, ACL 2024, Bangkok, Thailand and virtual meeting, August 11-16, 2024 , pages 11908–11922. Association for Computational Linguistics. Wentao Ding, Jinmao Li, Liangchuan Luo, and Yuzhong Qu. 2024. Enhancing complex question answering over knowledge graphs through evidence pattern re-trieval. In Proceedings of the ACM on Web Confer-ence 2024, WWW 2024, Singapore, May 13-17, 2024 ,pages 2106–2115. ACM. Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, and Jonathan Larson. 2024. From local to global: A graph RAG approach to query-focused summariza-tion. CoRR , abs/2404.16130. Robert Friel, Masha Belyi, and Atindriyo Sanyal. 2024. Ragbench: Explainable benchmark for retrieval-augmented generation systems. CoRR ,abs/2407.11005. Jinlan Fu, See-Kiong Ng, Zhengbao Jiang, and Pengfei Liu. 2024. Gptscore: Evaluate as you desire. In Pro-ceedings of the 2024 Conference of the North Amer-ican Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers), NAACL 2024, Mexico City, Mexico, June 16-21, 2024 , pages 6556–6576. Association for Computational Linguistics. Luyu Gao, Xueguang Ma, Jimmy Lin, and Jamie Callan. 2023. Precise zero-shot dense retrieval without rel-evance labels. In Proceedings of the 61st Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers), ACL 2023, Toronto, Canada, July 9-14, 2023 , pages 1762–1777. Associa-tion for Computational Linguistics. 16290 Bernal Jimenez Gutierrez, Yiheng Shu, Yu Gu, Michi-hiro Yasunaga, and Yu Su. 2024. Hipporag: Neu-robiologically inspired long-term memory for large language models. In Advances in Neural Information Processing Systems 38: Annual Conference on Neu-ral Information Processing Systems 2024, NeurIPS 2024, Vancouver, BC, Canada, December 10 - 15, 2024 .Bernal Jiménez Gutiérrez, Yiheng Shu, Weijian Qi, Sizhe Zhou, and Yu Su. 2025. From RAG to memory: Non-parametric continual learning for large language models. CoRR , abs/2502.14802. Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick S. H. Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense passage retrieval for open-domain question answering. In Proceedings of the 2020 Conference on Empirical Methods in Nat-ural Language Processing, EMNLP 2020, Online, November 16-20, 2020 , pages 6769–6781. Associa-tion for Computational Linguistics. Xiaoxi Li, Jiajie Jin, Yujia Zhou, Yuyao Zhang, Peitian Zhang, Yutao Zhu, and Zhicheng Dou. 2025. From matching to generation: A survey on generative in-formation retrieval. ACM Trans. Inf. Syst. Just Ac-cepted. Xingxuan Li, Ruochen Zhao, Yew Ken Chia, Bosheng Ding, Shafiq Joty, Soujanya Poria, and Lidong Bing. 2024. Chain-of-knowledge: Grounding large lan-guage models via dynamic knowledge adapting over heterogeneous sources. In The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net. Yanming Liu, Xinyue Peng, Jiannan Cao, Shi Bo, Yanxin Shen, Xuhong Zhang, Sheng Cheng, Xun Wang, Jianwei Yin, and Tianyu Du. 2025. Bridging context gaps: Leveraging coreference resolution for long contextual understanding. In The Thirteenth In-ternational Conference on Learning Representations, ICLR 2025, Singapore, Apr 24-28, 2025 . OpenRe-view.net. Yaojie Lu, Qing Liu, Dai Dai, Xinyan Xiao, Hongyu Lin, Xianpei Han, Le Sun, and Hua Wu. 2022. Uni-fied structure generation for universal information extraction. In Proceedings of the 60th Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers), ACL 2022, Dublin, Ireland, May 22-27, 2022 , pages 5755–5772. Association for Computational Linguistics. Linhao Luo, Yuan-Fang Li, Gholamreza Haffari, and Shirui Pan. 2024. Reasoning on graphs: Faithful and interpretable large language model reasoning. In 
+
+The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net. Xinbei Ma, Yeyun Gong, Pengcheng He, Hai Zhao, and Nan Duan. 2023. Query rewriting in retrieval-augmented large language models. In Proceedings of the 2023 Conference on Empirical Methods in Natu-ral Language Processing, EMNLP 2023, Singapore, December 6-10, 2023 , pages 5303–5315. Association for Computational Linguistics. Shengyu Mao, Yong Jiang, Boli Chen, Xiao Li, Peng Wang, Xinyu Wang, Pengjun Xie, Fei Huang, Hua-jun Chen, and Ningyu Zhang. 2024. Rafe: Ranking feedback improves query rewriting for RAG. In Find-ings of the Association for Computational Linguis-tics: EMNLP 2024, Miami, Florida, USA, November 12-16, 2024 , pages 884–901. Association for Com-putational Linguistics. John X. Morris and Alexander M. Rush. 2024. Contex-tual document embeddings. CoRR , abs/2410.02525. Thi Nguyen, Linhao Luo, Fatemeh Shiri, Dinh Phung, Yuan-Fang Li, Thuy-Trang Vu, and Gholamreza Haf-fari. 2024. Direct evaluation of chain-of-thought in multi-hop reasoning with knowledge graphs. In Find-ings of the Association for Computational Linguistics, ACL 2024, Bangkok, Thailand and virtual meeting, August 11-16, 2024 , pages 2862–2883. Association for Computational Linguistics. Shirui Pan, Linhao Luo, Yufei Wang, Chen Chen, Ji-apu Wang, and Xindong Wu. 2024. Unifying large language models and knowledge graphs: A roadmap. 
+
+IEEE Trans. Knowl. Data Eng. , 36(7):3580–3599. Hoang Pham, Thanh-Do Nguyen, and Khac-Hoai Nam Bui. 2025a. ClaimPKG: Enhancing claim verifica-tion via pseudo-subgraph generation with lightweight specialized LLM. In Findings of the Association for Computational Linguistics: ACL 2025 , pages 5271–5290, Vienna, Austria. Association for Compu-tational Linguistics. Hoang Pham, Thanh-Do Nguyen, and Khac-Hoai Nam Bui. 2025b. Verify-in-the-graph: Entity disambigua-tion enhancement for complex claim verification with interactive graph representation. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Lin-guistics: Human Language Technologies (Volume 1: Long Papers) , pages 5181–5197, Albuquerque, New Mexico. Association for Computational Linguistics. Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J. Liu. 2020. Exploring the limits of transfer learning with a unified text-to-text trans-former. J. Mach. Learn. Res. , 21:140:1–140:67. Stephen E. Robertson and Hugo Zaragoza. 2009. The probabilistic relevance framework: BM25 and be-yond. Found. Trends Inf. Retr. , 3(4):333–389. Keshav Santhanam, Omar Khattab, Jon Saad-Falcon, Christopher Potts, and Matei Zaharia. 2022. Col-bertv2: Effective and efficient retrieval via lightweight late interaction. In Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Hu-man Language Technologies, NAACL 2022, Seattle, 16291 WA, United States, July 10-15, 2022 , pages 3715– 3734. Association for Computational Linguistics. Bhaskarjit Sarmah, Dhagash Mehta, Benika Hall, Ro-han Rao, Sunil Patel, and Stefano Pasquali. 2024. Hybridrag: Integrating knowledge graphs and vector retrieval augmented generation for efficient informa-tion extraction. In Proceedings of the 5th ACM Inter-national Conference on AI in Finance, ICAIF 2024, Brooklyn, NY, USA, November 14-17, 2024 , pages 608–616. ACM. Parth Sarthi, Salman Abdullah, Aditi Tuli, Shubh Khanna, Anna Goldie, and Christopher D. Manning. 2024. RAPTOR: recursive abstractive processing for tree-organized retrieval. In The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net. Jiashuo Sun, Chengjin Xu, Lumingyuan Tang, Saizhuo Wang, Chen Lin, Yeyun Gong, Lionel M. Ni, Heung-Yeung Shum, and Jian Guo. 2024. Think-on-graph: Deep and responsible reasoning of large language model on knowledge graph. In The Twelfth Inter-national Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . Open-Review.net. Yixuan Tang and Yi Yang. 2024. Multihop-rag: Bench-marking retrieval-augmented generation for multi-hop queries. CoRR , abs/2401.15391. Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal. 2022. Musique: Multi-hop questions via single-hop question composition. 
+
+Trans. Assoc. Comput. Linguistics , 10:539–554. Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal. 2023. Interleaving retrieval with chain-of-thought reasoning for knowledge-intensive multi-step questions. In Proceedings of the 61st Annual Meeting of the Association for Com-putational Linguistics (Volume 1: Long Papers), ACL 2023, Toronto, Canada, July 9-14, 2023 , pages 10014–10037. Association for Computational Lin-guistics. Liang Wang, Nan Yang, and Furu Wei. 2023. Query2doc: Query expansion with large language models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Process-ing, EMNLP 2023, Singapore, December 6-10, 2023 ,pages 9414–9423. Association for Computational Linguistics. Yuqi Wang, Boran Jiang, Yi Luo, Dawei He, Peng Cheng, and Liangcai Gao. 2024a. Reasoning on efficient knowledge paths: Knowledge graph guides large language model for domain question answering. 
+
+CoRR , abs/2404.10384. Yuxia Wang, Minghan Wang, Muhammad Arslan Man-zoor, Fei Liu, Georgi Georgiev, Rocktim Jyoti Das, and Preslav Nakov. 2024b. Factuality of large lan-guage models: A survey. In Proceedings of the 2024 Conference on Empirical Methods in Natural Lan-guage Processing, EMNLP 2024, Miami, FL, USA, November 12-16, 2024 , pages 19519–19529. Associ-ation for Computational Linguistics. Yu Xia, Junda Wu, Sungchul Kim, Tong Yu, Ryan A. Rossi, Haoliang Wang, and Julian McAuley. 2025. Knowledge-aware query expansion with large lan-guage models for textual and relational retrieval. In 
+
+Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Com-putational Linguistics: Human Language Technolo-gies (Volume 1: Long Papers) , pages 4275–4286, Albuquerque, New Mexico. Association for Compu-tational Linguistics. Shitao Xiao, Zheng Liu, Peitian Zhang, Niklas Muen-nighoff, Defu Lian, and Jian-Yun Nie. 2024. C-pack: Packed resources for general chinese embeddings. In 
+
+Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Infor-mation Retrieval, SIGIR 2024, Washington DC, USA, July 14-18, 2024 , pages 641–649. ACM. Yao Xu, Shizhu He, Jiabei Chen, Zihao Wang, Yangqiu Song, Hanghang Tong, Guang Liu, Jun Zhao, and Kang Liu. 2024. Generate-on-graph: Treat LLM as both agent and KG for incomplete knowledge graph question answering. In Proceedings of the 2024 Con-ference on Empirical Methods in Natural Language Processing, EMNLP 2024, Miami, FL, USA, Novem-ber 12-16, 2024 , pages 18410–18430. Association for Computational Linguistics. Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Ben-gio, William W. Cohen, Ruslan Salakhutdinov, and Christopher D. Manning. 2018. Hotpotqa: A dataset for diverse, explainable multi-hop question answer-ing. In Proceedings of the 2018 Conference on Em-pirical Methods in Natural Language Processing, Brussels, Belgium, October 31 - November 4, 2018 ,pages 2369–2380. Association for Computational Linguistics. Hongbin Ye, Ningyu Zhang, Hui Chen, and Huajun Chen. 2022. Generative knowledge graph construc-tion: A review. In Proceedings of the 2022 Con-ference on Empirical Methods in Natural Language Processing, EMNLP 2022, Abu Dhabi, United Arab Emirates, December 7-11, 2022 , pages 1–17. Associ-ation for Computational Linguistics. Le Zhang, Yihong Wu, Qian Yang, and Jian-Yun Nie. 2024. Exploring the best practices of query expan-sion with large language models. In Findings of the Association for Computational Linguistics: EMNLP 2024, Miami, Florida, USA, November 12-16, 2024 ,pages 1872–1883. Association for Computational Linguistics. Shunyu Zhang, Yaobo Liang, Ming Gong, Daxin Jiang, and Nan Duan. 2022. Multi-view document repre-sentation learning for open-domain dense retrieval. In Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 16292 1: Long Papers), ACL 2022, Dublin, Ireland, May 22-27, 2022 , pages 5990–6000. Association for Com-putational Linguistics. Yuqi Zhu, Xiaohan Wang, Jing Chen, Shuofei Qiao, Yixin Ou, Yunzhi Yao, Shumin Deng, Huajun Chen, and Ningyu Zhang. 2024. Llms for knowledge graph construction and reasoning: recent capabilities and future opportunities. World Wide Web (WWW) ,27(5):58. 
+
+A Appendix 
+
+A.1 GPT-score Criteria 
+
+Following the work in (Fu et al., 2024), we define the GPT-Score with three criteria for the measure-ment as follows: • Correctness : alignment of the generated an-swer with the reference answer • Faithfulness : whether the generated answer remains true to the given context • Relevance : how well the retrieved context and the generated answer address the query 
+
+A.2 Comprehensive Experimential Results A.2.1 Multi-Step Retrieval for RAG with BGE 
+
+Building on the earlier analysis (Table 4), Table 6 presents results for multi-step reasoning RAG performance using BGE as the retrieval baseline, along with KG-CQR. The key observations are as follows: i) Dense retrieval outperforms sparse re-trieval across all model sizes : BGE consistently outperforms BM25 in terms of F1 score and GPT-Score, which demonstrates that dense retrieval via BGE retrieves more semantically relevant contexts than BM25, supporting more accurate and efficient reasoning; ii) KG-CQR improves both BM25 and BGE retrieval : Adding KG-CQR on top of both BM25 and BGE enhances performance by enriching the query with context-relevant knowl-edge. Although the improvement margin is nar-rower in the BGE setting, KG-CQR still consis-tently enhances performance, highlighting its gen-erality across retrieval methods. 
+
+A.2.2 Fusion Embeddings Experiments 
+
+Table 7 shows the comprehensive evaluation on the value of α to fuse the input query and context em-beddings (Equation 9). As results, setting α = 0 .7
+
+consistently yields the best overall performance. Model Retrieval F1 ↑ Iter ↓ Score ↑                                                         
+
+> RAGBench
+> LLaMA-3.2-3B 0.411 2.665 3.242 LLaMA-3.1-8B BGE 0.434 2.272 3.528 LLaMA-3.3-70B 0.448 1.480 3.576 LLaMA-3.2-3B KG-CQR +BGE 0.432 2.378 3.317 LLaMA-3.1-8B 0.438 1.812 3.532 LLaMA-3.3-70B 0.452 1.230 3.878
+> HotpotQA
+> LLaMA-3.2-3B 0.639 2.349 3.927 LLaMA-3.1-8B BM25 0.670 2.377 4.113 LLaMA-3.3-70B 0.675 1.402 4.222 LLaMA-3.2-3B KG-CQR +BM25 0.652 2.2240 4.170 LLaMA-3.1-8B 0.688 2.188 4.278 LLaMA-3.3-70B 0.725 1.152 4.320
+> MuSiQue
+> LLaMA-3.2-3B 0.143 3.215 2.206 LLaMA-3.1-8B BM25 0.203 3.050 2.679 LLaMA-3.3-70B 0.479 1.015 3.908 LLaMA-3.2-3B KG-CQR +BM25 0.175 3.066 2.532 LLaMA-3.1-8B 0.237 2.868 2.851 LLaMA-3.3-70B 0.507 1.936 3.963
+
+Table 6: Multi-step reasoning RAG performance across various datasets 
+
+Sequentially, Table 8 and Table 9 demonstrate the full experimental results across various back-bones, including LLaMA-3.2-3 B and LLaMA-3.1-8B, respectively. Similar to the results on LLaMA-3.3-70B, the KG-CQR + BGE backbone at α = 0.7 yields the best performance for both models, in which LLaMA-3.1-8B shows slight im-provements over LLaMA-3.2-3B, particularly in MultiHop-RAG tasks. 
+
+A.3 BFS with Beam Search Algorithm 
+
+Algorithm 2 presents the pseudocode for the BFS with Beam Search. Given the hyperparameter Beam width (e.g., equal to 3), the algorithm ex-plores explicit paths (triplets) that represent mean-ingful connections between entities within the given subgraph. 
+
+A.4 Error Analysis with Examples 
+
+To better understand the behavior of the KG-CQR, we performed a qualitative error analysis on six rep-resentative multi-hop queries from the MultiHop-RAG dataset with three corrected retrievals (Table 10) and three with incorrect retrievals (Table 11). We compared the outputs of KG-CQR against those of HyDE and the human-annotated Ground Truth. 16293 RAGBench MultiHop-RAG 
+
+Backbone mAP Recall@5 Recall@10 Recall@25 mAP Recall@5 Recall@10 Recall@25 
+
+α = 0.3 KG-CQR + DPR 0.320 0.325 0.385 0.462 0.143 0.169 0.239 0.354 KG-CQR + BGE 0.528 0.513 0.596 0.664 0.224 0.247 0.350 0.499 
+
+α = 0.5 KG-CQR + DPR 0.323 0.327 0.391 0.469 0.140 0.165 0.237 0.351 KG-CQR + BGE 0.539 0.527 0.609 0.676 0.235 0.253 0.364 0.515 
+
+α = 0.7 KG-CQR + DPR 0.316 0.319 0.384 0.462 0.129 0.157 0.224 0.340 KG-CQR + BGE 0.542 0.529 0.610 0.675 0.240 0.261 0.371 0.525 
+
+Table 7: Fusion embedding results of LLaMA-3.3-70B under different settings of α
+
+RAGBench MultiHop-RAG 
+
+Backbone mAP Recall@5 Recall@10 Recall@25 mAP Recall@5 Recall@10 Recall@25 
+
+α = 0.3 KG-CQR + DPR 0.312 0.319 0.382 0.458 0.129 0.152 0.221 0.337 KG-CQR + BGE 0.517 0.505 0.588 0.661 0.203 0.225 0.332 0.481 
+
+α = 0.5 KG-CQR + DPR 0.319 0.327 0.388 0.465 0.132 0.156 0.225 0.341 KG-CQR + BGE 0.531 0.520 0.602 0.669 0.219 0.239 0.350 0.507 
+
+α = 0.7 KG-CQR + DPR 0.313 0.319 0.384 0.460 0.125 0.151 0.219 0.335 KG-CQR + BGE 0.537 0.524 0.604 0.672 0.230 0.251 0.366 0.522 
+
+Table 8: Fusion embedding results of LLaMA-3.2-3B under different settings of α
+
+RAGBench MultiHop-RAG 
+
+Backbone mAP Recall@5 Recall@10 Recall@25 mAP Recall@5 Recall@10 Recall@25 
+
+α = 0.3 KG-CQR + DPR 0.325 0.329 0.391 0.462 0.138 0.166 0.234 0.352 KG-CQR + BGE 0.523 0.509 0.591 0.659 0.216 0.237 0.341 0.489 
+
+α = 0.5 KG-CQR + DPR 0.327 0.330 0.394 0.467 0.136 0.162 0.233 0.351 KG-CQR + BGE 0.535 0.522 0.603 0.669 0.227 0.247 0.359 0.510 
+
+α = 0.7 KG-CQR + DPR 0.318 0.322 0.387 0.462 0.127 0.151 0.220 0.338 KG-CQR + BGE 0.538 0.526 0.606 0.672 0.236 0.255 0.370 0.522 
+
+Table 9: Fusion embedding results of LLaMA-3.1-8B under different settings of α
+
+Based on the results in Table 10, there are sev-eral assumptions as follows: i) KG-CQR demon-strates strong performance in disambiguating enti-ties. For instance, in the query “Did one of CBS’s performers create a scandal?”, KG-CQR retrieves documents specifically related to the mentioned performer and event. This shows that incorporating knowledge graph information improves precision by retrieving documents more closely aligned with the query context; ii) In time-sensitive queries like “Which events occurred in Week 12?”, KG-CQR accurately retrieves temporally relevant content, whereas HyDE often returns general or loosely con-nected documents. This suggests that KG signals enhance temporal grounding in multi-hop retrieval tasks; iii) For bridge-type queries that require chain-ing multiple pieces of information (e.g., “Does the article from Wendy refer to the same city?”), KG-16294 Algorithm 2 BFS Algorithm with Beam Search  
+
+> 1:
+
+function BFSB EAM (TKG , es, et, Tset , L) 
+
+> 2:
+
+Q ← Queue ({⟨ es, ∅⟩} ); P ← ∅  
+
+> 3:
+
+Load Embedding mode: enc  
+
+> 4:
+
+vq ← q̸ = ∅?enc (q) : None  
+
+> 5:
+
+S ← ∅  
+
+> 6:
+
+W ← 3 ▷ Beam width for Beam Search  
+
+> 7:
+
+while Q̸ = ∅ do  
+
+> 8:
+
+(node , p ) ← Q. dequeue ()  
+
+> 9:
+
+if |p| > L then  
+
+> 10:
+
+continue  
+
+> 11:
+
+end if  
+
+> 12:
+
+if node = et and p̸ = ∅ then  
+
+> 13:
+
+P ← P ∪ { p} 
+
+> 14:
+
+end if  
+
+> 15:
+
+if node = et then  
+
+> 16:
+
+continue  
+
+> 17:
+
+end if  
+
+> 18:
+
+for {u, r, v, TTR } ∈ TKG (u, v, r )
+
+where u = node do  
+
+> 19:
+
+if v / ∈ p. entities then  
+
+> 20:
+
+vp ← enc (TTR ) 
+
+> 21:
+
+s ← vq̸ =
+
+None ?Mean (cos( vp, v q)) : 0  
+
+> 22:
+
+pnew ← p ∪ { u, r, v } 
+
+> 23:
+
+S ← S ∪ { (pnew , s )} 
+
+> 24:
+
+end if  
+
+> 25:
+
+end for  
+
+> 26:
+
+Sort S by score descending  
+
+> 27:
+
+for (pnew , s ) ∈ S take top W do  
+
+> 28:
+
+u ← pnew .last_node  
+
+> 29:
+
+Q. enqueue (( u, p new ))  
+
+> 30:
+
+end for  
+
+> 31:
+
+S ← ∅  
+
+> 32:
+
+end while  
+
+> 33:
+
+return P 
+
+> 34:
+
+end function 
+
+CQR performs well by retrieving documents that correctly capture the intermediate and final entities. This indicates improved multi-hop coherence over baseline methods. Despite these strengths, the proposed KG-CQR shows notable limitations in the following areas (Table 11): i) Contextual Drift and Irrelevant Retrievals : KG-CQR struggles with queries re-quiring fine-grained temporal reasoning, compara-tive analysis, or interpretation of subjective content. These limitations stem from insufficient temporal representation and the lack of deep semantic mod-eling needed to capture nuanced relationships and contrasting viewpoints; ii) Limited Multi-hop Co-herence : For queries requiring reasoning across multiple documents, KG-CQR sometimes retrieved disconnected evidence, failing to form a complete answer path. 
+
+A.5 Prompt Template 
+
+For better reproducibility, we present all prompt templates in the appendix. Below is a quick refer-ence list outlining the prompt templates and their usages: • Figure 5: Prompt the task instruction for KG construction. • Figure 6: Prompt the task instruction for tex-tual triplet representation. • Figure 7: Prompt the task instruction for fil-tering irrelevant triplets. • Figure 8: Prompt the task instruction for con-textual generation. 16295 Query q HyDE@5 KG-CQR@5 Ground Truth 
+
+Did the CBSS-ports.com article report Kenneth Walker III remain-ing healthy and uninjured during a game, similarly to how the Sporting News article reports injuries for Tee Higgins, Noah Brown, Treylon Burks, and Kadarius Toney preventing their participation in Week 12? 
+
+D1: Meanwhile, corner CJ Henderson (concussion) was a full participant on Fri-day and carries no designation heading into the weekend...’ 
+
+D2: He left Week 2 after suffering a concussion and was absent in Week 3; then was not part of the game plan much in Week 4 (7.7% target share against Philadelphia)...’ 
+
+D3: He was ruled questionable to re-turn. NFL Media reported on Monday that Kupp suffered a low ankle sprain and will be evaluated going forward...’ 
+
+D4: Geno Smith’s struggles complicate their fantasy prospects, as well...’ 
+
+D5: Head coach Ron Rivera called the injury "significant" earlier this week...’ 
+
+D1: Geno Smith’s struggles complicate their fantasy prospects, as well...’ 
+
+D2: Meanwhile, corner CJ Henderson (concussion) was a full participant on Fri-day and carries no designation heading into the weekend...’ 
+
+D3: When asked if that means for Thurs-day’s matchup against San Francisco, the coach said, "I would think so."...’ 
+
+D4: Week 11 of the 2023 NFL season has provided plenty of drama, from the Bears hanging with the Lions to the Gi-ants getting a rebound from emergency quarterback Tommy DeVito...’ 
+
+D5: Miami ruled him questionable to re-turn with a knee injury, and while he later returned to the sidelines from a locker-room visit, he was replaced on the field indefinitely by Raheem Mostert...’ 
+
+D1: When asked if that means for Thurs-day’s matchup against San Francisco, the coach said, "I would think so."...’ 
+
+D2: Geno Smith’s struggles complicate their fantasy prospects, as well...’ 
+
+D3: Walker’s struggled under center, Tillman is set up for a high-usage day against the Rams with Amari Cooper (ribs) banged up...’ 
+
+D4: Miami ruled him questionable to re-turn with a knee injury, and while he later returned to the sidelines from a locker-room visit, he was replaced on the field indefinitely by Raheem Mostert...’ Does the article from Wired suggest that Sony head-phones do not offer the best value in their class during the Walmart Cyber Mon-day Deals, while the article from Music Business Worldwide indicates that Artists are seeking deals that offer more control and better economics, or do both articles suggest a common trend in seeking value and control in their respective fields? 
+
+D1: Black Friday is often a boon for deals on headphones and earbuds, and this year is no different...’ 
+
+D2: Engadget has been testing and re-viewing consumer tech since 2004. Our stories may include affiliate links; if you buy something through a link, we may earn a commission...’ 
+
+D3: But in both the case of Universal Music Group and Warner Music Group, they’re – currently anyway – not the biggest megastars on either company’s books...’ 
+
+D4: This is one of the few sales we’ve seen all year, which makes their very high asking price a lot more palatable...’ 
+
+D5: Nothing is more frustrating than buy-ing a new pair of headphones, an OLED TV, or a backpack just to find out that you could have gotten it for a lot cheaper somewhere else...’ 
+
+D1: They’re light on extras like noise canceling but at this price, they’re a great investment as your go-to workout com-panions...’ 
+
+D2: Black Friday is often a boon for deals on headphones and earbuds, and this year is no different...’ 
+
+D3: Luckily they’ve already gotten a discount, which makes it easier to land their class-leading noise canceling, great sound, and luxuriously comfy design that’s loaded with modern features...’ 
+
+D4: Engadget has been testing and re-viewing consumer tech since 2004. Our stories may include affiliate links; if you buy something through a link, we may earn a commission. Read more about how we evaluate products...’ 
+
+D1: This is one of the few sales we’ve seen all year, which makes their very high asking price a lot more palatable...’ 
+
+D1: Spanish and Latin artists have much more options to develop their audiences and monetize their music at each stage of their career...’ 
+
+D2: They’re light on extras like noise canceling but at this price, they’re a great investment as your go-to workout com-panions...’ Which company, covered by both TechCrunch and The Verge, is not only claimed to have developed an AI model with superior architecture that rivals GPT-4 but also has been accused of altering the internet’s appear-ance and harming news publishers’ bottom lines through anticompetitive practices? 
+
+D1: Hey, folks, welcome to Week in Review (WiR), TechCrunch’s regular newsletter that recaps the past few days in tech. AI stole the headlines once again, with tech giants from Google to X (for-merly Twitter) heading off against Ope-nAI for chatbot supremacy...’ 
+
+D2: And on a company level, Meta is do-ing all it can to encourage collaboration and “openness,” recently partnering with Hugging Face to launch a new startup accelerator designed to spur adoption of open source AI models...’ 
+
+D3: Google, OpenAI and Microsoft, a close OpenAI partner and investor, have been among the chief critics of Meta’s open source AI approach, arguing that it’s potentially dangerous and disinformation-encouraging...’ 
+
+D4: By 2020, the Knowledge Graph had grown to 500 billion facts about 5 billion entities. But much of the “collective in-telligence” that Google tapped into was content “misappropriated from Publish-ers,” the complaint alleges...’ 
+
+D5: The lawsuit reiterates this concern, claiming that Google’s recent advances in AI-based search were implemented with “the goal of discouraging end-users from visiting the websites of Class members who are part of the digital news and pub-lishing line of commerce.”...’ 
+
+D1: A new class action lawsuit filed this week in the U.S. District Court in D.C. accuses Google and parent company Al-phabet of anticompetitive behavior in vi-olation of U.S. antitrust law, the Sherman Act, and others, on behalf of news pub-lishers...’ 
+
+D2: This week, Google took the wraps off of Gemini, its new flagship genera-tive AI model meant to power a range of products and services including Bard, Google’s ChatGPT competitor...’ 
+
+D3: The lawsuit reiterates this concern, claiming that Google’s recent advances in AI-based search were implemented with “the goal of discouraging end-users from visiting the websites of Class members who are part of the digital news and pub-lishing line of commerce.”...’ 
+
+D4: By 2020, the Knowledge Graph had grown to 500 billion facts about 5 billion entities. But much of the “collective in-telligence” that Google tapped into was content “misappropriated from Publish-ers,” the complaint alleges...’ 
+
+D5: Hey, folks, welcome to Week in Review (WiR), TechCrunch’s regular newsletter that recaps the past few days in tech. AI stole the headlines once again, with tech giants from Google to X (for-merly Twitter) heading off against Ope-nAI for chatbot supremacy...’ 
+
+D1: “I used to do those types of tactics, so I couldn’t hate on anybody personally,” she said. “If people have a problem with Google’s results, they have to ask them-selves, is it the fault of the SEOs?” she asked...’ 
+
+D2: A new class action lawsuit filed this week in the U.S. District Court in D.C. accuses Google and parent company Al-phabet of anticompetitive behavior in vi-olation of U.S. antitrust law, the Sherman Act, and others, on behalf of news pub-lishers...’ 
+
+D3: Sure, she called herself a “thought leader,” and yes, sure, she had changed her last name to improve her personal branding by more closely associating her-self with her grandmother’s uncle, the artist Man Ray...’ 
+
+D4: This week, Google took the wraps off of Gemini, its new flagship genera-tive AI model meant to power a range of products and services including Bard, Google’s ChatGPT competitor...’ 
+
+Table 10: Examples of KG-CQR with correctly retrieved documents. Blue texts are corrected retrieved documents 16296 Query q HyDE@5 KG-CQR@5 Ground Truth 
+
+Has the approach of Sportsbooks in ad-justing betting lines and odds, as re-ported by Sporting News after October 4, 2023, and be-fore November 1, 2023, remained con-sistent? 
+
+D1: For instance, when examining odds for the next Super Bowl champion re-leased shortly after the previous Super Bowl, these odds are based mostly on the recently concluded season... 
+
+D2: They are basing their odds on past performance and expected future accom-plishments, as well as the quality of the team around the top candidates for the award. Thus, the odds are quite favor-able... 
+
+D3: When such information becomes public, sportsbooks may adjust the odds accordingly. Professional Bettors: Large wagers from sharp bettors or professional gamblers can cause the lines to shift... 
+
+D4: The past few weeks of the 2023 NFL season have reminded us that no matter how smooth you sail to start the voyage, choppy waters will surely come at some point... 
+
+D5: Let’s say the Chiefs win by exactly three, a distinct possibility since a single field goal decides most NFL games... 
+
+D1: For instance, when examining odds for the next Super Bowl champion re-leased shortly after the previous Super Bowl, these odds are based mostly on the recently concluded season... 
+
+D2: When such information becomes public, sportsbooks may adjust the odds accordingly. Professional Bettors: Large wagers from sharp bettors or professional gamblers can cause the lines to shift... 
+
+D3: They are basing their odds on past performance and expected future accom-plishments, as well as the quality of the team around the top candidates for the award... 
+
+D4: The past few weeks of the 2023 NFL season have reminded us that no matter how smooth you sail to start the voyage, choppy waters will surely come at some point. We started the first six weeks with a best bets winning percentage of well over ... 
+
+D5: Do point spread odds change? Yes, point spread odds can change, and these shifts are commonly referred to as "line movement." 
+
+D1: It’s important to note that in PGA and other golf tournaments, there are usu-ally many players, so the odds can be much higher than in head-to-head sports matchups, given the broader field of com-petition... 
+
+D2: BetMGM Sportsbook: As one of the most recognizable names in the gam-bling industry, BetMGM knows how to attract and keep customers with compet-itive odds for all bet types, including fu-tures bets and the NBA Rookie of the Year... 
+
+D3: When the lines are first released for NBA ROTY honors, the season hasn’t even started yet, so there are no statistics, trends, or player news... 
+
+D4: Does overtime count in my money-line bet? Yes, in most sports and with most sports-books (including new betting sites), over-time (or any extra time or tiebreakers) does count in a moneyline bet. Does the TechCrunch ar-ticle on generative AI in the enterprise suggest that CIOs are more cautious in their AI adoption strategy compared to the belief of business leaders mentioned in an-other TechCrunch article, who think AI will be essential for all businesses within five years? 
+
+D1: To hear the hype from vendors, you would think that enterprise buyers are all in when it comes to generative AI. But like any newer technology, large compa-nies tend to move cautiously... 
+
+D2: I’d venture to guess more expo-sure for its burgeoning generative AI plat-form... 
+
+D3: Expect more moves like that from 2024’s OpenAI as the caution and aca-demic reserve that the previous board ex-erted gives way to an unseemly lust for markets and customers... 
+
+D4: Google, OpenAI and Microsoft, a close OpenAI partner and investor, have been among the chief critics of Meta’s open source AI approach, arguing that it’s potentially dangerous and disinformation-encouraging... 
+
+D5: The NMPA’s submission, dated Oc-tober 30, 2023, pulls no punches. It starts off by stressing that its member-ship – US music publishers major and independent – are “not opposed” to AI... 
+
+D1: To hear the hype from vendors, you would think that enterprise buyers are all in when it comes to generative AI... 
+
+D2: I’d venture to guess more exposure for its burgeoning generative AI platform. IBM’s most recent earnings were boosted by enterprises’ interest in generative AI, but the company has stiff competition in Microsoft and OpenAI... 
+
+D4: Expect more moves like that from 2024’s OpenAI as the caution and aca-demic reserve that the previous board ex-erted gives way to an unseemly lust for markets and customers... 
+
+D4: The NMPA’s submission, dated Oc-tober 30, 2023, pulls no punches. It starts off by stressing that its member-ship – US music publishers major and independent – are “not opposed” to AI...’ 
+
+D5: Google On generative AI, Google’s report dis-cusses “recent progress in large-scale AI models” which it suggests... 
+
+D1: “So we’ve been doing this whole push for AI over the last maybe six or nine months and we’re at the point right now where we’re building specific use cases for each different team and func-tion within the firm.”... 
+
+D2: Third, the application is only as so-phisticated as the data that it is fed. Pro-prietary data is necessary for specific and relevant insights and to ensure others can-not replicate the final product... 
+
+D3: That’s going to take setting up some structure and organization around how this gets implemented over time, says Jim Rowan, principal at Deloitte, who is working with clients around how to build generative AI across companies in an or-ganized fashion... Does ’The Indepen-dent - Life and Style’ article suggesting Prince William’s emotional state regarding Princess Diana’s death align with the same pub-lication’s depiction of the events leading up to her death in ’The Crown season six’? 
+
+D1: He is not located, but later walks back to the house on his own accord, drenched in rain. “14 hours, that poor boy was gone,” the Queen later says... 
+
+D2: The show also features the pair’s death in a car crash in Paris. As the new season arrives, and fans won-der what in The Crown is based in reality, here’s everything you need to know... 
+
+D3: She then poses for them in her swim-suit, but complains in a later episode that they can “never relax” with the press “constantly” around... 
+
+D4: After staying several days on Mo-hamed Al Fayed’s yacht, the boys return home to London where their father, the then-Prince of Wales, accompanies them to Balmoral Castle to vacation with the rest of the royal family in Scotland... 
+
+D5: During the interview, the outlet noted that Smith said his wife’s memoir “kind of woke him up” and that he has now re-alised she is more... 
+
+D1: The show also features the pair’s death in a car crash in Paris. As the new season arrives, and fans won-der what in The Crown is based in reality, here’s everything you need to know... 
+
+D2: He is not located, but later walks back to the house on his own accord, drenched in rain. “14 hours, that poor boy was gone,” the Queen later says... 
+
+D3: After staying several days on Mo-hamed Al Fayed’s yacht, the boys return home to London where their father, the then-Prince of Wales, accompanies them to Balmoral Castle to vacation with the rest of the royal family in Scotland... 
+
+D4: She then poses for them in her swim-suit, but complains in a later episode that they can “never relax” with the press “constantly” around... 
+
+D5: Asks the Queen if she’d received the invitation to Camilla’s 50th birthday, to which she says she has, but cannot attend as she’s in Derbyshire... 
+
+D1: Stay ahead of the trend in fashion and beyond with our free weekly Lifestyle Edit newsletter Stay ahead of the trend in fashion and beyond with our free weekly Lifestyle Edit newsletter Please enter a valid email address... 
+
+D2: However, at the inquest into the death in 2007, the jury were shown CCTV footage of him purchasing an engagement ring worth £11,600 in a jewellers across the square from the Ritz on the afternoon of the crash... 
+
+Table 11: Examples of KG-CQR with incorrectly retrieved documents. Red texts indicate notable limitations of KG-CQR in several areas, such as contextual drift or limited complex multi-hop coherence 16297 You are a top-tier algorithm designed for extracting information in " "structured formats to build a knowledge graph. Your task is to 
+
+identify " "the entities and relations requested with the user prompt from a given " "text. 
+
+You must generate the output in a JSON format containing a list " 'with JSON objects. Each object should have the keys: "head", ' 
+
+'"head_type", "relation", "tail", and "tail_type". The "head" ' "key must contain the text of the extracted entity with one of the types " 
+
+"from the provided list in the user prompt.  The "head_type" key must contain the type of the extracted head entity, which must be 
+
+one of the types from {node_labels_str}. 
+
+if node_labels else " ", The "relation" key must contain the type of relation between the "head" ' and the "tail", which must be one of 
+
+the relations from {rel_types_str}.' 
+
+if rel_types else "", The "tail" key must represent the text of an extracted entity which is  the tail of the relation, and the "tail_type" key 
+
+must contain the type  of the tail entity from {node_labels_str}. 
+
+if node_labels else "", "Attempt to extract as many entities and relations as you can. Maintain " "Entity Consistency: When extracting 
+
+entities, it's vital to ensure " 'consistency. 
+
+If an entity, such as "John Doe", is mentioned multiple ' "times in the text but is referred to by different names or pronouns " '(e.g., 
+
+"Joe", "he"), always use the most complete identifier for ' "that entity. 
+
+The knowledge graph should be coherent and easily " "understandable, so maintaining consistency in entity references is " 
+
+"crucial.", 
+
+"IMPORTANT NOTES:\n- Don't add any explanation and text.", 
+
+Instruction Prompt for LLM-Powered Graph Construction Figure 5: Prompt the task instruction for KG construction You are an expert in extracting information from text, your task is to find pieces of information that mention the relationship of two 
+
+objects in the relationship and synthesize them into one paragraph. 
+
+The summary paragraph must be written in English. The response MUST be the summary only without any explanation. 
+
+Passage: {} 
+
+Triplets: {} 
+
+Instruction Prompt for  LLM-Powered Textual  Triplet Representation 
+
+(Equation 2) 
+
+Figure 6: Prompt the task instruction for textual triplet representation. You are a grader assessing relevance of a list of retrieved passages to a user question. The goal is to filter out erroneous 
+
+retrievals. 
+
+Return only the passage index whether the passage is relevant to the question. Provide the output as a JSON with passage 
+
+index seperated by a comma and no premable or explanation. 
+
+Here is the list of retrieved text: {text} 
+
+Here is the user question: {question} 
+
+Instruction Prompt for Filtering Triplets (Equation 7) 
+
+Figure 7: Prompt the task instruction for filtering irrelevant triplets You are a helpful assistant responsible for generating a comprehensive summary of the data provided below. Given the list of 
+
+triplets that may relation with each other. Please write a Concise summary of triplets that aim to provide a contextual information. 
+
+The output just generate a concise summary without any explanation. 
+
+Please note that if the provided triplets are contradictory, please resolve the contradictions and provide a single, coherent 
+
+summary (no need Here is part) 
+
+Input Triplets: {triplets} 
+
+Instruction Prompt for Contextual Generation (Equation 8) 
+
+Figure 8: Prompt the task instruction for contextual representation 16298

@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/acl-2026-findings/anthology-2026.findings-acl.785/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1637,
+      "height": 1016,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2026-findings/anthology-2026.findings-acl.785/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1643,
+      "height": 375,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2026-findings/anthology-2026.findings-acl.785/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1662,
+      "height": 938,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2026-findings/anthology-2026.findings-acl.785/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 1656,
+      "height": 232,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2026-findings/anthology-2026.findings-acl.785/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 1736,
+      "height": 581,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/acl-2026-findings/anthology-2026.findings-acl.785/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 1659,
+      "height": 2164,
+      "label": "Table"
+    }
+  ]
+}
