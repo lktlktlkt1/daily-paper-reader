@@ -1,0 +1,39 @@
+{
+  "label": "2026-07-18",
+  "date": "2026-07-18",
+  "generated_at": "2026-07-18T21:03:41",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202607/18/2607.10562v1-crit-qa-evaluating-multi-hop-reasoning-with-counterfactual-chains-and-distractor-traps",
+      "section": "quick",
+      "title_en": "CRiT-QA: Evaluating Multi-hop Reasoning with Counterfactual Chains and Distractor Traps",
+      "authors": "JungMin Yun, JuneHyoung Kwon, YoungBin Kim",
+      "date": "2026-07-12",
+      "pdf": "https://arxiv.org/pdf/2607.10562v1",
+      "score": "7.0",
+      "evidence": "用于多跳推理的基准，采用反事实链和干扰陷阱强制上下文依赖",
+      "tldr": "当前多跳问答评测中，大语言模型常依赖内部参数知识而忽略提供上下文，或利用单文档线索、类型匹配等捷径规避多步推理聚合，导致性能虚高。我们构建CRiT-QA数据集，将事实推理链转换为反事实实体，并注入多锚点干扰链作为错误推理陷阱，强制模型全程依赖上下文进行多跳推理。实验表明，多个LLM在CRiT-QA上性能相较标准数据集显著下降，凸显其反事实条件下的脆弱性。CRiT-QA成为严格诊断真实多跳推理能力的工具，为开发基于证据的可靠语言模型奠定基础。",
+      "tags": "query:agentic-rag",
+      "abstract_en": "Evaluating the multi-hop reasoning capabilities of large language models remains a significant challenge. Although current models achieve strong results on existing multi-hop question answering datasets, such performance often masks two critical vulnerabilities: (1) reliance on internal parametric knowledge rather than adherence to the provided context, and (2) exploitation of dataset shortcuts, such as single-document cues or type-matching, that diminish the need for genuine evidence aggregation across multiple documents. We introduce CRiT-QA (Counterfactual Reasoning with Traps), a dataset explicitly designed to address both limitations. To neutralize reliance on memorized knowledge and enforce strict context dependency, CRiT-QA transforms factual reasoning chains with counterfactual entities. Furthermore, it injects multi-anchor distractor chains, plausible but incorrect reasoning paths that diverge at different hops. These traps require models to follow the entire reasoning process rather than exploiting shallow heuristics. Our experiments show that LLMs exhibit substantial performance degradation on CRiT-QA compared to standard datasets, exposing their vulnerability to counterfactual conditions and distractor traps. CRiT-QA thus serves as a rigorous diagnostic tool for evaluating genuine multi-hop reasoning and provides a foundation for developing more reliable, evidence-grounded LLMs.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/18/2607.12310v1-lakequest-a-three-domain-benchmark-for-grounded-question-answering-across-data-lakes",
+      "section": "quick",
+      "title_en": "LakeQuest: A Three-Domain Benchmark for Grounded Question Answering across Data Lakes",
+      "authors": "Michael Solodko, Steven Gong, Guangwei Yu, Satya Krishna Gorti, Jesse C. Cresswell, Victor Zhong",
+      "date": "2026-07-14",
+      "pdf": "https://arxiv.org/pdf/2607.12310v1",
+      "score": "7.0",
+      "evidence": "面向异构数据湖的接地问答基准，需要检索-综合流水线",
+      "tldr": "真实数据湖异构且弱结构化，现有基准忽略端到端问答评估。LakeQuest提出9,846个QA对的三领域基准，以模态感知证据指针分离源发现与跨模态合成。基线评测表明高质量检索难保正确推理，系统在关系链、策略落地和表格QA上反复失败，凸显了对稳健发现与跨文件组合机制的需求。",
+      "tags": "query:agentic-rag",
+      "abstract_en": "While modern question answering (QA) systems excel on clean, schema-aligned corpora, real-world knowledge is rarely so neatly packaged. Answering questions over enterprise and scientific data lakes requires systems to navigate heterogeneous, weakly structured collections of tables, passages, and linked metadata. Current benchmarks abstract away this noisy discovery process, failing to evaluate end-to-end performance. To bridge this gap, we introduce LakeQuest, a human-validated benchmark of 9,846 QA pairs designed to evaluate the end-to-end retrieve-and-synthesize pipeline over realistic data lakes. LakeQuest spans three diverse domains (AI/ML metadata, retail banking, and multimodal biomedical drug information) and pairs every question with exact, modality-aware evidence pointers. By isolating source discovery from cross-modal synthesis, LakeQuest exposes critical failure modes in modern QA systems. Our baseline evaluations, including standard Retrieval-Augmented Generation (RAG) and agentic tool-use methods, reveal that high-quality retrieval does not guarantee correct reasoning. Systems consistently struggle with relation chaining in metadata graphs, policy grounding in bank ledgers, and joint tabular QA in biomedical contexts, highlighting the need for robust discovery and faithful cross-file composition mechanisms in future agentic QA systems.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

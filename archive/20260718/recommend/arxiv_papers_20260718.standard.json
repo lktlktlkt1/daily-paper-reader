@@ -1,0 +1,95 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-18T21:01:52.897156+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2607.10562v1",
+      "source": "arxiv",
+      "title": "CRiT-QA: Evaluating Multi-hop Reasoning with Counterfactual Chains and Distractor Traps",
+      "abstract": "Evaluating the multi-hop reasoning capabilities of large language models remains a significant challenge. Although current models achieve strong results on existing multi-hop question answering datasets, such performance often masks two critical vulnerabilities: (1) reliance on internal parametric knowledge rather than adherence to the provided context, and (2) exploitation of dataset shortcuts, such as single-document cues or type-matching, that diminish the need for genuine evidence aggregation across multiple documents. We introduce CRiT-QA (Counterfactual Reasoning with Traps), a dataset explicitly designed to address both limitations. To neutralize reliance on memorized knowledge and enforce strict context dependency, CRiT-QA transforms factual reasoning chains with counterfactual entities. Furthermore, it injects multi-anchor distractor chains, plausible but incorrect reasoning paths that diverge at different hops. These traps require models to follow the entire reasoning process rather than exploiting shallow heuristics. Our experiments show that LLMs exhibit substantial performance degradation on CRiT-QA compared to standard datasets, exposing their vulnerability to counterfactual conditions and distractor traps. CRiT-QA thus serves as a rigorous diagnostic tool for evaluating genuine multi-hop reasoning and provides a foundation for developing more reliable, evidence-grounded LLMs.",
+      "authors": [
+        "JungMin Yun",
+        "JuneHyoung Kwon",
+        "YoungBin Kim"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-12T04:40:02+00:00",
+      "link": "https://arxiv.org/pdf/2607.10562v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "benchmark for multi-hop reasoning with counterfactual chains and distractor traps to enforce context dependency",
+      "llm_evidence_cn": "用于多跳推理的基准，采用反事实链和干扰陷阱强制上下文依赖",
+      "llm_evidence": "用于多跳推理的基准，采用反事实链和干扰陷阱强制上下文依赖",
+      "canonical_evidence": "用于多跳推理的基准，采用反事实链和干扰陷阱强制上下文依赖",
+      "llm_tldr_en": "Introduces CRiT-QA, a dataset for multi-hop QA that uses counterfactual chains and distractor traps to evaluate genuine evidence aggregation across documents, addressing memorization and shortcut vulnerabilities.",
+      "llm_tldr_cn": "现有模型在多跳问答基准上高分常依赖记忆知识或利用单文档线索等捷径，而非真正的证据聚合。CRiT-QA数据集通过将问题实体替换为反事实实体消除记忆依赖，并设计干扰陷阱阻断类型匹配等捷径，迫使模型严格依赖上下文进行多文档推理。实验显示，当前模型在该数据集上性能大幅下降，暴露了其多跳推理中对上下文的不完全利用，为评估RAG系统的真实推理能力提供了严格基准。",
+      "llm_tldr": "现有模型在多跳问答基准上高分常依赖记忆知识或利用单文档线索等捷径，而非真正的证据聚合。CRiT-QA数据集通过将问题实体替换为反事实实体消除记忆依赖，并设计干扰陷阱阻断类型匹配等捷径，迫使模型严格依赖上下文进行多文档推理。实验显示，当前模型在该数据集上性能大幅下降，暴露了其多跳推理中对上下文的不完全利用，为评估RAG系统的真实推理能力提供了严格基准。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "iterative multi-step retrieval processes for complex question answering",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.12310v1",
+      "source": "arxiv",
+      "title": "LakeQuest: A Three-Domain Benchmark for Grounded Question Answering across Data Lakes",
+      "abstract": "While modern question answering (QA) systems excel on clean, schema-aligned corpora, real-world knowledge is rarely so neatly packaged. Answering questions over enterprise and scientific data lakes requires systems to navigate heterogeneous, weakly structured collections of tables, passages, and linked metadata. Current benchmarks abstract away this noisy discovery process, failing to evaluate end-to-end performance. To bridge this gap, we introduce LakeQuest, a human-validated benchmark of 9,846 QA pairs designed to evaluate the end-to-end retrieve-and-synthesize pipeline over realistic data lakes. LakeQuest spans three diverse domains (AI/ML metadata, retail banking, and multimodal biomedical drug information) and pairs every question with exact, modality-aware evidence pointers. By isolating source discovery from cross-modal synthesis, LakeQuest exposes critical failure modes in modern QA systems. Our baseline evaluations, including standard Retrieval-Augmented Generation (RAG) and agentic tool-use methods, reveal that high-quality retrieval does not guarantee correct reasoning. Systems consistently struggle with relation chaining in metadata graphs, policy grounding in bank ledgers, and joint tabular QA in biomedical contexts, highlighting the need for robust discovery and faithful cross-file composition mechanisms in future agentic QA systems.",
+      "authors": [
+        "Michael Solodko",
+        "Steven Gong",
+        "Guangwei Yu",
+        "Satya Krishna Gorti",
+        "Jesse C. Cresswell",
+        "Victor Zhong"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T03:33:00+00:00",
+      "link": "https://arxiv.org/pdf/2607.12310v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "benchmark for grounded QA over heterogeneous data lakes requiring retrieve-and-synthesize",
+      "llm_evidence_cn": "面向异构数据湖的接地问答基准，需要检索-综合流水线",
+      "llm_evidence": "面向异构数据湖的接地问答基准，需要检索-综合流水线",
+      "canonical_evidence": "面向异构数据湖的接地问答基准，需要检索-综合流水线",
+      "llm_tldr_en": "Introduces LakeQuest, a 9,846-pair QA benchmark across three domains that evaluates end-to-end retrieve-and-synthesize performance over weakly structured data lakes, focusing on complex grounded reasoning.",
+      "llm_tldr_cn": "现有问答基准多在干净、模式对齐的语料上评估，忽略了现实企业或科学数据湖中异构、弱结构数据的噪声发现过程。LakeQuest是一个包含9,846个人工验证问答对的三领域基准，涵盖AI/ML元数据、零售银行和多模态生物医药信息，要求模型端到端执行检索与综合。初步评估显示，当前模型在需要导航异构数据源并进行多跳推理时性能大幅下降，为RAG系统在真实数据湖上的接地推理能力提供了重要测试平台。",
+      "llm_tldr": "现有问答基准多在干净、模式对齐的语料上评估，忽略了现实企业或科学数据湖中异构、弱结构数据的噪声发现过程。LakeQuest是一个包含9,846个人工验证问答对的三领域基准，涵盖AI/ML元数据、零售银行和多模态生物医药信息，要求模型端到端执行检索与综合。初步评估显示，当前模型在需要导航异构数据源并进行多跳推理时性能大幅下降，为RAG系统在真实数据湖上的接地推理能力提供了重要测试平台。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "reasoning capabilities in retrieval augmented generation frameworks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
