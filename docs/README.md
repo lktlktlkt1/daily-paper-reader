@@ -6,29 +6,31 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-18
-- 运行时间：2026-07-18 21:03:21 UTC
+- 最新运行日期：2026-07-19
+- 运行时间：2026-07-19 20:52:03 UTC
 - 运行状态：成功
-- 本次总论文数：2
-- 精读区：0
-- 速读区：2
+- 本次总论文数：3
+- 精读区：2
+- 速读区：1
 
 ### 今日简报（AI）
-今天速读了两篇直击大模型推理弱点的问答基准研究。  
-CRiT-QA用反事实链+干扰陷阱揭示多跳推理的脆弱性，LakeQuest则让模型在跨数据湖中检验信息接地能力，都暴露了“懂个大概，细问就崩”的缺陷。  
-建议读者去了解反事实评测如何设计，或体验LakeQuest的三领域数据湖问答，切身感受复杂信息整合的难度。
-- 详情：[/202607/18/README](/202607/18/README)
+今日精读了两篇前沿AI论文：一篇探索用LLM智能体模拟政治联盟形成，另一篇提出基于检索增强生成的自动驾驶场景生成框架；速读了一篇多智能体工作流的零拷贝分布式缓存方案。  
+最值得关注的是LLM在社会仿真中的联盟博弈涌现，以及RAG技术在安全关键场景生成中的迭代闭环设计。  
+建议读者从社会模拟与自主系统交叉视角，关注智能体协作的涌现机制与工程落地验证。
+- 详情：[/202607/19/README](/202607/19/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [Digital Pantheon: Simulating and Auditing Coalition Formation with LLM Agents](/202607/19/2607.15095v1-digital-pantheon-simulating-and-auditing-coalition-formation-with-llm-agents)  
+   标签：评分：9.0/10、query:agentic-rag
+   evidence：多智能体框架结合RAG，将智能体与政党宣言对齐，实现agentic RAG
+2. [Chat2Scenic: An Iterative RAG-Based Framework for Scenario Generation in Autonomous Driving](/202607/19/2607.14387v1-chat2scenic-an-iterative-rag-based-framework-for-scenario-generation-in-autonomous-driving)  
+   标签：评分：8.0/10、query:agentic-rag
+   evidence：迭代式检索增强生成框架
 
 ### 速读区论文标签
-1. [CRiT-QA: Evaluating Multi-hop Reasoning with Counterfactual Chains and Distractor Traps](/202607/18/2607.10562v1-crit-qa-evaluating-multi-hop-reasoning-with-counterfactual-chains-and-distractor-traps)  
-   标签：评分：7.0/10、query:agentic-rag
-   evidence：用于多跳推理的基准，采用反事实链和干扰陷阱强制上下文依赖
-2. [LakeQuest: A Three-Domain Benchmark for Grounded Question Answering across Data Lakes](/202607/18/2607.12310v1-lakequest-a-three-domain-benchmark-for-grounded-question-answering-across-data-lakes)  
-   标签：评分：7.0/10、query:agentic-rag
-   evidence：面向异构数据湖的接地问答基准，需要检索-综合流水线
+1. [[AAFLOW+] Stateful Operator Abstraction with Zero-Copy Distributed KV Cache Orchestration for Multi-Agent Workflows](/202607/19/2607.10987v1-aaflow-stateful-operator-abstraction-with-zero-copy-distributed-kv-cache-orchestration-for-multi-agent-workflows)  
+   标签：评分：6.0/10、query:agentic-rag
+   evidence：为涉及检索、规划和推理的多智能体LLM工作流引入有状态KV缓存编排。
 
 
 <div class="dpr-home-promo-card">
