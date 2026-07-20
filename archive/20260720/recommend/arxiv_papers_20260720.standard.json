@@ -1,0 +1,206 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-20T21:30:31.404253+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 4,
+    "deep_cap": 6,
+    "deep_selected": 4,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2607.11503v1",
+      "source": "arxiv",
+      "title": "GEIS: A Generation-Evaluation-Improvement Loop of Agent Skills for Long-Form Article Generation",
+      "abstract": "Long-form article generation remains difficult for large language models because it combines long context, long instructions, and long outputs. Existing multi-agent pipelines such as STORM improve information coverage by simulating role-specialized agents, but their capabilities are often entangled in prompts and fixed procedures, making them hard to inspect, reuse, or iteratively improve. This paper presents GEIS (Generation-Evaluation-Improvement loop of agent Skills), a loop of named and declarative skills for Wikipedia-style long-form article generation. Implemented and evaluated in Tasi Harness, GEIS composes skills for article writing, browser-based evidence and image collection, diagram rendering, PDF-aware pairwise evaluation, and rule-level skill improvement. Its core writing skill follows Request, Plan, Draft, Audit, Refine, and Deliver; the pairwise evaluation skill produces structured quality reports; and the improvement skill maps recurrent findings into permanent patches to the writing skill in our 20-topic experiment. We evaluate GEIS on 20 Wikipedia Featured Article topics. Under the same generation backend, GEIS improves over the Tasi Harness default writer by 8.0 points on a 100-point PDF quality rubric and outperforms STORM on the two comparable writing dimensions, structural quality and content quality. In the 20-topic improvement experiment, the patched writing skill raises the average score from 82.90 to 86.95, with 17 out of 20 topics improved and the gain mainly coming from content quality. These results show that long-form generation can be reframed from a fixed workflow into an inspectable, modular, and evaluation-guided improvement loop.",
+      "authors": [
+        "Jiale Zhang",
+        "Juntao Hu",
+        "Zhijian Ou"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-07-13T12:54:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.11503v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "agentic framework with browser-based evidence retrieval for long-form generation",
+      "llm_evidence_cn": "具有浏览器取证能力的智能体框架用于长文生成",
+      "llm_evidence": "具有浏览器取证能力的智能体框架用于长文生成",
+      "canonical_evidence": "具有浏览器取证能力的智能体框架用于长文生成",
+      "llm_tldr_en": "Proposes GEIS, a loop of declarative agent skills for Wikipedia-style article generation, integrating browser-based evidence collection, evaluation, and iterative improvement.",
+      "llm_tldr_cn": "针对长文生成中上下文长、指令长、输出长的挑战，提出GEIS（智能体技能生成-评估-改进循环）框架。该框架将文章写作、浏览器取证、图表渲染和评估等技能组合为可复用模块，在维基百科风格文章生成中实现迭代优化。实验表明，模块化技能设计提升了信息的覆盖率和可维护性，为复杂内容生成提供了灵活的智能体方案。",
+      "llm_tldr": "针对长文生成中上下文长、指令长、输出长的挑战，提出GEIS（智能体技能生成-评估-改进循环）框架。该框架将文章写作、浏览器取证、图表渲染和评估等技能组合为可复用模块，在维基百科风格文章生成中实现迭代优化。实验表明，模块化技能设计提升了信息的覆盖率和可维护性，为复杂内容生成提供了灵活的智能体方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.15948v1",
+      "source": "arxiv",
+      "title": "TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension",
+      "abstract": "Code comprehension is one of the most time-consuming tasks in software engineering, yet most LLM-based assistants produce explanations that ignore who is asking and force developers into a disruptive copy-paste workflow. We present TARS, an LLM-powered agent integrated into Visual Studio Code that supports program comprehension through autonomous explanations anchored directly to the code under analysis. Built around a lightweight Theory of Mind paradigm, TARS profiles a developer's expertise, role, and stylistic preferences, then adapts the depth and tone of its explanations accordingly, grounding them in project documentation via Retrieval-Augmented Generation. To evaluate TARS, we conducted a controlled experiment with 18 participants on non-trivial Java snippets. Participants using TARS completed tasks 26\\% faster, reported lower cognitive load, and found the explanations meaningfully adapted to their profiles.",
+      "authors": [
+        "Leopoldo Todisco",
+        "Antonio Della Porta",
+        "Stefano Lambiase",
+        "Fabio Palomba"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-07-17T13:32:20+00:00",
+      "link": "https://arxiv.org/pdf/2607.15948v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agent uses RAG for personalized code comprehension",
+      "llm_evidence_cn": "智能体利用RAG进行个性化代码理解",
+      "llm_evidence": "智能体利用RAG进行个性化代码理解",
+      "canonical_evidence": "智能体利用RAG进行个性化代码理解",
+      "llm_tldr_en": "TARS is an LLM-powered agent in VS Code that uses a Theory of Mind model to adapt explanations to the developer, grounding them in project documentation via RAG. A user study with 18 participants shows improved comprehension.",
+      "llm_tldr_cn": "TARS 是一个集成于 VS Code 的 LLM 驱动智能体，通过心智理论模型感知开发者的专业水平与偏好，并利用检索增强生成（RAG）将代码解释锚定在项目文档上。18 人参与的控制实验表明，TARS 能够有效提升程序理解效率。该工作展示了将智能体与 RAG 结合，为个性化软件工程工具提供了一种新范式。",
+      "llm_tldr": "TARS 是一个集成于 VS Code 的 LLM 驱动智能体，通过心智理论模型感知开发者的专业水平与偏好，并利用检索增强生成（RAG）将代码解释锚定在项目文档上。18 人参与的控制实验表明，TARS 能够有效提升程序理解效率。该工作展示了将智能体与 RAG 结合，为个性化软件工程工具提供了一种新范式。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "autonomous agent systems combined with retrieval augmented generation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.15963v1",
+      "source": "arxiv",
+      "title": "A Human-Centric Evaluation of a Retrieval-Augmented Generation System for Explaining Quebec Insurance Contracts",
+      "abstract": "With the rise of online insurance sales, consumers face a significant \\enquote{advice gap}, requiring them to navigate complex legal contracts without expert guidance. This paper presents a human-centric, extrinsic evaluation of a state-of-the-art Retrieval-Augmented Generation system, designed to make Quebec automobile insurance contracts more understandable. Through a user study with 154 participants from Laval University, we assess the agent's real-world utility by measuring system satisfaction, cognitive effort, perceived autonomy, and risk. Our results show the system is perceived as a \\enquote{cognitive equalizer}, receiving high ratings for satisfaction, trust, and clarity. Crucially, users value the sense of autonomy the system provides even more than the knowledge itself, with this effect being most pronounced among participants with lower financial literacy, demonstrating how such an agent can directly empower individuals. However, our study also highlights some limitations: participants expressed a strong preference for human agents in high-stakes or emotionally charged scenarios. This work highlights the importance of human-in-the-loop frameworks in ensuring the responsible implementation of AI in high-stakes consumer finance.",
+      "authors": [
+        "David Beauchemin",
+        "Richard Khoury"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-07-17T13:50:27+00:00",
+      "link": "https://arxiv.org/pdf/2607.15963v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "evaluates a RAG system for contract explanation, directly relevant to RAG methods improving generation with external knowledge",
+      "llm_evidence_cn": "评估用于合同解释的RAG系统，直接关系到利用外部知识改进生成的RAG方法",
+      "llm_evidence": "评估用于合同解释的RAG系统，直接关系到利用外部知识改进生成的RAG方法",
+      "canonical_evidence": "评估用于合同解释的RAG系统，直接关系到利用外部知识改进生成的RAG方法",
+      "llm_tldr_en": "Presents a human-centric evaluation of a state-of-the-art RAG system designed to make insurance contracts understandable, showing high user satisfaction and trust, acting as a cognitive equalizer.",
+      "llm_tldr_cn": "本文对一款用于解释魁北克汽车保险合同的最先进的检索增强生成系统进行了以人为中心的外在评估。通过154名参与者的用户研究，发现该系统在满意度、信任度和清晰度方面评分很高，被视作「认知均衡器」，有效弥合了消费者在法律合同理解上的建议鸿沟，展示了RAG在实际复杂文档解释中的巨大潜力和用户价值。",
+      "llm_tldr": "本文对一款用于解释魁北克汽车保险合同的最先进的检索增强生成系统进行了以人为中心的外在评估。通过154名参与者的用户研究，发现该系统在满意度、信任度和清晰度方面评分很高，被视作「认知均衡器」，有效弥合了消费者在法律合同理解上的建议鸿沟，展示了RAG在实际复杂文档解释中的巨大潜力和用户价值。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "pure RAG methods for improving language model generation with external knowledge",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.14811v1",
+      "source": "arxiv",
+      "title": "Is External Database Protection Static in Retrieval-Augmented Generation? Rethinking Privacy Preservation under Dynamic Queries",
+      "abstract": "Retrieval-augmented generation (RAG) enhances large language models via external document retrieval, but retrieved contexts may leak sensitive information. Current privacy protection methods typically rely on a document-level static risk assumption, treating all retrieved documents as having the same privacy leakage risk. However, this assumption overlooks a fundamental characteristic of RAG: the privacy risk of a document is highly dependent on the user's query, making privacy leakage inherently query-driven and dynamic. To address this challenge, we propose a Prompt-Aware Dynamic Hierarchical Differential Privacy framework (PA-HDP) for privacy-preserving RAG. PA-HDP first performs a prompt-aware risk hierarchy to dynamically assess privacy risks under different queries. It then applies adaptive sensitive entity replacement and exponential mechanism-based text selection to provide differentiated privacy protection while preserving semantic utility. By protecting only the content that is truly sensitive under a given query, PA-HDP minimizes unnecessary modifications to the retrieval corpus. Extensive experiments on benchmark datasets demonstrate that PA-HDP significantly reduces privacy leakage while maintaining high retrieval quality, achieving a better privacy-utility trade-off than prior methods.",
+      "authors": [
+        "Gang Zhang",
+        "Mingyu Tian",
+        "Xukun Luan",
+        "Yuanchi Ma",
+        "Jinyan Liu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-07-16T10:28:23+00:00",
+      "link": "https://arxiv.org/pdf/2607.14811v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes prompt-aware dynamic hierarchical differential privacy for RAG",
+      "llm_evidence_cn": "提出面向RAG的提示感知动态层级差分隐私框架",
+      "llm_evidence": "提出面向RAG的提示感知动态层级差分隐私框架",
+      "canonical_evidence": "提出面向RAG的提示感知动态层级差分隐私框架",
+      "llm_tldr_en": "Challenging static risk assumptions, this paper introduces a query-dependent privacy framework for RAG, dynamically adjusting differential privacy based on prompt analysis to balance protection and generation quality.",
+      "llm_tldr_cn": "现有检索增强生成隐私保护方法假设文档风险固定，忽视查询对泄露风险的关键影响。本文提出提示感知的动态层级差分隐私框架PA-HDP，先评估查询相关风险，再施加层级化的差分隐私扰动，实现自适应保护。实验表明该方法在隐私保护和生成质量间取得更好平衡，为动态RAG场景提供了更细粒度的安全方案。",
+      "llm_tldr": "现有检索增强生成隐私保护方法假设文档风险固定，忽视查询对泄露风险的关键影响。本文提出提示感知的动态层级差分隐私框架PA-HDP，先评估查询相关风险，再施加层级化的差分隐私扰动，实现自适应保护。实验表明该方法在隐私保护和生成质量间取得更好平衡，为动态RAG场景提供了更细粒度的安全方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "methods for retrieval augmented generation in language models",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.15696v1",
+      "source": "arxiv",
+      "title": "PCTD: Preference-Guided Counterfactual Task Decomposition for Agent Tool Retrieval",
+      "abstract": "Task decomposition aims to transform ambiguous instructions into executable atomic subtasks, thereby guiding high-precision tool retrieval. However, our analysis reveals that directly adopting tool retrieval metrics, i.e., Recall or NDCG, as rewards for task decomposition can easily induce reward hacking in reinforcement learning-based methods. Specifically, models tend to maximize retrieval matching through strategies such as repetitive decomposition. This spurious correlation between the shallow features of decomposition results and retrieval metric impairs generalization in Out-of-Domain (OOD) scenarios involving unseen tools. To address this issue, we propose PCTD, a Preference-guided Counterfactual Task Decomposition framework. PCTD quantifies the marginal causal gain of decomposition on retrieval ranking through a counterfactual reward, thereby cutting off spurious correlations at their source. Meanwhile, it introduces a preference reward to impose fine-grained structural supervision on logical coherence and atomicity, encouraging the model to generate high-quality decompositions. In addition, we construct MTDTool, the task decomposition benchmark specifically designed for mobile multi-turn interactions. Extensive experiments demonstrate that PCTD alleviates repetitive decomposition and surpasses SOTA methods in retrieval, decomposition quality, and OOD generalization.",
+      "authors": [
+        "Chu Zhao",
+        "Lei Tang",
+        "Minghang Li",
+        "Jianzhe Zhao",
+        "Guibing Guo",
+        "Zhengzong Chen",
+        "Yuanyuan Zhao",
+        "Fei Huang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-07-17T07:15:41+00:00",
+      "link": "https://arxiv.org/pdf/2607.15696v1",
+      "tags": [
+        "keyword:agentic-rag",
+        "query:agentic-rag"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "task decomposition for agent tool retrieval, addressing reward hacking to improve retrieval generalization",
+      "llm_evidence_cn": "面向代理工具检索的任务分解，通过解决奖励黑客问题提高检索泛化能力",
+      "llm_evidence": "面向代理工具检索的任务分解，通过解决奖励黑客问题提高检索泛化能力",
+      "canonical_evidence": "面向代理工具检索的任务分解，通过解决奖励黑客问题提高检索泛化能力",
+      "llm_tldr_en": "PCTD proposes a preference-guided counterfactual framework for task decomposition in agent tool retrieval, mitigating reward hacking and improving out-of-domain generalization by separating task decomposition and tool retrieval optimization.",
+      "llm_tldr_cn": "PCTD提出一种偏好引导的反事实任务分解框架，用于解决代理工具检索中的奖励黑客问题。该方法通过反事实扰动和偏好学习，将任务分解与工具检索的优化目标解耦，避免浅层特征与检索指标的虚假关联。实验表明，PCTD在跨域设置下显著提升了工具检索的泛化能力，尤其是在未见工具类型上表现突出，为构建鲁棒的代理工具检索系统提供了有效方案。",
+      "llm_tldr": "PCTD提出一种偏好引导的反事实任务分解框架，用于解决代理工具检索中的奖励黑客问题。该方法通过反事实扰动和偏好学习，将任务分解与工具检索的优化目标解耦，避免浅层特征与检索指标的虚假关联。实验表明，PCTD在跨域设置下显著提升了工具检索的泛化能力，尤其是在未见工具类型上表现突出，为构建鲁棒的代理工具检索系统提供了有效方案。",
+      "llm_tags": [
+        "query:agentic-rag"
+      ],
+      "matched_query_tag": "query:agentic-rag",
+      "matched_query_text": "agentic retrieval augmented generation frameworks combining LLM agents with dynamic retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

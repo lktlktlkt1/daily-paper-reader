@@ -1,0 +1,1128 @@
+Title: PCTD: Preference-Guided Counterfactual Task Decomposition for Agent Tool Retrieval
+
+URL Source: https://arxiv.org/pdf/2607.15696v1
+
+Published Time: Mon, 20 Jul 2026 00:33:29 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+2026-07-20 
+
+# PCTD: Preference-Guided Counterfactual Task Decomposition for Agent Tool Retrieval 
+
+Chu Zhao 1∗, Lei Tang 2∗, Minghang Li 3, Jianzhe Zhao 1, Guibing Guo 1† , Zhengzong Chen 2† , Yuanyuan Zhao 2, Fei Huang 21Northeastern University 
+
+> 2
+
+Honor Device Co., Ltd 
+
+> 3
+
+Beijing University of Posts and Telecommunications 
+
+https://github.com/MagicAgent-Search/PCTD 
+
+## Abstract 
+
+Task decomposition aims to transform ambiguous instructions into executable atomic subtasks, thereby guiding high-precision tool retrieval. However, our analysis reveals that directly adopting tool retrieval metrics, i.e., Recall or NDCG, as rewards for task decomposition can easily induce reward hacking in reinforcement learning-based meth-ods. Specifically, models tend to maximize retrieval matching through strategies such as repetitive decomposition. This spurious correlation between the shallow features of decomposition results and retrieval metric impairs generalization in Out-of-Domain (OOD) scenarios involving unseen tools. To address this issue, we propose PCTD, a 
+
+Preference-guided Counterfactual Task Decomposition framework. PCTD quantifies the marginal causal gain of decomposition on retrieval ranking through a counterfactual re-ward, thereby cutting off spurious correlations at their source. Meanwhile, it introduces a preference reward to impose fine-grained structural supervision on logical coherence and atomicity, encouraging the model to generate high-quality decompositions. In addition, we construct MTDTool, the task decomposition benchmark specifically designed for mobile multi-turn interactions. Extensive experiments demonstrate that PCTD allevi-ates repetitive decomposition and surpasses SOTA methods in retrieval, decomposition quality, and OOD generalization. In-Domain Out-of-Domain    
+
+> Methods
+> 60
+> 70
+> 80
+> 90
+> 100
+> Completeness@10
+> 83.6
+> 74.3
+> 87.1
+> 79.8
+> ToolQP Ours Exp. 1 Exp. 2
+> Experiments
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> Duplication rate
+> 5.2
+> 0.7
+> -4.5
+> Before After
+> 90
+> 91
+> 92
+> NDCG@10
+> 90.7
+> 91.2
+> +0.5
+
+Figure 1: Overall performance and empirical study results. Middle: Performance of different models on In-Domain and OOD settings on MTDTool. Right: Model performance as a function of the decomposition repetition rate. Exp. 1 denotes the repetition rate of task decomposition results before and after applying the preference model, while Exp. 2 represents the change in evaluation metrics before and after applying the preference model. 
+
+## 1 Introduction 
+
+Large language model (Zhao et al., 2026b; Naveed et al., 2025; Wang et al., 2026) driven agents are evolving into intelligent entities capable of autonomously decomposing tasks and invoking tools to achieve complex goals (Huang et al., 2024c; Xu et al., 2024). In multi-turn mobile interaction scenarios, user requests typically rely on dialogue history, coreference relationships, and implicit slots, where a single input is often insufficient to fully describe the objective. This necessitates that agents transform ambiguous instructions into semantically clear, well-bounded, and executable atomic sub-tasks to guide high-precision tool retrieval. Early prompt engineering based methods, such as ReAct (Yao et al., 2022), 
+
+> ∗
+
+Equal contribution. 
+
+> †
+
+Corresponding authors. 
+
+1arXiv:2607.15696v1 [cs.IR] 17 Jul 2026 ToolReAGt (Braunschweiler et al., 2025), Q2E (Jagerman et al., 2023), and PLUTO (Huang et al., 2024a), achieved progress in few-shot scenarios through explicit chains of thought or structured plans. However, due to the lack of end-to-end optimization mechanisms and heavy reliance on intrinsic knowledge, these methods are prone to decomposition deviations caused by cumulative errors when facing unseen tools or long-range dependencies. To overcome this limitation, reinforcement learning (RL) based end-to-end methods like ToolQP (Fang & Glass, 2026) incorporated downstream tool retrieval metrics (e.g., Recall@K, NDCG@K) into mixed reward signals. Although these approaches enhance final retrieval performance, they fundamentally rely on static outcome-oriented supervision and suffer from two core limitations. First, directly employing retrieval metrics as rewards is highly susceptible to reward hacking . Models tend to maximize matching scores through superficial strategies such as repetitive decomposition, leading to a spurious correlation between the shallow lexical features of decomposition results and retrieval outcomes. This severely impairs generalization in Out-of-Domain (OOD) scenarios involving unseen tools. Second, there is a lack of preference modeling for decomposition structure. plan-level similarity-based rewards (e.g., the reward signals utilized in ToolQP) fail to constrain structural quality dimensions such as logical coherence, context faithfulness, and atomicity, further exacerbating the issue of repetitive decomposition. Empirical results in Figure 1 validate this phenomenon: existing methods perform reasonably well on in-distribution data but suffer significant performance degradation on OOD datasets involving unseen tools (e.g., ToolQP drops from 83.6 to 74.3). Meanwhile, a clear negative correlation is observed between repetition rate and performance (as the repetition rate decreases from 5.2% to 0.7%, performance improves to 91.2). Therefore, mitigating the spurious correlations and repetitive decomposition induced by reward hacking is critical for improving model performance. To address these dual challenges, we propose PCTD, a joint optimization framework for task decom-position and tool retrieval tailored for mobile multi-turn interactions. This framework introduces a preference reward Rpref , which leverages a trained reward model to score candidate decompositions against human references conditioned on context, providing fine-grained structural quality supervision via relative score differences; simultaneously, it incorporates a counterfactual reward Rcf that uses the retrieval results of the raw query as a baseline to quantify the marginal gain of the decomposition strategy on tool ranking, thereby offering causal feedback for decomposition behavior. Furthermore, existing benchmarks such as HammerBench (Wang et al., 2025) and ToolBench (Qin et al., 2024) lack fine-grained process-level annotations, and there is currently no dataset specifically designed for evaluating the task decomposition process, we constructed MTDTool. This benchmark is designed for complex multi-turn interaction scenarios in mobile environments and provides fine-grained evaluation support. Unlike existing datasets that primarily focus on single-turn instructions or final execution outcomes, MTDTool automatically annotates dialogue state evolution, context-aware intent rewriting, and atomic task se-quences for each conversational turn. The dataset highlights the dynamic evolution of intents across multi-turn dialogues and cross-application collaboration, providing a standardized basis for quantifying the impact of decomposition quality on retrieval effectiveness. The contributions of this paper are summarized as follows: ❶ Insight. We reveal the dual limitations of existing RL-based agents in task decomposition: (i) directly using retrieval metrics as rewards is prone to reward hacking, severely impairing OOD generalization with unseen tools; and (ii) the lack of structural preference modeling further exacerbates repetitive decomposition. ❷ Method. We propose PCTD, a joint optimization framework integrating counterfactual reasoning with preference modeling. It leverages counterfactual rewards to quantify the marginal causal gain of decomposition on retrieval ranking to cut off spurious correlations, while introducing preference rewards to enforce fine-grained structural supervision on logical coherence and atomicity. ❸ Dataset. We release MTDTool, the fine-grained benchmark for task decomposition in mobile multi-turn interactions. Generated via a state-machine-driven pipeline, it provides multi-level annotations for dialogue state evolution, intent rewriting, and atomic task sequences, filling the gap in process-oriented evaluation. ❹ Evaluation. Extensive experiments on MTDTool and mainstream benchmarks demonstrate that PCTD significantly outperforms SOTA methods in tool retrieval, decomposition quality, and OOD generalization. 
+
+## 2 Preliminary 
+
+2.1 Problem Formulation: Multi-Turn Task Decomposition and Tool Retrieval 
+
+We formulate multi-turn agent interaction as a sequential decision process. At turn t, the agent receives a user query qt and the dialogue history Ht = {q1, o1, . . . , qt−1, ot−1}, forming the contextual input 
+
+xt = ( Ht, qt). Given a large-scale tool library T = {a1, . . . , aM} containing M APIs, the agent employs a policy model πθ to generate a natural-language task decomposition sequence yt ∼ πθ (· | xt). The generated sequence is parsed into a set of semantically clear atomic subtasks At = {τ1, . . . , τL}, which aims to mitigate semantic ambiguity, implicit slots, and cross-turn coreference in direct retrieval. Given a 2top-K tool retriever RK (·), each atomic subtask is used to retrieve candidate tools, and the retrieved lists are merged, deduplicated, and truncated into a decomposition-aware ranked list: 
+
+LKt = TopK (Dedup (Merge (RK (τ1), . . . , RK (τL)))) . (1) Let Gt ⊆ T denote the ground-truth tool set required for the contextual input xt. Our objective is to optimize the policy πθ such that the generated decomposition yt maximizes the ranking consistency between the retrieved list LKt and the ground-truth tool set Gt.
+
+2.2 Group Relative Policy Optimization 
+
+To achieve efficient policy optimization without training an independent value network (Critic), we adopt Group Relative Policy Optimization (GRPO) (Guo et al., 2025a). For each input xt, GRPO samples a group of B candidate outputs {y1, . . . , yB} from the old policy πθold and computes their corresponding reward scores R = {R1, . . . , RB}. The advantage function for each sample is estimated via group-wise normalization: Ai = Ri −mean (R)
+
+std (R)+ ϵ , This approach leverages relative performance within the group to replace absolute value estimation, significantly reducing memory overhead and enhancing training stability. The optimization objective is defined as: 
+
+JGRPO (θ) = Ex∼D ,{yi }∼ πθold 
+
+"
+
+1
+
+B
+
+B
+
+# ∑
+
+i=1
+
+
+
+min (ri(θ)Ai, clip (ri(θ), 1 − ϵ, 1 + ϵ)Ai) − βDKL (πθ || πre f )
+
+#
+
+, (2) where ri(θ) = πθ (yi |xt )
+
+πθold (yi |xt ) is the importance sampling ratio, and DKL denotes the KL divergence penalty relative to a reference model πre f . In this work, we integrate the proposed Counterfactual NDCG Reward into this framework to drive the targeted evolution of task decomposition strategies. 
+
+## 3 Method 1. Initialization 
+
+(First Turn)      
+
+> Tool & Scene Sampling
+> Sample k tools
+> State Initialization
+> 𝑠 0~𝑃 𝑖𝑛𝑖𝑡
+> + constraints
+> Dual LLM Generation
+> LLM -Q: Generate 𝑞 0
+> LLM -O: Generate 𝑂 0
+> State Evolution at
+> Turn t
+> 𝒔 𝒕 −𝟏 ,𝒋 →𝒔 𝒕 ,𝒋
+> via 𝑃 𝑠𝑡𝑎𝑡𝑒
+
+2. State Evolution & Context Decision 
+
+（Per Turn  t ≥ 1）      
+
+> 1Context
+> Decision
+> 𝑐 𝑡 ~𝑃 𝑐𝑡𝑥 (⋅|𝑡 )
+> Keep Context
+> + Add New Tasks
+> Inherit Context
+> Clear Context
+> + Replace Tools
+> Switch Topic
+> Tool Lifecycle
+> Update
+> Remove
+> Null -state Tools
+> Add New Tools
+> LLM -Q
+> Generate 𝑞 𝑡
+> (History + State)
+> Task Decomposition
+> 𝑞 𝑡 →𝐴 𝑡
+> Atomic Subtasks
+> LLM -O
+> Generate 𝑜 𝑡
+> (State -aligned)
+
+3. Turn Generation 
+
+After Decision 
+
+4. Per -Turn Annotation 
+
+& Storage    
+
+> Tool Mapping
+> 𝐴 𝑡 →𝑇 𝑡
+> 𝑢𝑠𝑒𝑑
+> Scene Label &
+> Attributions
+> Structured Record Assembly
+> Append to Storage
+> Next Turn (t=t+1)
+
+Figure 2: Overview of the MTDTool construction pipeline. The data generation follows a four-stage process. (1) Initialization : Tools and scenarios are sampled to establish initial constraints, and two LLM generators produce the initial user query q0 and assistant output o0. (2) State Evolution & Context Decision : At each turn t ≥ 1, the system decides whether to inherit the previous context or switch to a new topic, and updates the pending intent pt,j and execution state st,j for each active tool. (3) Turn Generation : Conditioned on the dialogue history Ht, current states, and active tools, the framework generates the user query qt, derives the atomic task sequence At, and produces the state-aligned assistant output ot. (4) Per-Turn Annotation & Storage : The framework maps the atomic task sequence At to the used tool set T used 
+
+t , assigns scenario labels and attribution information, and stores the structured record. This pipeline preserves the coherence of multi-turn intent evolution while providing fine-grained annotations for task decomposition and tool retrieval. 
+
+3.1 Dataset Construction via a State-Machine-Driven Framework 
+
+To address the evaluation needs for fine-grained task decomposition in mobile multi-turn tool invocation, this paper proposes an automated dialogue generation framework driven by a state machine. This 3framework models multi-turn interactions as a stochastic decision process driven by state evolution, uniformly characterizing context transitions, task decomposition, and tool execution behaviors. In contrast to traditional construction paradigms that focus solely on input-output pairs, our method explicitly models the dynamic dependencies among dialogue states, user intents, and tool calls, thereby generating high-fidelity multi-turn corpora with fine-grained structural annotations. 
+
+3.1.1 State Space Definition and Dynamic Evolution Mechanism 
+
+As illustrated in Figure 2, we model the construction of multi-turn dialogues as a state-driven stochastic evolution process. Let S denote the dialogue state space, which contains 11 canonical interaction behaviors (see Table 10), including task execution states (e.g., success s1, in-progress s2, and failure s3), interaction states (e.g., clarification s4 and selection s5), and intent-management states (e.g., silence s6,cancellation s7, revocation s8, supplementation s10 , and null s11 ). Given a tool library T , each tool aj is associated with a semantically compatible state subset Saj ⊆ S ., which constrains the feasible interaction states of that tool. During initialization, each tool’s state is sampled from a tool-conditioned prior: 
+
+s0, i ∼ Pinit (· | ai), s0, i ∈ S ai , (3) where Pinit controls the prior frequency of basic interaction phenomena. We further impose lightweight constraints to ensure that the generated dialogues contain sufficient multi-turn interaction signals, such as clarification, continuation, or silence. Subsequently, the evolution process comprises context decision, intent transition, and state transition. At turn t, the framework first samples a context decision 
+
+ct ∼ Pctx (· | t), ct ∈ { inherit, switch }, (4) which determines whether the dialogue continues the previous context or switches to a new topic. For each active tool aj, the framework then samples a user-side pending intent and derives the corresponding execution state: 
+
+pt,j ∼ Pintent (· | st−1, j, ct), (5) 
+
+st,j ∼ Pstate (· | pt,j, st−1, j), st,j ∈ S aj . (6) This decoupled formulation separates user intent evolution from assistant execution feedback, making the generation process more controllable. Finally, we apply a lifecycle update to the active tool set: if both the pending intent pt,j and the execution state st,j are assigned to the null state, tool aj is removed from the current context. 
+
+3.1.2 Context Control and Task Composition Strategy 
+
+To simulate the topic convergence characteristics of real-world dialogues, the framework introduces a context decision variable ct ∈ { inherit , switch } at each evolution node. The probability of switching topics follows an exponential decay function: 
+
+Pswitch (t) = max (pmin , p0 · αt−1), (7) where p0 denotes the baseline probability of topic switching in the initial turn, α is the decay coefficient governing the rate of topic convergence, and pmin sets the lower bound for maintaining minimal topic diversity in later dialogue stages. This mechanism ensures high intent variability in early turns while progressively enhancing contextual coherence and stability as the dialogue progresses. At the task structure level, the system supports proportional sampling of three modes: single-tool, multi-tool collaboration, and multi-intent parallelism, while allowing dynamic injection of new tasks during context inheritance. The tool sampling phase combines global random weighting with scene-based knowledge base guidance, utilizing pre-defined or LLM-dynamically-generated scene templates to ensure logical self-consistency of tool combinations within specific domains. 
+
+3.1.3 Dual-Channel Decoupled Generation and Quality Constraints 
+
+Corresponding to the content synthesis module in the pipeline, the framework employs a dual-channel mechanism to generate user queries qt (as shown in Appendix prompt 1) and assistant responses ot (as shown in Appendix prompt 2) separately. The user-side generator integrates available tool lists, historical state trajectories, and linguistic style features, employing natural language strategies to avoid mechanical concatenation and explicitly completing missing information dimensions in clarification states. The assistant-side generator strictly adheres to state-semantic mapping rules, ensuring precise alignment between response content and current execution states (e.g., success confirmation, failure attribution). To guarantee corpus quality, we embed a structured hard-constraint layer into the generation process, including: (i) the one-tool-one-request atomicity principle; (ii) colloquial conversion of terminology; (iii) normalization of temporal expressions; and (iv) zero-response specifications for silence states. These constraints act as quality filters throughout the generation process, ensuring that the output data possesses both linguistic naturalness and logical rigor. 43.1.4 Fine-Grained Annotation and Evaluation Support 
+
+At the output end of the pipeline, an independent task decomposition module maps user requests containing multiple intents into an atomic task sequence At and establishes semantic associations with the candidate tool set Tcand, t:
+
+qt, Ht → A t → T cand, t. (8) This process constructs a three-level annotation structure ( Dialogue Context –Atomic Tasks –Candidate Tools ), which not only supports standard ranking metrics but also precisely locates model bottlenecks such as context misunderstanding, task decomposition errors, or tool retrieval failures. The final dataset includes complete fields such as Dialogue ID, Turn Index, Scene Label, Interaction Content, Execution States, Intent Trajectories, and Decomposition Results, forming the foundation of a high-quality structured corpus. A full example of the multi-turn dialogue generation process is shown in Appendix 3. I need to fly to Shanghai 
+
+> tomorrow afternoon.
+> Sure, from which city
+> are you departing?
+> Got it. Do you prefer a
+> budget or business hotel?
+> Policy Model
+> Reference
+> Model
+
+# …
+
+> KL Divergence
+> Constraint
+
+𝑦 𝑡 
+
+> (1)
+
+𝑦 𝑡 
+
+> (𝐵 )
+
+# …
+
+𝑦 𝑡        
+
+> (2)
+> Candidate
+> Decompositions
+> Preference
+> Reward 𝑅 𝑝𝑟𝑒𝑓
+> Counterfactual
+> Reward 𝑅 𝑐𝑓
+> Mixed Reward =𝑅 𝑡𝑜𝑡𝑎𝑙
+> 𝑤 𝑝𝑟𝑒𝑓 𝑅 𝑝𝑟𝑒𝑓 +(1−𝑤 𝑝𝑟𝑒𝑓 )𝑅 𝑐𝑓
+> 𝑅 𝑡𝑜𝑡𝑎𝑙
+> (1)
+> 𝑅 𝑡𝑜𝑡𝑎𝑙
+> (2)
+> 𝑅 𝑡𝑜𝑡𝑎𝑙
+> (𝐵 )
+
+# …     
+
+> Reward Output
+> Preference Reward 𝑹 𝒑𝒓𝒆𝒇 Counterfactual Reward 𝑹 𝒄𝒇
+> Preference Reward Model
+> Multi -turn Dialogue Gradient Update
+> Evaluate logical coherence
+> Evaluate Contextual Faithfulness
+
+𝑅 𝑝𝑟𝑒𝑓 = σ(𝑠 ϕ(𝑥 , 𝑦 𝑖 ) − 𝑠 ϕ(𝑥 , 𝑦 ∗))   
+
+> From Beijing, and book a
+> hotel near the Bund.
+
+𝑋  𝐷  𝑌 
+
+𝑍 
+
+𝑋  𝐷  𝑌 
+
+𝑍                               
+
+> ∆𝐷 ;𝑋 =
+> 𝐸 𝑌 𝑑𝑜 𝐷 =𝛿 ,𝑋 −𝐸 [𝑌 |𝑑𝑜 𝐷 =𝛿 0,𝑋 ]
+> Causal Effect of Decomposition
+> 𝑅 𝑐𝑓 =𝜆 𝑟𝑎𝑛𝑘 𝑚𝑎𝑥 (0,Δ𝑟𝑎𝑛𝑘 )+𝜆 𝑐𝑜𝑣 Δ𝑐𝑜𝑣
+> Intervention Implementation
+> (a) Observational
+> Correlation (b) Causal Intervention
+> Perspective
+> Structural Causal Model
+> :the do -intervention
+> ∆𝑟𝑎𝑛𝑘 =𝑁 𝑎𝑡𝑜𝑚 −𝑁 𝑟𝑎𝑤
+
+Figure 3: Overview of the PCTD. 
+
+3.2 Joint Reward Mechanism 
+
+In the scenario of contextual task atomization, the efficacy of model-generated decomposition results should not be determined solely by superficial textual rationality, but rather by their actual contribution to downstream tool retrieval performance and the semantic quality of the decomposition structure itself. To this end, we propose a joint reward mechanism that integrates counterfactual (Verma et al., 2024b; Guo et al., 2025b) causal feedback with preference alignment, guiding the policy model to learn optimal semantic decomposition paths. 
+
+3.2.1 Counterfactual Baseline Construction and Reward Mechanism 
+
+To characterize the true contribution of task decomposition to tool retrieval, we construct a Structural Causal Model (SCM), as illustrated in Figure 3. Specifically, X denotes the multi-turn dialogue input, 
+
+D denotes the task decomposition strategy, Y denotes the retrieval ranking quality, and Z represents confounding factors such as high-frequency keywords, tool priors, and model parametric memory. Traditional methods directly optimize outcome-oriented metrics such as Recall or NDCG, which are susceptible to the spurious path X → Z → Y. As a result, retrieval gains caused by raw-query keywords or tool priors may be incorrectly attributed to task decomposition, inducing shallow strategies such as repetitive decomposition and keyword stacking. To mitigate this attribution bias, we introduce a paired counterfactual comparison. Given the same input, tool library, retriever, and ground-truth tool set, we jointly evaluate the decomposition branch d and the non-decomposition baseline d0. Since the two branches share the same retrieval environment, confounding factors such as keyword priors, tool distributions, and parametric memory are held fixed and subtracted out through differencing. Therefore, the residual performance difference can be used as a controlled estimate of the marginal contribution of task decomposition. Formally, we treat task decomposition as an intervention on the retrieval process and define the marginal causal contribution of decomposition as 
+
+∆(D; X) = E [Y | do (D = δ), X] − E [Y | do (D = δ0), X] , (9) where δ is the atomized decomposition strategy generated by the policy model, and δ0 is the non-decomposition baseline, i.e., directly retrieving tools using the raw context X. Under the paired-counterfactual assumption that the nuisance factors Z are shared between the two branches conditioned 5on the same input X, this difference provides a controlled estimate of the additional retrieval benefit brought by task decomposition. In practice, we instantiate the potential outcome Y with the retrieval ranking metric NDCG@K. Given the multi-turn dialogue context x = ( H, q) and the ground-truth tool set Gt, we first evaluate the non-decomposition branch by directly retrieving tools with the raw context: 
+
+LK 
+
+> raw
+
+= RK (x), Nraw = NDCG@K 
+
+
+
+LK
+
+> raw
+
+, Gt
+
+
+
+, (10) where RK (·) denotes the top-K retriever over the tool library T . For the decomposition branch, a candidate decomposition yt,i is parsed into an ordered sequence of atomic subtasks: 
+
+At,i = Parse (yt,i) = ( τt,i,1 , τt,i,2 , . . . , τt,i,mt,i ). (11) Each subtask is used as an independent retrieval query. The retrieved tool lists are then merged, deduplicated, and truncated to obtain the decomposition-aware ranked list: 
+
+LK 
+
+> atom
+
+= TopK 
+
+
+
+Dedup 
+
+
+
+Merge 
+
+
+
+RK (τt,i,1 ), . . . , RK (τt,i,mt,i )
+
+ 
+
+. (12) The retrieval quality of the decomposition branch is computed as: 
+
+Natom = NDCG@K 
+
+
+
+LK
+
+> atom
+
+, Gt
+
+
+
+. (13) The paired comparison defines the ranking-level counterfactual gain as: 
+
+∆rank = Natom − Nraw . (14) To capture whether decomposition improves complete tool coverage, we further define: 
+
+∆cov = I
+
+h
+
+Gt ⊆ L K
+
+> atom
+
+i
+
+− I
+
+h
+
+Gt ⊆ L K
+
+> raw
+
+i
+
+, (15) where I[·] is the indicator function. The counterfactual retrieval-gain reward is then formulated as: 
+
+Rcf = λrank max (0, ∆rank ) + λcov ∆cov . (16) Here, the first term rewards decompositions that improve NDCG@K over the raw-query baseline, while the second term measures the gain or loss in complete tool coverage. Since both branches share the same input, retriever, tool library, and ground-truth tool set, this reward reduces attribution bias from raw-query keywords and tool priors, encouraging decompositions that provide additional retrieval benefits. 
+
+3.3 Preference Reward Modeling 
+
+To compensate for the semantic blind spots of pure retrieval metrics, we introduce an independent preference reward Rpref . This reward is based on a specially trained Process Reward Model (PRM) that evaluates decomposition results across five dimensions: completeness, accuracy, coreference resolution, standardized expression, and contextual consistency (detailed descriptions and penalty rules for each dimension are provided in Appendix Table 4). Let sϕ(x, y) denote the raw quality logit assigned by the PRM to a decomposition y under context x, and let y⋆ denote the human-annotated reference decomposition. For each candidate decomposition yt,i, we construct a reference-anchored preference pair (yi, y⋆) and define the preference reward as: 
+
+Rpref (xt, yt,i) = σ  sϕ(xt, yt,i) − sϕ(xt, y⋆ 
+
+> t
+
+) , (17) where σ(·) is the Sigmoid function. This Bradley–Terry-style reward measures the preference strength of the candidate decomposition relative to the expert reference. Since y⋆ is fixed under the same context, this design provides a stable quality anchor and is further converted into a relative advantage through group-wise normalization in GRPO, thereby offering dense structural supervision for logical coherence, contextual faithfulness, completeness, and atomicity. During GRPO optimization, we combine the counterfactual retrieval reward and the preference reward into a unified training signal: 
+
+R = wpref Rpref + ( 1 − wpref )Rcf , (18) where wpref ∈ [0, 1 ] controls the trade-off between structural decomposition quality and counterfactual retrieval gain. The preference reward Rpref encourages the policy to generate logically coherent, context-faithful, and atomic decompositions, while the counterfactual reward Rcf promotes decompositions that improve tool ranking and coverage beyond the raw-query baseline. By balancing these complementary signals, the policy is optimized via Eq. 2 to produce decompositions that are both structurally sound and effective for retrieval. The complete algorithm is detailed in Appendix 1. 64 Experiments 
+
+4.1 Evaluation Benchmarks 
+
+We evaluate PCTD on two benchmarks: ToolRet (Shi et al., 2025) and MTDTool. ToolRet aggregates 35 widely-used tool-calling datasets spanning three domains (Web, Code, and Custom), with a total corpus of 44K tools. MTDTool is a dataset specifically constructed for complex multi-turn mobile interaction scenarios, covering 237 vertical-domain tools across diverse mobile contexts. The training and test splits of ToolRet strictly follow the setup in ToolQP: we sample 10k instances from Web-domain data and synthesize tool-calling trajectories using Qwen3.6-Plus to form the training set; among these, 3.1k Web samples serve as the In-Domain test set, with all involved tools exposed during training, while the remaining test data in ToolRet constitute the Out-of-Domain test set. For MTDTool, we partition the test set into In-Domain and OOD subsets based on tool vertical domains. We use NDCG@K and Completeness@K (1 [R@K = 1]) as evaluation metrics, denoted as N@K and C@K in this paper. Detailed specifications are provided in the Appendix D.1. 
+
+4.2 Baselines 
+
+To comprehensively evaluate task decomposition and tool retrieval performance, we compare against three representative categories of baselines: (1) closed-source LLMs (ChatGPT-5.0 1, Qwen3-series (Yang et al., 2025), MiniMax-M2.5 2, and DeepSeek-V4-Pro 3), which serve to establish the upper bound of general-purpose models in zero-shot or few-shot decomposition scenarios; (2) prompting-based methods (Q2E (Wang et al., 2023), ReInvoke (Chen et al., 2024), ToolReAGt (Braunschweiler et al., 2025), and PLUTO (Huang et al., 2024b)), which optimize decomposition strategies via explicit chain-of-thought or structured retrieval augmentation, representing lightweight paradigms without parameter updates; and (3) the RL-based end-to-end optimization method ToolQP (Fang & Glass, 2026), which incorporates downstream tool retrieval metrics into mixed reward signals to jointly optimize decomposition and retrieval processes. Detailed descriptions of all baselines are provided in the Appendix A. Detailed implementation settings are provided in the Appendix B. 
+
+4.3 Main Results 
+
+Table 1 presents a comprehensive performance comparison between PCTD and various baseline methods on the ToolRet and MTDTool benchmarks, yielding the following key findings. First , to address the OOD generalization failure of existing RL methods caused by their reliance on surface keyword co-occurrences, PCTD demonstrates significant robustness by cutting off spurious correlations via counterfactual rewards. Under the OOD setting of MTDTool with Qwen3-8B as the base model, the N@10 of PCTD reaches 82.74, an improvement of 4.82 over the second-best RL baseline ToolQP (77.92). It also achieves an N@10 of 39.82 on the ToolRet benchmark under the OOD setting, outperforming ToolQP (37.77). This directly proves that the model has genuinely learned the causal logic for guiding retrieval rather than merely memorizing the tool distribution of the training set, thereby effectively mitigating performance collapse in scenarios involving unseen tools. Second , addressing repetitive decomposition and reward hacking caused by the lack of structural constraints (i.e., normative constraints on task decomposition results across logical, semantic, and execution dimensions), PCTD achieves a substantial leap in decomposition quality while maintaining high retrieval accuracy. In the In-Domain scenario of MTDTool, the C@10 of PCTD (Qwen3-8B) reaches 87.08, significantly outperforming ToolQP (83.61) by 3.47. Combined with the negative correlation between the repetition rate and performance in Figure 1 (where performance increases to 91.2 as the repetition rate drops from 5.2% to 0.7%), this improvement verifies that the Rpref 
+
+effectively eliminates reward hacking behaviors by suppressing the generation of redundant sub-tasks, enabling the model to output more precise and high-quality decomposition strategies. Ultimately, PCTD (Qwen3-8B) achieves the best performance across all evaluation settings (In-Domain, Out-of-Domain, and Average) on both benchmarks, with average N@10 and C@10 reaching 69.64 and 69.27, respectively. It comprehensively surpasses prompt engineering methods such as PLUTO and ToolReAGt, as well as RL methods like ToolQP, establishing the effectiveness of the causal gain-structural constraint joint optimization paradigm in resolving the fundamental limitations of task decomposition. Additionally, we observe that some prompting methods (e.g., Q2E and ReInvoke) perform slightly worse on the 8B model than on the 4B model. This suggests that fixed prompting strategies are sensitive to model scale, as larger models may suffer from over-reasoning or instruction-following deviations, 
+
+> 1https://chat.openai.com/
+> 2https://minimaxi.com/news/minimax-m25
+> 3https://www.DeepSeek.com/
+
+7Table 1: Overall performance comparison of PCTD and baselines across two benchmarks. Best and second-best results are bolded and underlined, respectively.                                                                                                                                                                                                    
+
+> Methods In-Domain Out-of-Domain Average
+> ToolRet MTDTool ToolRet MTDTool Overall N@10 C@10 N@10 C@10 N@10 C@10 N@10 C@10 N@10 C@10
+> Base Retriever
+> Qwen3-4B-embedding 56.82 59.32 68.35 61.79 36.98 38.10 50.57 42.22 53.18 50.36
+> Closed-Source LLMs
+> ChatGPT-5.0 60.30 64.74 82.81 82.50 37.96 39.53 73.22 74.24 63.57 65.25 DeepSeek-V4-Pro 58.23 61.94 83.06 78.70 32.85 33.12 73.26 69.22 61.85 60.75 MiniMax-M2.5 60.32 63.65 84.11 79.18 32.00 32.60 74.51 70.18 62.74 61.40
+> Prompting Methods (Qwen3-4B)
+> Q2E 53.80 56.48 70.36 65.43 29.57 29.88 54.84 46.39 52.14 49.55 ReInvoke 59.55 63.55 85.68 80.26 34.57 34.97 75.08 69.37 63.72 62.04 ToolReAGt 51.79 57.48 77.09 68.81 29.26 34.24 72.54 64.58 57.67 56.28 PLUTO 59.96 65.82 77.69 56.29 34.40 34.24 77.29 58.11 62.34 53.62
+> RL-Based Methods (Qwen3-4B)
+> ToolQP 56.27 62.58 86.72 76.99 37.67 39.93 74.60 68.28 63.82 61.95
+> Ours 64.71 68.71 89.17 84.11 39.27 41.11 78.82 74.87 67.99 67.20
+> ∆4.75 2.89 2.45 3.85 1.60 1.18 1.53 5.50 4.17 5.16
+> Prompting Methods (Qwen3-8B)
+> Q2E 55.71 57.74 70.43 66.03 36.47 37.80 54.66 46.32 54.32 51.97 ReInvoke 57.84 61.94 84.74 80.01 34.14 34.51 74.93 70.79 62.91 61.81 ToolReAGt 52.24 58.52 81.20 74.57 31.94 35.08 76.98 70.12 60.59 59.57 PLUTO 56.73 64.25 76.91 61.73 33.16 35.04 75.93 60.36 60.68 55.35
+> RL-Based Methods (Qwen3-8B)
+> ToolQP 56.47 63.23 89.72 83.61 37.77 39.36 77.92 74.33 65.47 65.13
+> Ours 64.79 68.71 91.19 87.08 39.82 41.50 82.74 79.77 69.64 69.27
+> ∆6.95 4.46 1.47 3.47 2.05 2.14 4.82 5.44 4.17 4.14
+
+failing to fully benefit from the increased parameter size. In Table 9, we further analyze the performance variations of the PCTD method when using different retrieval models, with detailed analysis results provided in Appendix E.2. 
+
+4.4 Ablation Studies 
+
+Table 2: Ablation study on PCTD.                                
+
+> Methods In-Domain Out-of-Domain N@10 C@10 N@10 C@10 Base Retriever 68.35 61.79 50.57 42.22
+> Prompting vs SFT vs RLVR
+> + Prompt 81.27 79.88 71.44 70.52 + SFT 85.35 79.43 75.23 71.08 + RLVR 91.19 87.08 82.74 79.77
+> RL-reward Ablation Study
+> w/o Preference Reward 90.65 86.18 78.59 75.79 w/o Counterfactual Reward 89.04 84.37 77.29 73.99 PCTD 91.19 87.08 82.74 79.77
+
+To validate the effectiveness of each com-ponent within PCTD, we conducted sys-tematic ablation studies on the MTDTool benchmark. First , in the comparison of training paradigms, while the Prompting ap-proach outperforms the base retriever with-out decomposition, it remains constrained by the model’s inherent knowledge, result-ing in OOD performance (N@10 of 71.44) that significantly lags behind parameter-ized methods. Although Supervised Fine-Tuning (SFT) improves In-Domain (ID) per-formance, its OOD generalization hits a bot-tleneck (N@10 of merely 75.23) due to over-fitting to surface-level patterns. In contrast, the reinforcement learning-based PCTD achieves a significant breakthrough via end-to-end optimization, reaching an OOD N@10 of 82.74 (a 7.51-point improvement over SFT). This fully demonstrates the advantage of RL in capturing genuine causal logic. Second , the ablation results of the reward mechanism validate the necessity of our dual-track design. Removing the preference reward impairs the model’s robustness in OOD scenarios due to the lack of structural constraints on logical coherence and atomicity, causing a 4.15-point drop in N@10. The performance degradation is even more severe when the counter-factual reward is removed, with the OOD N@10 dropping significantly by 5.45 points. This indicates that 80 0.2 0.5 0.8 1  
+
+> Parameter Settings
+> 80
+> 85
+> 90
+> 95
+> NDCG@10  90.6 91.2 90.5
+> 86.6
+> 89.5
+> In-domain
+
+(a) In-Domain 0 0.2 0.5 0.8 1    
+
+> Parameter Settings
+> 0
+> 1
+> 2
+> 3
+> 4
+> 5
+> 6
+> Duplication Rate (%)  5.24
+> 0.71 0.70 0.36 0.41
+> In-domain
+
+(b) In-Domain 0 0.2 0.5 0.8 1   
+
+> Parameter Settings
+> 60
+> 70
+> 80
+> 90
+> NDCG@10  78.6
+> 82.7 81.8
+> 77.7 78.9
+> Out-of-domain
+
+(c) Out-of-Domain 0 0.2 0.5 0.8 1  
+
+> Parameter Settings
+> 0.0
+> 0.5
+> 1.0
+> 1.5
+> 2.0
+> Duplication Rate (%)  1.60
+> 1.35
+> 1.00
+> 0.10 0.17
+> Out-of-domain
+
+(d) Out-of-Domain 
+
+Figure 4: Hyperparameter analysis under different wpre f settings. without the guidance of marginal causal gain, the model degenerates into shallow matching that relies on keyword co-occurrence. Ultimately, the complete PCTD achieves optimal performance in both retrieval accuracy and generalization capability by synergizing the functional correction of counterfactual rewards with the structural constraints of preference rewards. 
+
+4.5 Dataset Evaluation 
+
+Table 3: the scenario-level difficulty and discriminative capability of MT-DTool. 
+
+Scenario Type In-Domain Out-of-Domain N@10 C@10 N@10 C@10 Single-turn Single Tool 95.48 100.00 81.95 95.36 Same-category Multi-tool 93.99 95.42 77.77 63.78 Cross-category Multi-tool 86.02 73.27 74.41 55.48 Multi-turn Domain Switch 91.78 95.89 81.27 93.08 Multi-turn Continuation 81.29 83.83 69.31 74.79 Intent Selection 95.09 99.29 82.88 94.13 User Adds New Task 94.31 98.58 84.64 89.51 Unfinished Task Continuation 90.71 87.28 73.00 64.64 Abnormal Scenario 90.20 92.68 77.89 81.65 State Hybrid 88.48 70.35 76.79 53.36 
+
+We categorize MTDTool into single-turn and multi-turn di-alogues with 10 fine-grained scenario labels, and evalu-ate the performance under both In-Domain and OOD settings. The experimental results are shown in Table 3. The scenario-level results fur-ther reveal clear difficulty gradients. In single-turn set-tings, performance decreases as tool composition becomes more complex: Single Tool achieves the best In-Domain N@10 of 95.48, while Cross-category Multi-tool drops to 86.02 In-Domain and 74.41 OOD, with a notable coverage decline. In multi-turn settings, structured sce-narios such as Intent Selection and User Adds New Task remain relatively easy, reaching 95.09 and 94.31 In-Domain N@10, respectively. In contrast, scenarios requiring stronger state tracking, such as Multi-turn Continuation and State Hybrid, show larger degradation, especially in complete coverage, where State Hybrid drops to 53.36 C@10 under OOD. These results suggest that MTDTool provides a fine-grained and discriminative benchmark for evaluating task decomposition and tool retrieval across tool composition, domain shift, and multi-turn state evolution. We further present an evaluation of decomposition quality in Appendix C using the General Scoring Benchmark (GSB) based on the LLM-as-Judge paradigm. 0 100 200 
+
+> Step
+> 0.48
+> 0.52
+> 0.56
+> 0.6
+> Reward model score
+> toolrecall
+> counterfactual
+
+(a) 0 100 200  
+
+> Step
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> Entropy
+> toolrecall
+> counterfactual
+
+(b) 0 100 200  
+
+> Step
+> 16
+> 20
+> 24
+> 28
+> Response Length  toolrecall
+> counterfactual
+
+(c) 0 100 200  
+
+> Step
+> 90
+> 100
+> 110
+> 120
+> Time
+> toolrecall
+> counterfactual
+
+(d) 
+
+Figure 5: Training curves of different metrics. 
+
+4.6 Deeper Analysis When might PCTD fail? We further analyze that improper reward weight settings can lead to the failure of PCTD. As shown in Figure 4 (a)-(c), when the preference reward weight wpre f = 0, the model 9relies solely on counterfactual signals for optimization. Although it maintains high retrieval accuracy In-Domain (N@10 = 90.6), the duplication rate surges to 5.24%, and OOD performance drops sharply to 78.6. This confirms that pure causal optimization without preference constraints still induces reward hacking, resulting in generalization failure. Conversely, an excessively high wpre f may slightly sacrifice retrieval accuracy due to over-regularization, despite suppressing redundancy. Therefore, the risk of PCTD failure primarily stems from extreme imbalances in reward weights; only by maintaining a dynamic balance between causal gain and structural constraints can dual optimality in retrieval accuracy and generalization robustness be achieved. Detailed hyperparameter analysis is provided in the Appendix E.1. We further analyze the training dynamics of various metrics, comparing the existing reinforcement learning baseline relying on traditional tool retrieval rewards with our PCTD framework, as illustrated in Figure 5. Specifically, as shown in Figure 5(a), the reward model score of PCTD rises more rapidly and reaches a final value of 0.62, significantly outperforming the baseline value of 0.59. This indicates that the preference reward Rpref effectively guides the model to generate high-quality decomposition results that are more logically coherent, highly atomic, and better aligned with human references, thereby compensating for the lack of structural supervision in existing methods. In terms of policy exploration, as depicted in Figure 5(b), the policy entropy of PCTD rapidly decreases and stabilizes at a minimal level of 0.05, substantially lower than that of the baseline. This confirms that the counterfactual reward Rcf provides clear causal gradient signals, enabling the model to quickly converge to the optimal decomposition strategy and reducing ineffective exploration in the surface-level lexical space. More crucially, as demonstrated in Figure 5(c), the response length of PCTD is significantly shortened to approximately 17 tokens, whereas the baseline remains at 22 tokens. This directly verifies that PCTD successfully suppresses reward hacking behaviors, such as repetitive decomposition common in existing methods, through structural constraints, forcing the model to output refined sub-tasks. Ultimately, benefiting from the streamlined generation sequence and faster convergence, as evidenced in Figure 5(d), the per-step training time of PCTD drops to 92 milliseconds, outperforming the 110 milliseconds of the baseline. This demonstrates that while resolving generalization failures and structural redundancies, the proposed method not only avoids additional computational overhead but also achieves an optimization in overall training efficiency. 
+
+## 5 Related Work 
+
+5.1 Planning and Tool Retrieval in Agents 
+
+Research on agent planning and tool retrieval has evolved along two primary paradigms (Huang et al., 2024c; Yehudai et al., 2025): (1) Prompt-based and In-Context Learning approaches, grounded in the Reasoning-Acting-Reflecting cycle established by ReAct (Yao et al., 2022) and ToolReAct (Braunschweiler et al., 2025). Subsequent works (e.g., Toolformer (Schick et al., 2023), Gorilla (Patil et al., 2024), and the ToolLLM (Qin et al., 2024) series) have achieved effective tool selection within fixed inventories by explicitly generating chains of thought, sub-goals, or API invocation sequences; and (2) Joint optimization via Retrieval-Augmented Generation (RAG) (Zhao et al., 2026a) and Reinforcement Learning (Liu et al., 2026), designed to address challenges in large-scale open tool libraries. These methods typically decompose complex instructions into structured sub-queries (e.g., DAG-based atomic planning in Plan-RAG (Verma et al., 2024a) or iterative query planning in TOOLQP (Fang & Glass, 2026)) and refine policies using synthetic trajectories and RLVR. Recent studies (e.g., ToolRL (Qian et al., 2026), RLTR (Li et al., 2025), GiGPO (Feng et al., 2026)) further incorporate GRPO (Guo et al., 2025a), fine-grained tool-use rewards, or hierarchical advantage estimation to enhance end-to-end performance in long-horizon planning and multi-step invocation. However, existing paradigms directly use retrieval metrics as rewards, which easily induces reward hacking by relying on spurious correlations between shallow lexical features of decompositions and retrieval outcomes, leading to OOD generalization failure and repetitive decomposition. To address this, we propose the PCTD framework, which cuts off spurious correlations via counterfactual rewards and synergizes preference rewards to enforce fine-grained structural constraints, achieving joint optimization of task planning and tool retrieval in both causal gain and structural quality. 
+
+5.2 Benchmarks for Tool Retrieval 
+
+Existing benchmarks for agent task decomposition and tool retrieval fall into two primary categories: tool-interaction benchmarks (e.g., API-Bank (Li et al., 2023a), ToolBench (Qin et al., 2024), MINT-Bench (Wang et al., 2024b), τ-Bench (Yao et al., 2024), UltraTool (Huang et al., 2024a), and ToolRet (Shi et al., 2025)), which focus on tool selection, parameter alignment, complex long-tail invocation, and retrieval robust-ness; and task-oriented benchmarks (e.g., AgentBench (Liu et al., 2024), GAIA (Mialon et al., 2024), WebArena (Zhou et al., 2024), and TaskBench (Shen et al., 2024)), which emphasize end-to-end planning, task decomposition, and completion rates in open environments. Although recent efforts like Ham-10 merBench (Wang et al., 2025) have extended evaluation to function calls in real-world mobile scenarios, mainstream benchmarks remain constrained by Outcome Bias, relying predominantly on final success rates or trajectory-level metrics. They critically lack fine-grained process annotations for multi-turn interactions, such as cross-turn context inheritance, coreference resolution, dynamic intent evolution, task atomization, and semantic tool mapping. To address this, we introduce MTDTool, a fine-grained benchmark for multi-turn mobile interactions. By providing multi-level annotations covering dialogue intent evolution chains and ranked tool candidates, it establishes a new paradigm for fine-grained process evaluation in complex mobile contexts, offering a standardized basis for quantifying the impact of task decomposition quality on tool retrieval efficacy. 
+
+## 6 Conclusion 
+
+In this work, we reveal that existing reinforcement learning-based task decomposition methods are prone to reward hacking due to ill-designed reward signals, leading to repetitive sub-task decomposition and severe OOD generalization failure. To address these issues, we propose PCTD, a framework that synergizes counterfactual rewards to cut off spurious correlations and preference rewards to enforce structural quality, fundamentally resolving the aforementioned challenges. Furthermore, we release MTDTool, a fine-grained benchmark for evaluating task decomposition in mobile multi-turn interactions. Extensive experiments show that PCTD effectively eliminates redundant decomposition, significantly outperforming SOTA methods in retrieval accuracy, decomposition quality, and OOD robustness. 
+
+## References 
+
+Norbert Braunschweiler, Rama Doddipatla, and Tudor-Catalin Zorila. Toolreagt: tool retrieval for llm-based complex task solution via retrieval augmented generation. In Proceedings of the 3rd Workshop on Towards Knowledgeable Foundation Models (KnowFM) , pp. 75–83, 2025. Yanfei Chen, Jinsung Yoon, Devendra Singh Sachan, Qingze Wang, Vincent Cohen-Addad, Mohammad-hossein Bateni, Chen-Yu Lee, and Tomas Pfister. Re-invoke: Tool invocation rewriting for zero-shot tool retrieval. In Findings of the Association for Computational Linguistics: EMNLP 2024 , pp. 4705–4726, 2024. Wei Fang and James Glass. Beyond single-shot: Multi-step tool retrieval via query planning. arXiv preprint arXiv:2601.07782 , 2026. Lang Feng, Zhenghai Xue, Tingcong Liu, and Bo An. Group-in-group policy optimization for llm agent training. Advances in Neural Information Processing Systems , 38:46375–46408, 2026. Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Peiyi Wang, Qihao Zhu, Runxin Xu, Ruoyu Zhang, Shirong Ma, Xiao Bi, et al. Deepseek-r1 incentivizes reasoning in llms through reinforcement learning. 
+
+Nature , 645(8081):633–638, 2025a. Zhimeng Guo, Zongyu Wu, Teng Xiao, Charu Aggarwal, Hui Liu, and Suhang Wang. Counterfactual learning on graphs: A survey. Machine Intelligence Research , 22(1):17–59, 2025b. Shijue Huang, Wanjun Zhong, Jianqiao Lu, Qi Zhu, Jiahui Gao, Weiwen Liu, Yutai Hou, Xingshan Zeng, Yasheng Wang, Lifeng Shang, et al. Planning, creation, usage: Benchmarking llms for comprehen-sive tool utilization in real-world complex scenarios. In Findings of the Association for Computational Linguistics: ACL 2024 , pp. 4363–4400, 2024a. Tenghao Huang, Dongwon Jung, Vaibhav Kumar, Mohammad Kachuee, Xiang Li, Puyang Xu, and Muhao Chen. Planning and editing what you retrieve for enhanced tool learning. In Findings of the Association for Computational Linguistics: NAACL 2024 , pp. 975–988, 2024b. Xu Huang, Weiwen Liu, Xiaolong Chen, Xingmei Wang, Hao Wang, Defu Lian, Yasheng Wang, Ruim-ing Tang, and Enhong Chen. Understanding the planning of llm agents: A survey. arXiv preprint arXiv:2402.02716 , 2024c. Rolf Jagerman, Honglei Zhuang, Zhen Qin, Xuanhui Wang, and Michael Bendersky. Query expansion by prompting large language models. arXiv preprint arXiv:2305.03653 , 2023. Minghao Li, Yingxiu Zhao, Bowen Yu, Feifan Song, Hangyu Li, Haiyang Yu, Zhoujun Li, Fei Huang, and Yongbin Li. Api-bank: A comprehensive benchmark for tool-augmented llms. In Proceedings of the 2023 conference on empirical methods in natural language processing , pp. 3102–3116, 2023a. Zehan Li, Xin Zhang, Yanzhao Zhang, Dingkun Long, Pengjun Xie, and Meishan Zhang. Towards general text embeddings with multi-stage contrastive learning. arXiv preprint arXiv:2308.03281 , 2023b. 11 Zhiwei Li, Yong Hu, and Wenqing Wang. Encouraging good processes without the need for good answers: Reinforcement learning for llm agent planning. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: Industry Track , pp. 1654–1666, 2025. Shuo Liu, Zeyu Liang, Xueguang Lyu, and Christopher Amato. Llm collaboration with multi-agent reinforcement learning. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 40, pp. 32150–32158, 2026. Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, et al. Agentbench: Evaluating llms as agents. In International Conference on Learning Representations , volume 2024, pp. 52989–53046, 2024. Grégoire Mialon, Clémentine Fourrier, Thomas Wolf, Yann LeCun, and Thomas Scialom. Gaia: a benchmark for general ai assistants. In International Conference on Learning Representations , volume 2024, pp. 9025–9049, 2024. Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian. A comprehensive overview of large language models. 
+
+ACM Transactions on Intelligent Systems and Technology , 16(5):1–72, 2025. Shishir G Patil, Tianjun Zhang, Xin Wang, and Joseph E Gonzalez. Gorilla: Large language model connected with massive apis. Advances in Neural Information Processing Systems , 37:126544–126565, 2024. Cheng Qian, Emre Can Acikgoz, Qi He, Hongru Wang, Xiusi Chen, Dilek Hakkani-Tur, Gokhan Tur, and Heng Ji. Toolrl: Reward is all tool learning needs. Advances in Neural Information Processing Systems , 38: 105523–105553, 2026. Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, et al. Toolllm: Facilitating large language models to master 16000+ real-world apis. In 
+
+International Conference on Learning Representations , volume 2024, pp. 9695–9717, 2024. Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettle-moyer, Nicola Cancedda, and Thomas Scialom. Toolformer: Language models can teach themselves to use tools. Advances in neural information processing systems , 36:68539–68551, 2023. Yongliang Shen, Kaitao Song, Xu Tan, Wenqi Zhang, Kan Ren, Siyu Yuan, Weiming Lu, Dongsheng Li, and Yueting Zhuang. Taskbench: Benchmarking large language models for task automation. Advances in Neural Information Processing Systems , 37:4540–4574, 2024. Zhengliang Shi, Yuhan Wang, Lingyong Yan, Pengjie Ren, Shuaiqiang Wang, Dawei Yin, and Zhaochun Ren. Retrieval models aren’t tool-savvy: Benchmarking tool retrieval for large language models. In 
+
+Findings of the Association for Computational Linguistics: ACL 2025 , pp. 24497–24524, 2025. Prakhar Verma, Sukruta Prakash Midigeshi, Gaurav Sinha, Arno Solin, Nagarajan Natarajan, and Amit Sharma. Plan-rag: Planning-guided retrieval augmented generation. 2024a. Sahil Verma, Varich Boonsanong, Minh Hoang, Keegan Hines, John Dickerson, and Chirag Shah. Coun-terfactual explanations and algorithmic recourses for machine learning: A review. ACM Computing Surveys , 56(12):1–42, 2024b. Jun Wang, Jiamu Zhou, Xihuai Wang, Xiaoyun Mo, Haoyu Zhang, Qiqiang Lin, Jincheng Jincheng, Muning Wen, Weinan Zhang, and Qiuying Peng. Hammerbench: Fine-grained function-calling evaluation in real mobile assistant scenarios. In Findings of the Association for Computational Linguistics: ACL 2025 , pp. 3350–3376, 2025. Liang Wang, Nan Yang, and Furu Wei. Query2doc: Query expansion with large language models. In 
+
+Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , pp. 9414–9423, 2023. Liang Wang, Nan Yang, Xiaolong Huang, Linjun Yang, Rangan Majumder, and Furu Wei. Improving text embeddings with large language models. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 11897–11916, 2024a. Peng-Yuan Wang, Tian-Shuo Liu, Chenyang Wang, Ziniu Li, Yidi Wang, Shu Yan, Chengxing Jia, Xu-Hui Liu, Xinwei Chen, Jiacheng Xu, et al. A survey on large language models for mathematical reasoning. 
+
+ACM Computing Surveys , 58(8):1–35, 2026. 12 Xingyao Wang, Zihan Wang, Jiateng Liu, Yangyi Chen, Lifan Yuan, Hao Peng, and Heng Ji. Mint: Evaluating llms in multi-turn interaction with tools and language feedback. In International Conference on Learning Representations , volume 2024, pp. 32593–32627, 2024b. Qiancheng Xu, Yongqi Li, Heming Xia, and Wenjie Li. Enhancing tool retrieval with iterative feedback from large language models. In Findings of the Association for Computational Linguistics: EMNLP 2024 ,pp. 9609–9619, 2024. An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models. arXiv preprint arXiv:2210.03629 , 2022. Shunyu Yao, Noah Shinn, Pedram Razavi, and Karthik Narasimhan. tau -bench: A benchmark for tool-agent-user interaction in real-world domains. arXiv preprint arXiv:2406.12045 , 2024. Asaf Yehudai, Lilach Eden, Alan Li, Guy Uziel, Yilun Zhao, Roy Bar-Haim, Arman Cohan, and Michal Shmueli-Scheuer. Survey on evaluation of llm-based agents. arXiv preprint arXiv:2503.16416 , 2025. Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie, An Yang, Dayiheng Liu, Junyang Lin, et al. Qwen3 embedding: Advancing text embedding and reranking through foundation models. arXiv preprint arXiv:2506.05176 , 2025. Penghao Zhao, Hailin Zhang, Qinhan Yu, Zhengren Wang, Yunteng Geng, Fangcheng Fu, Ling Yang, Wentao Zhang, Jie Jiang, and Bin Cui. Retrieval-augmented generation for ai-generated content: A survey. Data Science and Engineering , pp. 1–29, 2026a. Wayne Xin Zhao, Kun Zhou, Junyi Li, Tianyi Tang, Zican Dong, Yupeng Hou, Beichen Zhang, Yingqian Min, Junjie Zhang, Peiyu Liu, et al. A survey of large language models. Frontiers of Computer Science , 20 (12):2012627, 2026b. Shuyan Zhou, Frank F Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue Ou, Yonatan Bisk, Daniel Fried, et al. Webarena: A realistic web environment for building autonomous agents. In International Conference on Learning Representations , volume 2024, pp. 15585–15606, 2024. 13 Appendix Contents 
+
+Appendix 14 A Baselines 15 
+
+A.1 Closed-Source LLMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 A.2 Prompting Methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 A.3 RL-Based Method . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 A.4 Re-ranking methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 
+
+B Implementation Details 16 C Evaluation of Task Decomposition Quality 16 
+
+C.1 GSB Evaluation Process and Scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 C.2 Analysis of GSB Evaluation Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 
+
+D Further Analysis of Dataset 17 
+
+D.1 Statistics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 D.2 Dataset distribution information . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 
+
+E Further Analysis 19 
+
+E.1 When might PCTD fail? . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 E.2 Performance of PCTD Across Different Retrievers . . . . . . . . . . . . . . . . . . . . . . . 21 14 A Baselines 
+
+A.1 Closed-Source LLMs 
+
+• Qwen3 Series (Yang et al., 2025) is a series of LLMs developed by the Alibaba team. It includes the general-purpose language model Qwen3, the advanced reasoning-specific model Qwen3-Reasoner, and the agent-oriented model Qwen3-Agent. The Qwen3 series of models have been pretrained on significantly larger and higher-quality datasets with extended context windows. In addition, it achieves state-of-the-art performance in complex tasks such as autonomous agent planning, multi-step mathematical reasoning, and precise instruction following. • ChatGPT-5.0 is a large-scale language model developed by OpenAI based on the Transformer archi-tecture. It demonstrates strong capabilities in natural language understanding, reasoning, and text generation, enabling it to handle complex dialogue and knowledge-intensive tasks. • DeepSeek-V4 Series is a state-of-the-art open-weight large language model built on a Mixture-of-Experts (MoE) architecture with auxiliary-loss-free load balancing and FP8 mixed-precision training. It achieves superior reasoning and instruction-following performance while maintaining high computa-tional efficiency through sparse activation and optimized inference kernels. • MiniMax-M2.5 is a high-performance proprietary large language model featuring an optimized Trans-former architecture with enhanced long-context processing and multi-modal alignment capabilities. 
+
+A.2 Prompting Methods 
+
+• Q2E (Wang et al., 2023) is a semantic query expansion mechanism based on Large Language Models (LLMs). For short and ambiguous user queries, Q2E leverages the reasoning capabilities of LLMs to reconstruct them into content-rich pseudo-documents, thereby improving the relevance ranking performance of retrieval systems without requiring additional supervision signals. • ReInvoke (Chen et al., 2024) proposes a zero-shot tool retrieval paradigm based on Large LLMs, the essence of which is to decompose user intent into tool-executable semantic units. By reformulating raw queries into structured instructions aligned with tool descriptions, Re-invoke achieves fine-grained mapping from abstract requirements to specific tool parameters. This approach effectively bridges the semantic gap between user queries and tool interfaces without requiring fine-tuning, thereby enhancing tool retrieval performance in complex multi-task scenarios. • ToolReAGt (Braunschweiler et al., 2025) constructs an iterative retrieval framework based on the ReAct paradigm, core to which is the mandatory embedding of tool retrieval within the Thought-Action-Observation loop. For each sub-task, the Agent generates a tailored query via Thought and mandatorily invokes the retriever to obtain candidate tools. Subsequently, in the Observation phase, it evaluates matching relevance; if no suitable tool is found, it leverages feedback to enter the next iteration for query refinement. • PLUTO (Huang et al., 2024b) employs a post-retrieval planning and editing mechanism. It initially retrieves a candidate set of tools based on the user query, and subsequently refines the results through a two-step process leveraging LLMs. First, a planning module filters the most relevant tool subset from the candidates and determines their invocation order according to the current task context. Second, an editing module instantly corrects and adapts the documentation or parameter examples of the selected tools to eliminate semantic discrepancies between the original descriptions and specific task requirements. 
+
+A.3 RL-Based Method 
+
+• ToolQP (Fang & Glass, 2026) reformulates tool retrieval as an iterative planning process and incorpo-rates Reinforcement Learning with Verifiable Rewards (RLVR) to optimize the planning policy. During inference, the model decomposes abstract intents into structured sub-goals with specific parameters and preconditions via sub-goal decomposition, generating targeted queries accordingly. In the train-ing phase, TOOLQP establishes a closed-loop optimization mechanism: it utilizes downstream tool retrieval metrics (e.g., Recall@K or MRR) as verifiable reward signals to directly guide the parameter updates of the planner. 
+
+A.4 Re-ranking methods 
+
+• Qwen3-Embedding series (Zhang et al., 2025)is a high-performance text embedding model built upon the Qwen3 dense Transformer architecture, optimized specifically for semantic representation and retrieval tasks. It employs contrastive learning with hard negative mining and multi-stage training to achieve superior performance on MTEB benchmarks while maintaining efficient inference through knowledge distillation from larger teacher models. 15 • gte-Qwen2-1.5B-instruct (Li et al., 2023b) is a compact text embedding model based on the Qwen2-1.5B dense Transformer architecture, fine-tuned specifically for semantic retrieval and representation tasks. It achieves competitive MTEB performance through contrastive learning with hard negative mining and instruction-aware training, while maintaining high inference efficiency suitable for resource-constrained deployment scenarios. • e5-mistral-7b-instruct (Wang et al., 2024a) is a text embedding model built upon the Mistral-7B dense Transformer architecture, fine-tuned with instruction-aware contrastive learning for semantic retrieval tasks. It achieves strong performance on MTEB benchmarks by leveraging the base model’s reasoning capabilities and optimizing representation quality through hard negative mining and multi-stage training. Table 4: Evaluation Dimensions and Penalty Rules of the Process Reward Model (PRM).                
+
+> Dimension Description Penalty Rule
+> Completeness Whether all valid intents, core en-tities, and constraints from the original utterance are included without omission. Severe penalty for missing in-tents, entities, or constraints. Accuracy Whether the user’s true intent is precisely restored without se-mantic deviation. Severe penalty for semantic mis-interpretation or non-executable tasks. Coreference Resolu-tion Pronouns (e.g., “it”, “that”) must be replaced with explicit entities to ensure standalone readability. Moderate penalty for unresolved coreferences. Standardized Ex-pression Colloquialisms and filler words are removed; output should be concise and standardized in-structions. Minor penalty for non-standard or redundant expressions. Contextual Consis-tency Historical information is cor-rectly inherited across turns; modifications and conflicts are properly handled. Severe penalty for incorrect con-text handling.
+
+## B Implementation Details 
+
+Our PCTD framework is trained in two stages. We apply LoRA adaptation (rank=64, alpha=128) to Qwen3-4B and Qwen3-8B base models initialized from SFT checkpoints. The training configuration uses a batch size of 128, a PPO mini-batch size of 64, and a PPO micro-batch size of 8 per GPU. The maximum prompt length is set to 1024 and the maximum response length to 128. During GRPO rollout, we sample 8 candidate responses per prompt ( n = 8) and employ vLLM as the inference engine with a GPU memory utilization of 0.6. The multi-signal reward consists of two components: a preference reward with weight wpre f and a counterfactual reward with weight 1 − wpre f .The preference reward is provided by a Qwen2.5-1.5B reward model, We set wpref = 0.5 to balance the preference reward and the counterfactual retrieval-gain reward. Within Rcf , we set λrank = λcov = 1.0 unless otherwise specified. During both training and evaluation, we use a Qwen3-Embedding-4B based tool recall service to retrieve the top-10 tools for each query. Following standard tool-recall practice, each decomposed subtask independently retrieves its top-K candidate tools, and the results are merged via round-robin ranking with deduplication. 
+
+## C Evaluation of Task Decomposition Quality 
+
+C.1 GSB Evaluation Process and Scheme 
+
+To comprehensively evaluate the model’s performance in multi-turn intent rewriting and task decomposi-tion, we established a General Scoring Benchmark (GSB) based on the LLM-as-Judge paradigm. Adopting an absolute scoring mode, we randomly sampled 300 instances each from In-Domain and Out-of-Domain datasets. Three state-of-the-art closed-source LLMs (Qwen3.6-Plus, GLM-5.1, and DeepSeek-v4-flash) served as independent judges, with their assessments aggregated via majority or weighted voting to 16 Table 5: GSB evaluation results on In-Domain and Out-of-Domain datasets. Scores are on a 5-point scale. 
+
+Bold indicates the best performance.             
+
+> Model In-Domain Out-of-Domain
+> Closed-Source LLMs
+> MiniMax-M2.5 4.19 4.17 DeepSeek-v4-pro 4.27 4.25 ChatGPT-5.0 4.36 4.34
+> Ours (RLVR)
+> Ours w/ Preference Reward 4.01 4.00
+> Ours method-RL 4.36 4.37
+
+mitigate individual model biases. The evaluation framework comprises two core dimensions, Rewriting Quality and Decomposition Quality , each assigned a 50% weight. Specifically, Rewriting Quality is fine-grainedly assessed based on conciseness-fidelity (0.2), context coherence (0.3), and multi-task handling capability (0.5); while Decomposition Quality focuses on granularity appropriateness (0.5), logical con-sistency (0.2), and completeness (0.3). Finally, we quantified the performance gap between our method (Ours) and mainstream closed-source baselines by aggregating the weighted 5-point scale scores across all dimensions. 
+
+C.2 Analysis of GSB Evaluation Results 
+
+As shown in Table 5, the GSB evaluation demonstrates that PCTD achieves state-of-the-art performance in multi-turn intent rewriting and task decomposition. Our method significantly outperforms mainstream closed-source models, including MiniMax-M2.5 and DeepSeek-v4-pro, across both In-Domain and Out-of-Domain evaluations. Notably, in the more challenging OOD scenario, PCTD surpasses the strongest baseline ChatGPT-5.0 with a score of 4.37 versus 4.34, while achieving a comparable score of 4.36 in the In-Domain setting, validating its superior generalization capability and robustness. Furthermore, ablation studies confirm the critical role of the counterfactual reasoning mechanism: compared to the variant using only the preference reward (4.01/4.00), the complete PCTD method yields score improvements of 0.35 and 0.37 on In-Domain and OOD datasets, respectively. This substantial gain indicates that quantifying marginal causal gains via counterfactual rewards effectively severs spurious correlation shortcuts, compelling the model to learn genuine decomposition logic and fundamentally resolving the OOD generalization failure prevalent in traditional RL-based agents. 
+
+## D Further Analysis of Dataset 
+
+D.1 Statistics 
+
+The constructed dataset covers seven vertical tool categories, including daily life, travel, utilities, device control (system or application control), reminders, communication, and audio-video entertainment. Based on domain relevance, the dataset is divided into In-Domain and Out-of-Domain subsets: the In-Domain subset includes three verticals (daily life, travel, and utilities) involving 36 tools, while the Out-of-Domain subset covers the remaining four verticals with 201 tools. The dataset comprises a total of 2,917 training samples, and the test set consists of 6,058 In-Domain samples and 5,201 Out-of-Domain samples. During the retrieval evaluation phase, the full tool pool is employed, and only the tool_description field is used for text embedding representation. 
+
+D.2 Dataset distribution information 
+
+We categorize the dataset into two major groups based on the dialogue interaction structure and task execution states: Single-turn and Multi-turn scenarios. On this basis, we further define several specific scenario types to systematically cover diverse interaction patterns that may arise during tool usage. The detailed classification results are presented in Table 7. As illustrated in Figure 6, the proportions of different categories in the training set and test set are presented in detail. Figure 7 further shows the distribution of different categories across the entire dataset. In single-turn scenarios, the user request is completed within a single dialogue turn. This category includes three types: Single-turn Single Tool, Single-turn Multi-tool (Same Category), and Single-turn Cross-category Multi-tool. Specifically, Single-turn Single Tool refers to tasks that can be completed by invoking only one tool in a single interaction, representing the most basic form of tool usage. Single-turn 17 Single-turn Single-tool 
+
+Single-turn Same-domain Multi-tool 
+
+Single-turn Cross-domain Multi-tool 
+
+Multi-turn Inheritance 
+
+Domain Switch 
+
+Anomaly Scenario 
+
+User-added Task 
+
+Unexecuted Task Requiring Inheritance 
+
+Follow-up Choice 
+
+State-mixed 
+
+0
+
+10 
+
+20 
+
+30 
+
+40    
+
+> Percentage (%)
+> 12.7
+> 2.5
+> 17.1
+> 9.5
+> 6.4
+> 3.9
+> 23.0
+> 2.8
+> 20.2
+> 1.8
+> 6.5
+> 2.2
+> 40.0
+> 10.6 11.3
+> 3.4
+> 8.2
+> 2.9
+> 11.7
+> 3.3
+> 7.5 7.5
+> 27.7
+> 9.2 10.0
+> 4.2
+> 11.7
+> 3.5
+> 14.1
+> 4.6
+
+In-Domain-train 
+
+In-Domain-test 
+
+Out-Domain-test Figure 6: Dataset distribution (grouped percentage). Multi-tool (Same Category) describes situations where multiple tools are required within a single turn, but these tools belong to the same functional category, such as multiple tools related to travel services. Single-turn Cross-category Multi-tool refers to cases where multiple tools from different domains or categories are required within one turn, for example, simultaneously checking the weather and booking a hotel. In multi-turn scenarios, the dialogue consists of multiple interaction turns, and the execution state of tasks may evolve or be inherited across turns. We further define several common multi-turn interaction types, including Domain Switching, Exception Scenario, Unexecuted Task Inheritance, Follow-up Selection, User-added Task, Mixed State Type, and Multi-turn Inheritance. Domain Switching refers to situations where the current turn abruptly shifts to a completely new topic or domain that is unrelated to the previous turn. Exception Scenario describes cases where abnormal execution states occur during task execution, such as failures, cancellations, re-executions, or rollbacks. Unexecuted Task Inheritance indicates that a silent task from the previous turn is still running in the background and its state must be tracked or inherited in the current turn. Follow-up Selection refers to interactions where the assistant asks the user for missing information or clarification, or where the user selects among multiple options. User-added Task describes situations in which the user introduces a new task during the dialogue that is unrelated to the previous task. Mixed State Type refers to dialogues that simultaneously involve three or more of the above multi-turn interaction types (excluding multi-turn inheritance). Finally, Multi-turn Inheritance represents the normal continuation of an unfinished task from the previous turn into the current turn. Through this categorization, the dataset aims to comprehensively cover interaction patterns ranging from basic tool invocation to complex multi-turn task management, thereby providing a more fine-grained foundation for evaluating and analyzing model capabilities. Table 6: Comparison of MTDTool with existing tool-use benchmarks across different capability dimen-sions. Dimension Ours Hammer ToolRet APIBench ToolBench API-Bank Single-turn Single Tool ✓ ✓ ✓ ✓ ✓ ✓
+
+Single-turn Multiple Tools ✓ × ✓ × ✓ ✓
+
+Single-turn Cross-domain Multiple Tools ✓ × ✓ × ✓ ✓
+
+Multi-turn Inheritance ✓ ✓ × × ✓ ✓
+
+Switching ✓ ✓ × × × ×
+
+Exception Scenarios ✓ × × × × ×
+
+User Follow-up Tasks ✓ × × × × ×
+
+Unfinished Task Inheritance ✓ × × × × ×
+
+Follow-up Selection ✓ ✓ × × × ×
+
+Mixed State Types ✓ × × × × ×
+
+18 0 5 10 15 20 25 30 
+
+Percentage (%) 
+
+Unexecuted Task Requiring Inheritance 
+
+State-mixed 
+
+Anomaly Scenario 
+
+Single-turn Same-domain Multi-tool 
+
+Single-turn Single-tool 
+
+Domain Switch 
+
+Multi-turn Inheritance 
+
+User-added Task 
+
+Follow-up Choice 
+
+Single-turn Cross-domain Multi-tool 
+
+> 3.1
+> 3.5
+> 3.8
+> 4.2
+> 8.1
+> 9.8
+> 9.9
+> 12.5
+> 14.3
+> 30.8
+
+Figure 7: Overall dataset distribution. 
+
+Algorithm 1 Counterfactual and Preference Rewards for Task Decomposition 
+
+Input: SFT policy πθ , old policy πθold , reference policy πref , preference model sϕ, tool retrieval service 
+
+Str , weights wpref , λrank , λcov 
+
+Output: Optimized policy πθ
+
+1: for each training step do 
+
+2: Sample n decompositions {y(j) 
+
+> t
+
+}nj=1 ∼ πθold (· | xt) for each prompt xt = ( Ht, qt)
+
+3: Counterfactual reward: for each y(j) 
+
+> t
+
+,
+
+4: Retrieve tools for decomposition and raw context: LK,(j) 
+
+> atom
+
+← S tr (y(j) 
+
+> t
+
+, K), LK 
+
+> raw
+
+← S tr (xt, K)
+
+5: ∆(j) 
+
+> rank
+
+← NDCG@ K(LK,(j)
+
+> atom
+
+, Gt) − NDCG@ K(LK
+
+> raw
+
+, Gt)
+
+6: ∆(j) 
+
+> cov
+
+← I[Gt ⊆ L K,(j)
+
+> atom
+
+] − I[Gt ⊆ L K
+
+> raw
+
+]
+
+7: R(j) 
+
+> cf
+
+← λrank max (0, ∆(j)
+
+> rank
+
+) + λcov ∆(j)
+
+> cov
+
+8: Preference reward: R(j) 
+
+> pref
+
+← σ
+
+
+
+sϕ(xt, y(j) 
+
+> t
+
+) − sϕ(xt, y⋆ 
+
+> t
+
+)
+
+
+
+9: Multi-signal fusion: R(j) ← wpref · R(j) 
+
+> pref
+
++ ( 1 − wpref ) · R(j)
+
+> cf
+
+10: GRPO advantage: normalize within the n-candidate group, 
+
+11: ˆA(j) ← R(j) − 1 
+
+> n
+
+∑nk=1 R(k)
+
+std ({R(k)}nk=1) + ϵstd 
+
+12: Policy update: minimize 
+
+13: L ← − E
+
+h
+
+min  ρ(j) ˆA(j), clip (ρ(j), 1 −ϵclip , 1 +ϵclip ) ˆA(j)i
+
++ βKL · KL  πθ ∥ πref 
+
+
+
+14: where ρ(j) = πθ (y(j) 
+
+> t
+
+| xt)/πθold (y(j) 
+
+> t
+
+| xt)
+
+15: end for 
+
+16: return πθ
+
+## E Further Analysis 
+
+E.1 When might PCTD fail? 
+
+Although PCTD improves performance through the joint reward mechanism, its effectiveness depends on the balance between the counterfactual reward Rcf and the preference reward Rpref . Table 8 reports the effect of the preference weight wpref on retrieval performance and repetition rate, revealing the potential failure modes of PCTD under extreme reward configurations. When wpref = 0, the model is 19 Table 7: Definitions of dialogue scenario labels used in the dataset. 
+
+Scenario Label Brief Description Single-turn Single-turn Single Tool A single-turn dialogue that completes a simple task using only one tool. Single-turn Multi-tool (Same Category) A single-turn dialogue that uses multiple tools within the same category (e.g., multiple “travel” tools). Single-turn Cross-category Multi-tool A single-turn dialogue that uses multiple tools across different categories (e.g., checking weather and booking a hotel). Multi-turn Domain Switching In a multi-turn dialogue, the current turn switches to a completely new topic or domain unrelated to the previous turn. Exception Scenario A multi-turn dialogue containing abnormal ex-ecution states such as failure, cancellation, re-execution, or rollback. Unexecuted Task Inheritance A silent task from the previous turn is still run-ning in the background and its state must be in-herited in the current turn. Follow-up Selection The assistant asks follow-up questions for missing details, or the user makes a selection during multi-turn dialogue. User-added Task The user introduces a new task unrelated to the task from the previous turn during multi-turn dialogue. Mixed State Type A multi-turn dialogue simultaneously including three or more of the above scenarios (excluding multi-turn inheritance). Multi-turn Inheritance The current turn normally continues executing an unfinished task from the previous turn in multi-turn dialogue. 
+
+Table 8: Hyperparameter analysis of reward weights wpre f . Performance metrics (N@10, C@10) are reported in percentage (%). Repetition rates are reported as raw values. 
+
+wpre f 1 − wpre f 
+
+In Domain Out Domain N@10 C@10 Duplication Rate (%) N@10 C@10 Duplication Rate (%) 0 1 90.65 86.18 5.24 78.59 75.79 1.60 
+
+0.2 0.8 91.19 87.08 0.71 82.74 79.77 1.35 0.5 0.5 90.50 86.63 0.70 81.85 79.50 1.00 0.8 0.2 86.55 80.59 0.36 77.74 73.24 0.10 1 0 89.49 85.70 0.41 78.93 75.77 0.17 
+
+optimized solely by the counterfactual reward. Although it achieves a high In-Domain N@10 of 90.65, its Out-of-Domain performance drops to 78.59, and the repetition rate increases to 5.24. This result suggests that counterfactual retrieval feedback alone is insufficient to guarantee high-quality task decomposition. Without structural preference constraints, the policy may still exploit retrieval metrics through redundant or repetitive decomposition patterns, leading to weaker OOD generalization. As wpref increases, the preference reward gradually provides stronger structural regularization. The repetition rate decreases substantially from 5.24 to 0.17, while the Out-of-Domain N@10 reaches its best value of 82.74 when wpref = 0.2. However, when wpref becomes too large, e.g., wpref = 1, the model relies only on preference supervision. Although this setting effectively suppresses repetition, the In-Domain N@10 decreases to 89.49, indicating that overly strong structural regularization may weaken the model’s ability to optimize retrieval-specific objectives. These results show that the main failure risk of PCTD comes from an imbalance between the two reward signals. When wpref → 0, the lack of preference supervision makes the model prone to repetitive decomposition and OOD degradation. When wpref → 1, excessive preference supervision may over-20 regularize the policy and sacrifice retrieval accuracy. Therefore, PCTD performs best when the preference reward and the counterfactual reward are properly balanced, enabling the model to learn decompositions that are both structurally well-formed and effective for tool retrieval. Table 9: Retrieval performance on the MTDTool benchmark using different retrievers.                                                                                    
+
+> In-Domain Out-of-Domain Method N@10 C@10 N@10 C@10
+> Qwen3-Embedding-4B
+> Base Retriever 68.35 61.79 50.57 42.22 Ours 91.19 87.08 82.74 79.77
+> ∆(%) 22.84 25.29 32.17 37.55
+> gte-Qwen2-1.5B-instruct
+> Base Retriever 61.93 54.74 48.01 38.20 Ours 87.01 83.93 81.40 80.97
+> ∆(%) 25.08 29.19 33.39 42.77
+> bge-large-zh-v1.5
+> Base Retriever 52.06 39.58 40.98 29.69 Ours 81.67 76.01 79.89 78.10
+> ∆(%) 29.61 36.43 38.91 48.41
+> Qwen3-Embedding-0.6B
+> Base Retriever 64.42 58.26 48.43 39.84 Ours 88.54 86.60 84.27 82.43
+> ∆(%) 24.12 28.34 35.84 42.59
+> e5-mistral-7b-instruct
+> Base Retriever 55.73 48.09 40.58 34.07 Ours 84.10 80.44 71.45 65.87
+> ∆(%) 28.37 32.35 30.87 31.80
+> Fine-tuned Qwen3-Embedding-4B
+> Base Retriever 93.37 87.97 72.20 64.10 Ours 93.31 89.81 82.85 84.06
+> ∆(%) -0.06 1.84 10.65 19.96
+
+E.2 Performance of PCTD Across Different Retrievers 
+
+Table 9 presents the zero-shot generalization performance of PCTD across different retrievers after training on MTDTool. The experiments cover a range of mainstream embedding models from lightweight (0.6B) to large-scale (7B+), as well as a Qwen3-Embedding-4B model fine-tuned on downstream tasks. Key analyses and conclusions are as follows: 1. Strong Retriever-Agnostic Capability: PCTD achieves significant improvements across all tested base retrievers. Notably, for the smaller-parameter models Qwen3-Embedding-0.6B and bge-large-zh-v1.5 ,In-Domain N@10 increases by 24.12% and 29.61%, respectively, while Out-of-Domain C@10 surges by 42.59% and 48.41%. This demonstrates that the atomic sub-tasks generated by PCTD possess extremely high semantic signal-to-noise ratios, effectively compensating for the semantic understanding limitations of lightweight retrievers and enabling them to approach or even surpass unoptimized strong retrievers. 2. 
+
+More Pronounced Robustness Enhancement in OOD Scenarios: Compared to In-Domain performance, the improvement margin of PCTD in OOD scenarios is generally 10–20 percentage points higher. For instance, on gte-Qwen2-1.5B , OOD C@10 improves by 42.77%, far exceeding the In-Domain gain of 29.19%. This indicates that by cutting off spurious correlations via counterfactual rewards, the decomposition logic learned by the model exhibits stronger causal universality rather than merely memorizing tool co-occurrence patterns in the training set, thereby generating precise retrieval queries even when facing unseen tools. 3. Complementary Advantage over Fine-Tuned Retrievers: Even against the downstream fine-tuned Fine-tuned Qwen3-Embedding-4B , PCTD remains competitive. Although the absolute gain narrows on this specific fine-tuned model due to its high adaptation to the task distribution (In-Domain N@10 drops slightly by 0.06%, but C@10 still rises by 1.84%; OOD N@10 increases by 10.65%), this precisely highlights that the core value of PCTD lies in optimizing the semantic quality at the input end . When the retriever is already sufficiently strong, PCTD shifts from “score boosting” to “tackling hard cases,” continuing to unlock potential in OOD difficult examples; whereas for un-tuned generic retrievers, PCTD plays a decisive role in achieving substantial performance leaps. 21 Table 10: Definition of Tool Execution States and Typical Transition Logic. The transition logic follows the two-stage process d ∼ Ptodo (s) → s′ ∼ Ptask (d).
+
+Category ID State Name Core Semantics Typical Transition Logic ( Ptodo →
+
+Ptask )
+
+Regular Execution 
+
+s1 Success Task completed Null (0.95) / Revocation (0.05) →
+
+Remove / Reverse Op 
+
+s2 In Progress Task ongoing Retry (0.8) / Cancel (0.2) → Success / Failure 
+
+s3 Failure Abnormal termination Retry (0.9) / Cancel (0.1) → Retry / Terminate Interaction Clarification s4 Clarification Missing key info Supplementation (1.0) → Re-execute after user input 
+
+s5 Selection Multi-option confirm Selection Confirm (1.0) → Execute corresponding branch Intent Management 
+
+s6 Silence Demand not triggered Maintain silence / Transition to new task 
+
+s7 Cancellation Explicit refusal Null (1.0) → Tool exits context 
+
+s8 Revocation Rollback operation Null (1.0) → Execute reverse tool 
+
+s9 Retry Retry request Success (0.95) / Failure (0.05) 
+
+s10 Supplementation Active completion Success (1.0) → Continue subse-quent tasks 
+
+s11 Null Exit dialogue –In summary, these results compellingly demonstrate that PCTD is not merely an optimization strategy tailored for specific retrievers, but a universal semantic enhancement paradigm . By transforming ambiguous instructions into high signal-to-noise atomic sub-tasks, it fundamentally resolves the semantic mismatch problem in agent tool retrieval, enabling even lightweight or generic retrieval models to achieve high-precision tool localization in complex multi-turn interactions and unknown tool scenarios. 22 System: You are a real human phone user interacting with an AI voice assistant. Generate a natural spoken command. 
+
+User: 
+
+Below is the list of tools available to the assistant (for your reference only; you must trigger them implicitly): 
+
+available_tools: [{"tool_name": "create_reminder", "description": "Create, query, delete and modify reminders", "actions": ["create", "query", "delete"], "objects": ["time", "title", "repeat rule"]}, {"tool_name": "weather_service", "description": "Query weather for a specified city and date", "actions": ["query weather"], "objects": ["city", "date"]}, {"tool_name": "calendar_service", "description": "Query, create, modify and delete calendar events", "actions": ["query", "create", "delete"], "objects": ["title", "start time", "end time", "location"]} ]
+
+Conceive a natural human voice command, strictly following these rules: (1) Order : express demands in the exact order of the tool list. (2) One-tool-one-request : exactly 3 tools ⇒ exactly 3 demands. (3) Colloquial conversion : do not copy official terminology verbatim. (4) No long sentences : do not cram all demands into one sentence. 
+
+State guidance (injected when a tool is assigned the Ask-Detail state): Tool weather_service is in state Ask-Detail . You must deliberately omit exactly one critical information slot (e.g., city) in the corresponding de-mand. The omission must be achieved through natural colloquial phras-ing, with no explanatory language. 
+
+Linguistic style (one feature randomly sampled per turn): Use fuzzy quantifiers and relative time —avoid exact numbers or absolute timestamps; use expressions like "a bit", "later", "in a couple of days" in exactly one demand. 
+
+Expected output: Set a reminder for me to pick up the kid this afternoon. Oh, by the way, what’s the weather like tomorrow? And while you’re at it, check if I’ve got any meetings on Wednesday. First-turn user prompt for instruction generation. Variable blocks (tool list, state guidance, linguistic style) are dynamically injected based on the state-machine configuration. 23 System: You are an AI voice assistant. Generate a natural, helpful response based on the user’s command and backend execution states. 
+
+User: “Set a reminder for me to pick up the kid this afternoon. Oh, by the way, what’s the weather like tomorrow? And while you’re at it, check if I’ve got any meetings on Wednesday.” 
+
+Assistant: 
+
+Backend execution states:                              
+
+> -Tool : Create , query , delete and modify reminders State : [ Success ] -Tool : Query weather for aspecified city and date State : [ Ask - Detail ] Follow - up direction : city -Tool : Query , create , modify and delete calendar events State : [ Silent ]
+
+(2) Coherent delivery : blend multiple task feedback into one fluent response; no bullet-point reporting. (3) No tool leakage : never reveal tool names, codes, or backend terminology. 
+
+Expected output: “Your reminder to pick up the kid this afternoon has been set. By the way, which city would you like me to check the weather for tomorrow?” First-turn assistant prompt. Responses are strictly driven by execution states; the Silent tool is completely absent from the output. 
+
+System: You are a real human phone user. Generate the next-turn spoken command, building on the prior conversation. 
+
+Dialogue history: 
+
+User: Set a reminder to pick up the kid this afternoon. Oh, by the way, what’s the weather like tomorrow? And check if I’ve got any meetings on Wednesday.” 
+
+Assistant: Your afternoon reminder is set. Which city would you like me to check the weather for?” 
+
+User (next turn): 
+
+This turn requires: 
+
+• Answer the assistant’s follow-up question about the missing city. • Introduce new demands corresponding to the tools below. 
+
+Tools and target states:      
+
+> [" weather_service ", " calendar_service ", " wifi_service "] States : [ Ask - Detail , Select , Silent ]
+
+Rules: 
+
+1. Supplement : provide the previously omitted city name naturally; do not repeat the full original instruction. 2. Selection : choose one of the assistant’s offered options; output only the option itself. 3. Silent : completely skip this tool—no mention, hint, or summary. 4. Order : demands must follow the tool list order. 5. One-tool-one-request : exactly 3 tools ⇒ 3 demands. 6. No confirmation words : no "okay", "thanks", etc. 
+
+Linguistic style (one demand only): Use inverted sentence —front-load the object before the action, e.g., “That QQ Music, open it for me.” 
+
+Expected output: “Beijing. The first meeting on Wednesday, cancel that. And turn on the Wi-Fi.” Next-turn user prompt (context-inheritance mode). The user must simultaneously answer the assistant’s prior follow-up, make a selection, introduce new demands, and silently skip one tool—all in a single utterance. 24 System: You are an AI voice assistant. Generate a natural response based on the user’s next-turn command and backend execution states. 
+
+User: “Beijing. The first meeting on Wednesday, cancel that. And turn on the Wi-Fi.” 
+
+Assistant: 
+
+Backend execution states:                               
+
+> Tool : Query weather for aspecified city and date State : [ Success ] Tool : Query , create , modify and delete calendar events State : [ Ask - Detail ] Follow - up direction : specific date to cancel Tool : Toggle Wi - Fi connectivity State : [ Executing ]
+
+Response rules: 
+
+1. State-driven :• Success : confirm completion. • Ask-Detail : ask a specific question for the missing information. • Executing : inform the user the task is being processed. • Silent : completely skip, as if the demand never existed. 2. Coherent : blend all feedback into one fluent response. 3. No tool leakage : never reveal tool names or backend terms. 
+
+Expected output: “I’ve checked the weather for Beijing—it looks clear tomorrow. Which specific meeting on Wednesday would you like me to cancel? Meanwhile, I’m turning on the Wi-Fi for you.” Next-turn assistant prompt. Identical rule structure to the first-turn version; only the injected user query and tool states differ. 
+
+System: You are a multi-turn rewriting and task decomposition expert. Decompose user commands into single-turn, single-task units. 
+
+Dialogue history: 
+
+User: Set a reminder to pick up the kid this afternoon. Oh, by the way, what’s the weather like tomorrow? And check if I’ve got any meetings on Wednesday.” 
+
+Assistant: Your afternoon reminder is set. Which city would you like me to check the weather for?” 
+
+Current query: “Beijing. The first meeting on Wednesday, cancel that. And turn on the Wi-Fi.” 
+
+Task definition: 
+
+1. Rewriting : resolve pronouns and omissions using context. E.g., (Q: open Bluetooth)(A: done)(Q: turn it off)” → turn off Bluetooth”. 2. Multi-task splitting : separate compound commands into atomic tasks. E.g., (Q: open Wi-Fi, Bluetooth and dark mode)” → open Wi-Fi < br >open Bluetooth < br >enable dark mode”. 
+
+Output format: separate tasks with <br> .
+
+Expected output: 
+
+“Query weather for Beijing < br >cancel the first Wednesday meeting < br >turn on Wi-Fi” Task decomposition prompt. Invoked independently at each turn to produce an atomic task sequence 
+
+At, forming the middle tier of the three-level annotation structure (context → atomic tasks → candidate tools). 25 Round 1 (Initial) — Tools: create_reminder , weather_service , calendar_service 
+
+States: [Success, Ask-Detail, Silent] 
+
+User: “Set a reminder to pick up the kid this afternoon. Oh, by the way, what’s the weather like tomorrow? And check if I’ve got any meetings on Wednesday.” 
+
+Task split: 
+
+“Set reminder to pick up kid this afternoon” “Query tomorrow’s weather” “Check Wednesday meetings” 
+
+Assistant: “Your afternoon reminder is set. Which city would you like me to check the weather for tomorrow?” 
+
+(note: calendar_service → Silent, completely absent) 
+
+Round 2 (Inherit) — Tools: weather_service , calendar_service , wifi_service 
+
+States: [Ask-Detail, Select, Executing] 
+
+User: “Beijing. The first meeting on Wednesday, cancel that. And turn on the Wi-Fi.” 
+
+Task split: 
+
+“Query weather for Beijing” “Cancel first Wednesday meeting” “Turn on Wi-Fi” 
+
+Assistant: “Got it—tomorrow in Beijing will be partly cloudy, around 18 degrees. Your Wednesday meeting has been cancelled. Meanwhile, I’m enabling Wi-Fi for you.” 
+
+Round 3 (Inherit) — Tools: navigation_service , calendar_service , create_reminder 
+
+States: [Success, Retry, Ask-Detail] 
+
+User: “Navigate to the company. That meeting thing, try again. Also remind me to bring my laptop—oh wait, make it two reminders, one for the laptop and one for the charger.” 
+
+Task split: 
+
+“Navigate to company” “Retry creating Wednesday meeting” “Remind to bring laptop” “Remind to bring charger” 
+
+Assistant: “Route to the company is ready, about 25 minutes. I’m retrying the meeting creation now. What time should I set the laptop reminder for?” 
+
+Round 4 (Switch) — Tools: music_service , bluetooth_service 
+
+States: [Success, Success] 
+
+User: “Play some light music. Oh, and connect the headphones.” 
+
+Task split: 
+
+“Play light music” “Connect Bluetooth headphones” 
+
+Assistant: “Playing a light music playlist. Your Bluetooth headphones are now connected.” 
+
+End-to-end multi-turn dialogue construction example. Round 1 initializes states; Rounds 2–3 inherit context (answering follow-ups, retrying failed tasks, introducing new tools); Round 4 switches to a new topic. Each round independently invokes user prompt, task decomposition, and assistant prompt. 26

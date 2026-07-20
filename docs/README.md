@@ -6,31 +6,37 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-19
-- 运行时间：2026-07-19 20:52:03 UTC
+- 最新运行日期：2026-07-20
+- 运行时间：2026-07-20 21:34:32 UTC
 - 运行状态：成功
-- 本次总论文数：3
-- 精读区：2
+- 本次总论文数：5
+- 精读区：4
 - 速读区：1
 
 ### 今日简报（AI）
-今日精读了两篇前沿AI论文：一篇探索用LLM智能体模拟政治联盟形成，另一篇提出基于检索增强生成的自动驾驶场景生成框架；速读了一篇多智能体工作流的零拷贝分布式缓存方案。  
-最值得关注的是LLM在社会仿真中的联盟博弈涌现，以及RAG技术在安全关键场景生成中的迭代闭环设计。  
-建议读者从社会模拟与自主系统交叉视角，关注智能体协作的涌现机制与工程落地验证。
-- 详情：[/202607/19/README](/202607/19/README)
+智能体学会“自己练级”写长文，10分论文《GEIS》提出生成-评估-改进闭环，技能在迭代中持续精进。  
+另一亮点是《TARS》的“心理理论”智能体，能揣摩开发者意图，给出极具个性化的代码解读。  
+如果你平时用写作工具或IDE，不妨关注这类能自我纠错、预判你下一步想法的智能体。
+- 详情：[/202607/20/README](/202607/20/README)
 
 ### 精读区论文标签
-1. [Digital Pantheon: Simulating and Auditing Coalition Formation with LLM Agents](/202607/19/2607.15095v1-digital-pantheon-simulating-and-auditing-coalition-formation-with-llm-agents)  
+1. [GEIS: A Generation-Evaluation-Improvement Loop of Agent Skills for Long-Form Article Generation](/202607/20/2607.11503v1-geis-a-generation-evaluation-improvement-loop-of-agent-skills-for-long-form-article-generation)  
+   标签：评分：10.0/10、query:agentic-rag
+   evidence：具有浏览器取证能力的智能体框架用于长文生成
+2. [TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension](/202607/20/2607.15948v1-tars-a-theory-of-mind-agent-for-personalized-in-ide-code-comprehension)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：多智能体框架结合RAG，将智能体与政党宣言对齐，实现agentic RAG
-2. [Chat2Scenic: An Iterative RAG-Based Framework for Scenario Generation in Autonomous Driving](/202607/19/2607.14387v1-chat2scenic-an-iterative-rag-based-framework-for-scenario-generation-in-autonomous-driving)  
+   evidence：智能体利用RAG进行个性化代码理解
+3. [A Human-Centric Evaluation of a Retrieval-Augmented Generation System for Explaining Quebec Insurance Contracts](/202607/20/2607.15963v1-a-human-centric-evaluation-of-a-retrieval-augmented-generation-system-for-explaining-quebec-insurance-contracts)  
+   标签：评分：9.0/10、query:agentic-rag
+   evidence：评估用于合同解释的RAG系统，直接关系到利用外部知识改进生成的RAG方法
+4. [Is External Database Protection Static in Retrieval-Augmented Generation? Rethinking Privacy Preservation under Dynamic Queries](/202607/20/2607.14811v1-is-external-database-protection-static-in-retrieval-augmented-generation-rethinking-privacy-preservation-under-dynamic-queries)  
    标签：评分：8.0/10、query:agentic-rag
-   evidence：迭代式检索增强生成框架
+   evidence：提出面向RAG的提示感知动态层级差分隐私框架
 
 ### 速读区论文标签
-1. [[AAFLOW+] Stateful Operator Abstraction with Zero-Copy Distributed KV Cache Orchestration for Multi-Agent Workflows](/202607/19/2607.10987v1-aaflow-stateful-operator-abstraction-with-zero-copy-distributed-kv-cache-orchestration-for-multi-agent-workflows)  
-   标签：评分：6.0/10、query:agentic-rag
-   evidence：为涉及检索、规划和推理的多智能体LLM工作流引入有状态KV缓存编排。
+1. [PCTD: Preference-Guided Counterfactual Task Decomposition for Agent Tool Retrieval](/202607/20/2607.15696v1-pctd-preference-guided-counterfactual-task-decomposition-for-agent-tool-retrieval)  
+   标签：评分：7.0/10、query:agentic-rag
+   evidence：面向代理工具检索的任务分解，通过解决奖励黑客问题提高检索泛化能力
 
 
 <div class="dpr-home-promo-card">
