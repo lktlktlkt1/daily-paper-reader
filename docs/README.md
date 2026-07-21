@@ -6,37 +6,65 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-20
-- 运行时间：2026-07-20 21:34:32 UTC
+- 最新运行日期：2026-07-21
+- 运行时间：2026-07-21 21:41:33 UTC
 - 运行状态：成功
-- 本次总论文数：5
-- 精读区：4
-- 速读区：1
+- 本次总论文数：14
+- 精读区：7
+- 速读区：7
 
 ### 今日简报（AI）
-智能体学会“自己练级”写长文，10分论文《GEIS》提出生成-评估-改进闭环，技能在迭代中持续精进。  
-另一亮点是《TARS》的“心理理论”智能体，能揣摩开发者意图，给出极具个性化的代码解读。  
-如果你平时用写作工具或IDE，不妨关注这类能自我纠错、预判你下一步想法的智能体。
-- 详情：[/202607/20/README](/202607/20/README)
+- 今日共生成 14 篇推荐（精读 7 篇，速读 7 篇）
+- 精读：《Evidence-in-the-Loop: Trace-Driven Optimization for Customer-Service LLM Agents》（10.0/10）, 《RIMS: Preference Optimization via Smoothed Multi-pair Aggregation for Small-Scale LLM Retrieval-Augmented Generation》（9.0/10）
+- 速读：《Debate-on-Graph: Reliable and Adaptive Reasoning of Large Language Model on Uncertain Knowledge Graph》（8.0/10）, 《jina-reranker-v3.5: An Efficient Listwise Reranker with Hybrid Attention and Self-Distillation》（8.0/10）, 《When Do Multimodal and Graph-Augmented RAG Help? A Controlled Evaluation for Document Question Answering》（7.0/10）
+- 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
+- 详情：[/202607/21/README](/202607/21/README)
 
 ### 精读区论文标签
-1. [GEIS: A Generation-Evaluation-Improvement Loop of Agent Skills for Long-Form Article Generation](/202607/20/2607.11503v1-geis-a-generation-evaluation-improvement-loop-of-agent-skills-for-long-form-article-generation)  
+1. [Evidence-in-the-Loop: Trace-Driven Optimization for Customer-Service LLM Agents](/202607/21/2607.18039v1-evidence-in-the-loop-trace-driven-optimization-for-customer-service-llm-agents)  
    标签：评分：10.0/10、query:agentic-rag
-   evidence：具有浏览器取证能力的智能体框架用于长文生成
-2. [TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension](/202607/20/2607.15948v1-tars-a-theory-of-mind-agent-for-personalized-in-ide-code-comprehension)  
+   evidence：部署的智能体RAG工作流结合BM25和向量检索与LLM决策协调
+2. [RIMS: Preference Optimization via Smoothed Multi-pair Aggregation for Small-Scale LLM Retrieval-Augmented Generation](/202607/21/2607.16431v1-rims-preference-optimization-via-smoothed-multi-pair-aggregation-for-small-scale-llm-retrieval-augmented-generation)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：智能体利用RAG进行个性化代码理解
-3. [A Human-Centric Evaluation of a Retrieval-Augmented Generation System for Explaining Quebec Insurance Contracts](/202607/20/2607.15963v1-a-human-centric-evaluation-of-a-retrieval-augmented-generation-system-for-explaining-quebec-insurance-contracts)  
+   evidence：面向小LLM的鲁棒RAG偏好优化
+3. [NOWJ@COLIEE 2026: Adaptive Pipelines for Legal Retrieval and Reasoning](/202607/21/2607.16603v1-nowjcoliee-2026-adaptive-pipelines-for-legal-retrieval-and-reasoning)  
    标签：评分：9.0/10、query:agentic-rag
-   evidence：评估用于合同解释的RAG系统，直接关系到利用外部知识改进生成的RAG方法
-4. [Is External Database Protection Static in Retrieval-Augmented Generation? Rethinking Privacy Preservation under Dynamic Queries](/202607/20/2607.14811v1-is-external-database-protection-static-in-retrieval-augmented-generation-rethinking-privacy-preservation-under-dynamic-queries)  
-   标签：评分：8.0/10、query:agentic-rag
-   evidence：提出面向RAG的提示感知动态层级差分隐私框架
+   evidence：提出用于法律推理的检索增强生成框架
+4. [Salience Induction against Multi-Hop RAG Agents: Threat and Defense](/202607/21/2607.17535v1-salience-induction-against-multi-hop-rag-agents-threat-and-defense)  
+   标签：评分：9.0/10、query:agentic-rag
+   evidence：针对智能体RAG系统的多跳推理攻击面
+5. [Why Does Feedback-Augmented Self-Distillation Fail to Improve Retrieval-Interleaved Search Agents?](/202607/21/2607.17558v1-why-does-feedback-augmented-self-distillation-fail-to-improve-retrieval-interleaved-search-agents)  
+   标签：评分：9.0/10、query:agentic-rag
+   evidence：分析自蒸馏训练检索交织搜索智能体失败的原因
+6. [DeLIVeR: Decomposed Learning for Information-grounded Veracity Recognition via Reinforced Knowledge Graph Exploration](/202607/21/2607.17935v1-deliver-decomposed-learning-for-information-grounded-veracity-recognition-via-reinforced-knowledge-graph-exploration)  
+   标签：评分：9.0/10、query:agentic-rag
+   evidence：Planner LLM智能体通过声明分解在知识图谱上动态检索
+7. [FinSAgent: Corpus-Aligned Multi-Agent RAG Framework for Evidence-Grounded SEC Filing Question Answering](/202607/21/2607.18102v1-finsagent-corpus-aligned-multi-agent-rag-framework-for-evidence-grounded-sec-filing-question-answering)  
+   标签：评分：9.0/10、query:agentic-rag
+   evidence：多智能体RAG框架用于证据对齐的SEC文件问答
 
 ### 速读区论文标签
-1. [PCTD: Preference-Guided Counterfactual Task Decomposition for Agent Tool Retrieval](/202607/20/2607.15696v1-pctd-preference-guided-counterfactual-task-decomposition-for-agent-tool-retrieval)  
+1. [Debate-on-Graph: Reliable and Adaptive Reasoning of Large Language Model on Uncertain Knowledge Graph](/202607/21/2607.17266v1-debate-on-graph-reliable-and-adaptive-reasoning-of-large-language-model-on-uncertain-knowledge-graph)  
+   标签：评分：8.0/10、query:agentic-rag
+   evidence：利用LLM智能体在不确定知识图谱上辩论以增强推理可靠性
+2. [jina-reranker-v3.5: An Efficient Listwise Reranker with Hybrid Attention and Self-Distillation](/202607/21/2607.18152v1-jina-reranker-v35-an-efficient-listwise-reranker-with-hybrid-attention-and-self-distillation)  
+   标签：评分：8.0/10、query:agentic-rag
+   evidence：智能体检索管道的核心组件
+3. [When Do Multimodal and Graph-Augmented RAG Help? A Controlled Evaluation for Document Question Answering](/202607/21/2607.16604v1-when-do-multimodal-and-graph-augmented-rag-help-a-controlled-evaluation-for-document-question-answering)  
    标签：评分：7.0/10、query:agentic-rag
-   evidence：面向代理工具检索的任务分解，通过解决奖励黑客问题提高检索泛化能力
+   evidence：面向文档问答的多模态图增强RAG架构
+4. [Exploratory and Assimilating Reflection: Reflective Recall Cycle for Long-term Memory](/202607/21/2607.17879v1-exploratory-and-assimilating-reflection-reflective-recall-cycle-for-long-term-memory)  
+   标签：评分：7.0/10、query:agentic-rag
+   evidence：LLM智能体的记忆检索框架，采用迭代搜索与经验回放
+5. [Testing Retrieval-Augmented Generation Systems with Chunk Coverage](/202607/21/2607.18155v1-testing-retrieval-augmented-generation-systems-with-chunk-coverage)  
+   标签：评分：7.0/10、query:agentic-rag
+   evidence：提出块覆盖率指标以测试RAG系统检索行为
+6. [TurboVec: A Case Study in Cost-Efficient Private Retrieval for Enterprise RAG via Codebook-Oblivious Quantization](/202607/21/2607.16973v1-turbovec-a-case-study-in-cost-efficient-private-retrieval-for-enterprise-rag-via-codebook-oblivious-quantization)  
+   标签：评分：6.0/10、query:agentic-rag
+   evidence：提出TurboVec，一种面向RAG的高效私密向量索引
+7. [C$^2$KV: Compressed and Composable KV Cache Reuse for Efficient LLM Inference](/202607/21/2607.17715v1-c2kv-compressed-and-composable-kv-cache-reuse-for-efficient-llm-inference)  
+   标签：评分：6.0/10、query:agentic-rag
+   evidence：检索增强生成与多文档推理中的应用
 
 
 <div class="dpr-home-promo-card">
